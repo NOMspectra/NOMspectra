@@ -78,4 +78,5 @@ if __name__ == '__main__':
     d = IsotopeDistribution(brutto)
     d.generate_iterations(100000)
     d.draw()
+    print("Time:", time.time() - T)
 
