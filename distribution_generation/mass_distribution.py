@@ -7,12 +7,13 @@ import numpy as np
 import pandas as pd
 from numpy.random import multinomial
 
+import settings
+
 logger = logging.getLogger(__name__)
 
 
 class IsotopeDistribution(object):
-    # FIXME move path to settings.py
-    masses = pd.read_csv("masses/isotope_abundance.csv", sep=";")
+    masses = pd.read_csv(settings.ISOTOPE_ABUNDANCE_PATH, sep=";")
 
     def __init__(self, brutto: Union[dict, str]) -> None:
         if isinstance(brutto, str):
@@ -73,10 +74,10 @@ class IsotopeDistribution(object):
 
 if __name__ == '__main__':
     # d = IsotopeDistribution({"C": 2, "H": 6, "O": 1})
-    brutto = {"Pd": 3, "Pt": 3}
+    brutto = {"Na": 2, "Pt": 1, "Cl": 4}
     T = time.time()
     d = IsotopeDistribution(brutto)
     d.generate_iterations(100000)
     d.draw()
-    print("Time:", time.time() - T)
+    print("Time:", time.time() - T, "seconds")
 

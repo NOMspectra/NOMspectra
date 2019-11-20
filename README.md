@@ -25,6 +25,6 @@ Usage example for isotope distribution generator:
     # plotting obtained distribution
     d.draw()
     
-    # Graph can be saved by plt.save()
+    # Graph can be saved by plt.savefig(filename, "png")
     # For that import matplotlib.pyplot as plt is needed
 </pre>
