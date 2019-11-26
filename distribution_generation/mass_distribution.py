@@ -74,7 +74,7 @@ class IsotopeDistribution(object):
 
 if __name__ == '__main__':
     # d = IsotopeDistribution({"C": 2, "H": 6, "O": 1})
-    brutto = {"Na": 2, "Pt": 1, "Cl": 4}
+    brutto = {"Na": 2, "Pt": 3, "Cl": 4}
     T = time.time()
     d = IsotopeDistribution(brutto)
     d.generate_iterations(100000)
