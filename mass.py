@@ -116,8 +116,12 @@ class Brutto(object):
 class MassSpectra(object):
     # should be columns: mass (!), I, calculated_mass, abs_error, rel_error
 
-    def __init__(self, table: Optional[pd.DataFrame] = None):
-        self.elems = list("CHONS")
+    def __init__(
+            self,
+            table: Optional[pd.DataFrame] = None,
+            elems: Optional[list] = None
+    ):
+        self.elems = elems if elems else list("CHONS")
         self.features = ["mass", "calculated_mass", "I", "abs_error", "rel_error", "numbers"]
 
         if table:
@@ -128,10 +132,16 @@ class MassSpectra(object):
         else:
             self.table = pd.DataFrame()
 
-    def load(self, filename: Union[Path, str], mapping: Mapping[str, str], sep=";"):
+    def load(
+            self,
+            filename: Union[Path, str],
+            mapper: Mapping[str, str],
+            sep: str = ";"
+    ) -> None:
+
         self.table = pd.read_csv(filename, sep=sep)
 
-        self.table = self.table.rename(mapping)
+        self.table = self.table.rename(mapper)
 
     def assign(self):
         pass
@@ -142,10 +152,12 @@ class MassSpectra(object):
         return self.table[columns].__repr__()
 
     def __str__(self):
-        return "MassSpectra"
+        return self.table[self.features].__str__()
 
-    def calculate_error(self) -> None:
-        pass
+    def calculate_error(self) -> "MassSpectra":
+        table = self.table.copy()
+        if "calculated_mass" in table:
+            table["abs_error"] = table["mass"] - table["calculated_mass"]
 
     def calculate_mass(self) -> "MassSpectra":
         table = self.table.copy()
@@ -258,6 +270,18 @@ class MassSpectra(object):
 
     def __len__(self):
         return len(self.table)
+
+    def __lt__(self, n: int) -> "MassSpectra":
+        return MassSpectra(self.table[self.table["numbers"] < n])
+
+    def __le__(self, n: int) -> "MassSpectra":
+        return MassSpectra(self.table[self.table["numbers"] <= n])
+
+    def __gt__(self, n: int) -> "MassSpectra":
+        return MassSpectra(self.table[self.table["numbers"] > n])
+
+    def __ge__(self, n: int) -> "MassSpectra":
+        return MassSpectra(self.table[self.table["numbers"] >= n])
 
     def calculate_jaccard_needham_score(self, other) -> float:
         return len(self & other) / len(self | other)
