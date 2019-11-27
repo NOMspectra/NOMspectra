@@ -1,7 +1,8 @@
 from itertools import *
 from pathlib import Path
-from typing import Sequence, Union, Optional, Mapping, Tuple
+from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
 import re
+from collections import Counter
 
 import numpy as np
 import pandas as pd
@@ -11,13 +12,6 @@ import settings
 
 class NoSuchChemicalElement(Exception):
     pass
-
-
-monoisotopic_masses = {
-    "C": 12.000000,
-    "H": 1.08,
-    "O": 15.999,
-}
 
 
 def calculate_mass(
@@ -89,9 +83,19 @@ class Brutto(object):
         Ca3(PO4)2 -> {'Ca': 3, 'P': 4, 'O': 4}
 
 
-
-
         """
+        br = Counter()
+        pattern = "[A-Z][a-z]?\d*|\((?:[^()]*(?:\(.*\))?[^()]*)+\)\d+"
+        while "(" in brutto:
+            for part in re.findall(pattern, brutto):
+                pass
+
+        for part in re.findall(pattern, brutto):
+            if "(" in part:
+                pass
+            else:
+                element = re.findall("[A-Z][a-z]", part)[0]
+                number = re.findall("\d+", part)
 
     def __str__(self):
         pass
@@ -110,10 +114,16 @@ class Brutto(object):
 
 
 class MassSpectra(object):
+    # should be columns: mass (!), I, calculated_mass, abs_error, rel_error
 
     def __init__(self, table: Optional[pd.DataFrame] = None):
+        self.elems = list("CHONS")
+        self.features = ["mass", "calculated_mass", "I", "abs_error", "rel_error", "numbers"]
+
         if table:
             self.table = table
+            if "numbers" not in self.table:
+                self.table["numbers"] = 1
 
         else:
             self.table = pd.DataFrame()
@@ -121,62 +131,130 @@ class MassSpectra(object):
     def load(self, filename: Union[Path, str], mapping: Mapping[str, str], sep=";"):
         self.table = pd.read_csv(filename, sep=sep)
 
-        # should be columns: mass (!), I, brutto, calculated_mass, abs error, ppm error
         self.table = self.table.rename(mapping)
 
     def assign(self):
         pass
 
-    def repr(self):
-        return self.table
+    def __repr__(self):
+        # repr only useful columns
+        columns = ["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"]
+        return self.table[columns].__repr__()
 
     def __str__(self):
-        pass
+        return "MassSpectra"
 
     def calculate_error(self) -> None:
         pass
 
-    def calculate_mass(self) -> None:
-        pass
+    def calculate_mass(self) -> "MassSpectra":
+        table = self.table.copy()
+        table["calculated_mass"] = calculate_mass(self.table[self.elems].values, self.elems)
+        return MassSpectra(table)
 
-    def calculate_dbe(self) -> None:
-        pass
+    def get_list_brutto(self) -> Sequence[Tuple[float]]:
+        return self.table[self.elems].values
 
-    def calculate_ai(self) -> None:
-        pass
+    def get_dict_brutto(self) -> Mapping[Tuple, Dict[str, float]]:
 
-    def get_list_brutto(self) -> Sequence[Tuple[]]:
-        pass
+        res = {}
+        bruttos = self.table[self.elems].values.tolist()
+        bruttos = [tuple(brutto) for brutto in bruttos]
 
-    def __or__(self: "MassSpectr", other: "MassSpectr", mode="brutto") -> "MassSpectr":
-        pass
+        for [mass, calculated_mass, I, abs_error, rel_error, numbers], brutto \
+                in zip(self.table[self.features].values, bruttos):
 
-    def __xor__(self: "MassSpectr", other: "MassSpectr") -> "MassSpectr":
-        pass
+            res[brutto] = {
+                "mass": mass,
+                "calculated_mass": calculated_mass,
+                "I": I,
+                "abs_error": abs_error,
+                "rel_error": rel_error,
+                "numbers": numbers
+            }
 
-    def __and__(self: "MassSpectr", other: "MassSpectr") -> "MassSpectr":
-        pass
+        return res
 
-    def __add__(self: "MassSpectr", other: "MassSpectr") -> "MassSpectr":
-        # by brutto
+    def __or__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
+        a = self.get_dict_brutto()
+        b = self.get_dict_brutto()
 
-        a = self.get_list_brutto()
-        b = other.get_list_brutto()
+        bruttos = set(a.keys()) | set(b.keys())
 
-        # probably I can rewrite this piece
+        res = pd.DataFrame()
+        for brutto in bruttos:
+            if brutto in a and brutto in b:
+                # number is sum of a['numbers'] and b['numbers']
+                c = a[brutto].copy()
+                c["numbers"] += b[brutto]["numbers"]
 
-        a = set(a)
-        b = set(b)
+                res.append(c, ignore_index=True)
 
+            elif brutto in a:
+                res.append(a[brutto], ignore_index=True)
+            else:
+                res.append(b[brutto], ignore_index=True)
 
-        elems = list("CHONS")
-        table_1 = pd.DataFrame(list(a & b), columns=elems)
-        table_1["numbers"] = 2
+        bruttos = pd.DataFrame(np.array(bruttos), columns=self.elems)
 
-        table_2 = pd.DataFrame(list(a ^ b), columns=elems)
-        table_2["numbers"] = 1
+        res = pd.concat([res, bruttos], axis=1, sort=False)
 
-        return pd.concat([table_1, table_2])
+        res = res.sort(by="mass")
+
+        return MassSpectra(res)
+
+    def __xor__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
+        a = self.get_dict_brutto()
+        b = self.get_dict_brutto()
+
+        bruttos = set(a.keys()) ^ set(b.keys())
+
+        res = pd.DataFrame()
+        for brutto in bruttos:
+            if brutto in a:
+                res.append(a[brutto], ignore_index=True)
+            else:
+                res.append(b[brutto], ignore_index=True)
+
+        bruttos = pd.DataFrame(np.array(bruttos), columns=self.elems)
+        res = pd.concat([res, bruttos], axis=1, sort=False).sort(by="mass")
+
+        return MassSpectra(res)
+
+    def __and__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
+        a = self.get_dict_brutto()
+        b = self.get_dict_brutto()
+
+        bruttos = set(a.keys()) & set(b.keys())
+
+        res = pd.DataFrame()
+        for brutto in bruttos:
+            c = a[brutto].copy()
+            c["numbers"] += b[brutto]["numbers"]
+            res.append(c, ignore_index=True)
+
+        bruttos = pd.DataFrame(np.array(brutto), columns=self.elems)
+        res = pd.concat([res, bruttos], axis=1, sort=False).sort(by="mass")
+
+        return MassSpectra(res)
+
+    def __add__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
+        return self.__or__(other)
+
+    def __sub__(self, other):
+        a = self.get_dict_brutto()
+        b = self.get_dict_brutto()
+
+        bruttos = set(a.keys()) - set(b.keys())
+
+        res = pd.DataFrame()
+        for brutto in bruttos:
+            res.append(a[brutto], ignore_index=True)
+
+        bruttos = pd.DataFrame(np.array(brutto), columns=self.elems)
+        res = pd.concat([res, bruttos], axis=1, sort=False).sort(by="mass")
+
+        return MassSpectra(res)
 
     def __len__(self):
         return len(self.table)
@@ -188,4 +266,10 @@ class MassSpectra(object):
         pass
 
     def flat_van_krevelen(self):
+        pass
+
+    def calculate_dbe(self) -> None:
+        pass
+
+    def calculate_ai(self) -> None:
         pass
