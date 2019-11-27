@@ -1,6 +1,8 @@
 from itertools import *
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
+from typing import TypeVar
+
 import re
 from collections import Counter
 
@@ -8,6 +10,8 @@ import numpy as np
 import pandas as pd
 
 import settings
+
+PandasDataFrame = TypeVar('pandas.core.frame.DataFrame')
 
 
 class NoSuchChemicalElement(Exception):
@@ -103,7 +107,7 @@ class Brutto(object):
     def __repr__(self):
         pass
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, int]:
         pass
 
     def to_tuple(self):
@@ -135,16 +139,45 @@ class MassSpectra(object):
     def load(
             self,
             filename: Union[Path, str],
-            mapper: Mapping[str, str],
+            mapper: Optional[Mapping[str, str]] = None,
             sep: str = ";"
     ) -> None:
 
         self.table = pd.read_csv(filename, sep=sep)
+        if mapper:
+            self.table = self.table.rename(mapper)
 
-        self.table = self.table.rename(mapper)
+    def save(self, filename: Union[Path, str], sep: str = ";"):
 
-    def assign(self):
-        pass
+        self.table.to_csv(filename, sep=sep)
+
+    def assign(self, generated_bruttos_table: pd.DataFrame, elems: Sequence[str], rel_error: float = 0.5) -> "MassSpectra":
+        """Finding the nearest mass in generated_bruttos_table
+
+        :param generated_bruttos_table: pandas DataFrame with column 'mass' and elements, should be sorted by 'mass'
+        :param elems: Sequence of elements corresponding to generated_bruttos_table
+        :param rel_error: error in ppm
+        :return: MassSpectra object with assigned signals
+        """
+        table = self.table.copy()
+        masses = generated_bruttos_table["mass"]
+
+        elems = list(generated_bruttos_table.drop("mass"))
+        bruttos = generated_bruttos_table[elems].values.tolist()
+
+        res = pd.DataFrame()
+        for row in table.iterrows():
+            mass = row["mass"]
+            idx = np.searchsorted(masses, mass, side='left')
+            if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
+                idx -= 1
+
+            if np.fabs(masses[idx] - mass) / mass <= rel_error:
+                res.append({**dict(zip(elems, bruttos[idx])), "assign": True}, ignore_index=True)
+            else:
+                res.append({"assign": False}, ignore_index=True)
+
+        return MassSpectra(pd.concat([table, res], axis=1, ignore_index=True))
 
     def __repr__(self):
         # repr only useful columns
@@ -155,9 +188,15 @@ class MassSpectra(object):
         return self.table[self.features].__str__()
 
     def calculate_error(self) -> "MassSpectra":
-        table = self.table.copy()
-        if "calculated_mass" in table:
-            table["abs_error"] = table["mass"] - table["calculated_mass"]
+        if "calculated_mass" not in self.table:
+            table = self.calculate_mass()
+        else:
+            table = self.table.copy()
+
+        table["abs_error"] = table["mass"] - table["calculated_mass"]
+        table["rel_error"] = table["abs_error"] / table["mass"]
+
+        return MassSpectra(table)
 
     def calculate_mass(self) -> "MassSpectra":
         table = self.table.copy()
@@ -208,10 +247,7 @@ class MassSpectra(object):
                 res.append(b[brutto], ignore_index=True)
 
         bruttos = pd.DataFrame(np.array(bruttos), columns=self.elems)
-
-        res = pd.concat([res, bruttos], axis=1, sort=False)
-
-        res = res.sort(by="mass")
+        res = pd.concat([res, bruttos], axis=1, sort=False).sort(by="mass")
 
         return MassSpectra(res)
 
