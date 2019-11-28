@@ -1,5 +1,7 @@
 import unittest
-from mass import calculate_mass, generate_brutto_formulas
+from utils import calculate_mass
+from brutto_generator import generate_brutto_formulas
+from mass import MassSpectra
 
 
 class Test(unittest.TestCase):
@@ -28,6 +30,40 @@ class Test(unittest.TestCase):
 
         masses = df["mass"].values
         self.assertTrue(all(masses[i] <= masses[i+1] for i in range(len(masses)-1)))
+
+    def test_load(self):
+        ms = MassSpectra()
+
+        mapper = {"mw": "mass", "relativeAbundance": "I"}
+        ms.load("../data/CHA-Florida.csv", mapper, sep=",")  # FIXME relative paths are bad
+
+        self.assertTrue("mass" in ms.table)
+        self.assertTrue("I" in ms.table)
+
+        self.assertFalse("mw" in ms.table)
+        self.assertFalse("relativeAbundance" in ms.table)
+
+    def test_mass_spectra_constructor(self):
+        ms = MassSpectra()
+
+        mapper = {"mw": "mass", "relativeAbundance": "I"}
+        ms.load("../data/CHA-Florida.csv", mapper, sep=",")  # FIXME relative paths are bad
+
+        ms = MassSpectra(ms.table)
+
+    def test_assign(self):
+        ms = MassSpectra()
+
+        mapper = {"mw": "mass", "relativeAbundance": "I"}
+        ms.load("../data/CHA-Florida.csv", mapper)
+
+        ms = ms.assign
+
+    def test_save(self):
+        pass
+
+    def test_calculate_dbe(self):
+        pass
 
 
 if __name__ == "__main__":

@@ -9,69 +9,8 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
+from utils.__init__ import calculate_mass
 import settings
-
-PandasDataFrame = TypeVar('pandas.core.frame.DataFrame')
-
-
-class NoSuchChemicalElement(Exception):
-    pass
-
-
-def calculate_mass(
-    brutto_formulas: Sequence[Sequence],
-    elems: Union[str, Sequence[str]] = "CHONS"
-) -> np.ndarray:
-    """
-    Calculate monoisotopic masses for sequence of brutto formulae coefficients tuple
-
-    :param brutto_formulas: 2d array of size (number of brutto formulae, len(elem))
-    :param elems: elements that corresponds to columns
-    :return: sequence of calculated masses
-    """
-    masses = pd.read_csv(settings.MONOISOTOPIC_MASSES_PATH, sep=";")
-    elem_masses = []
-    for elem in elems:
-        try:
-            mass = masses[masses.element == elem]["mass"].values[0]
-        except Exception as e:
-            raise NoSuchChemicalElement(f"There is not element: {elem},\nerror: {e}")
-        elem_masses.append(mass)
-
-    elem_masses = np.array(elem_masses)
-    return np.sum(np.array(brutto_formulas) * elem_masses, axis=1)
-
-
-def generate_brutto_formulas(
-    min_n: Sequence[int] = (-10, -30, -5, -5, -0),
-    max_n: Sequence[int] = (10, 30, 5, 5, 0),
-    elems: Union[str, Sequence[str]] = "CHONS"
-):
-    """
-    Generates brutto formula by limit conditions and calculate masses
-    :param min_n:
-    :param max_n:
-    :param elems: Iterable object of elements i.e ["CHO"] or ["Cu", "K", "C"]
-    :return:
-    """
-
-    # generate brutto
-    brutto = np.array(list(product(*[range(i, j + 1) for (i, j) in zip(min_n, max_n)])))
-
-    # calculate masses
-    masses = calculate_mass(brutto)
-
-    # create pandas table for collect results
-    df = pd.DataFrame()
-    df["mass"] = masses
-
-    for i, elem in enumerate(elems):
-        df[elem] = brutto[:, i]
-
-    # sorting table
-    df = df.sort_values(by=["mass"])
-
-    return df
 
 
 class Brutto(object):
@@ -128,7 +67,7 @@ class MassSpectra(object):
         self.elems = elems if elems else list("CHONS")
         self.features = ["mass", "calculated_mass", "I", "abs_error", "rel_error", "numbers"]
 
-        if table:
+        if table is not None:
             self.table = table
             if "numbers" not in self.table:
                 self.table["numbers"] = 1
@@ -142,13 +81,11 @@ class MassSpectra(object):
             mapper: Optional[Mapping[str, str]] = None,
             sep: str = ";"
     ) -> None:
-
         self.table = pd.read_csv(filename, sep=sep)
         if mapper:
-            self.table = self.table.rename(mapper)
+            self.table = self.table.rename(columns=mapper)
 
-    def save(self, filename: Union[Path, str], sep: str = ";"):
-
+    def save(self, filename: Union[Path, str], sep: str = ";") -> None:
         self.table.to_csv(filename, sep=sep)
 
     def assign(self, generated_bruttos_table: pd.DataFrame, elems: Sequence[str], rel_error: float = 0.5) -> "MassSpectra":
