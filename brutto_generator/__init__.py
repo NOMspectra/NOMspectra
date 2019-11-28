@@ -1,9 +1,12 @@
-import pandas as pd
-from typing import Sequence
-from itertools import product
-import numpy as np
-from utils import calculate_mass
 import time
+from itertools import product
+from typing import Sequence
+
+import numpy as np
+import pandas as pd
+
+from utils import calculate_mass
+
 
 def generate_brutto_formulas(
         min_n: Sequence[int] = (-10, -30, -5, -5, -0),

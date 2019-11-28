@@ -1,10 +1,18 @@
+import logging
+import time
 import unittest
-from utils import calculate_mass
+
+import pandas as pd
+
 from brutto_generator import generate_brutto_formulas
 from mass import MassSpectra
+from utils import calculate_mass
 
 
 class Test(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.logger = logging.getLogger(__name__)
 
     def test_get_mass(self):
 
@@ -52,12 +60,28 @@ class Test(unittest.TestCase):
         ms = MassSpectra(ms.table)
 
     def test_assign(self):
+
+        # load a spectrum
         ms = MassSpectra()
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
-        ms.load("../data/CHA-Florida.csv", mapper)
+        ms.load(
+            "../data/CHA-Florida.csv",
+            mapper,
+            sep=',',
+            ignore_columns=["peakNo", "errorPPM", "DBE", "class", "C", "H", "O", "N", "S", "z"]
+        )
 
-        ms = ms.assign
+        gen_brutto = pd.read_csv("../brutto_generator/C_H_O_N_S.csv", sep=";")
+
+        T = time.time()
+        ms = ms.assign(gen_brutto, elems=list("CHONS"))
+
+        self.logger.info(f"Spectrum assignment is done for {time.time() - T} seconds")
+
+        ms = ms.calculate_mass().calculate_error()
+
+        ms.save("tmp.csv")
 
     def test_save(self):
         pass

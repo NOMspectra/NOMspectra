@@ -1,16 +1,15 @@
-from itertools import *
-from pathlib import Path
-from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
-from typing import TypeVar
-
+import logging
 import re
 from collections import Counter
+from pathlib import Path
+from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
 
 import numpy as np
 import pandas as pd
 
-from utils.__init__ import calculate_mass
-import settings
+from utils import calculate_mass
+
+logger = logging.getLogger(__name__)
 
 
 class Brutto(object):
@@ -79,16 +78,27 @@ class MassSpectra(object):
             self,
             filename: Union[Path, str],
             mapper: Optional[Mapping[str, str]] = None,
+            ignore_columns: Optional[Sequence[str]] = None,
             sep: str = ";"
     ) -> None:
+
         self.table = pd.read_csv(filename, sep=sep)
         if mapper:
             self.table = self.table.rename(columns=mapper)
 
-    def save(self, filename: Union[Path, str], sep: str = ";") -> None:
-        self.table.to_csv(filename, sep=sep)
+        if ignore_columns:
+            self.table = self.table.drop(columns=ignore_columns)
 
-    def assign(self, generated_bruttos_table: pd.DataFrame, elems: Sequence[str], rel_error: float = 0.5) -> "MassSpectra":
+    def save(self, filename: Union[Path, str], sep: str = ";") -> None:
+        self.table.to_csv(filename, sep=sep, index=False)
+
+    def assign(
+            self,
+            generated_bruttos_table: pd.DataFrame,
+            elems: Sequence[str],
+            rel_error: float = 0.5
+    ) -> "MassSpectra":
+
         """Finding the nearest mass in generated_bruttos_table
 
         :param generated_bruttos_table: pandas DataFrame with column 'mass' and elements, should be sorted by 'mass'
@@ -96,25 +106,33 @@ class MassSpectra(object):
         :param rel_error: error in ppm
         :return: MassSpectra object with assigned signals
         """
-        table = self.table.copy()
-        masses = generated_bruttos_table["mass"]
 
-        elems = list(generated_bruttos_table.drop("mass"))
+        overlap_columns = set(elems) & set(list(self.table))
+        if overlap_columns:
+            logger.warning(f"Following columns will be dropped: {overlap_columns}")
+            table = self.table.drop(columns=elems)
+        else:
+            table = self.table.copy()
+
+        masses = generated_bruttos_table["mass"]
+        masses -= 0.00054858 # electron mass
+
+        elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
 
         res = pd.DataFrame()
-        for row in table.iterrows():
+        for index, row in table.iterrows():
             mass = row["mass"]
             idx = np.searchsorted(masses, mass, side='left')
             if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
                 idx -= 1
 
-            if np.fabs(masses[idx] - mass) / mass <= rel_error:
-                res.append({**dict(zip(elems, bruttos[idx])), "assign": True}, ignore_index=True)
+            if np.fabs(masses[idx] - mass) / mass * 1e6 <= rel_error:
+                res = res.append({**dict(zip(elems, bruttos[idx])), "assign": True}, ignore_index=True)
             else:
-                res.append({"assign": False}, ignore_index=True)
+                res = res.append({"assign": False}, ignore_index=True)
 
-        return MassSpectra(pd.concat([table, res], axis=1, ignore_index=True))
+        return MassSpectra(table.join(res))
 
     def __repr__(self):
         # repr only useful columns
@@ -131,7 +149,7 @@ class MassSpectra(object):
             table = self.table.copy()
 
         table["abs_error"] = table["mass"] - table["calculated_mass"]
-        table["rel_error"] = table["abs_error"] / table["mass"]
+        table["rel_error"] = table["abs_error"] / table["mass"] * 1e6
 
         return MassSpectra(table)
 
