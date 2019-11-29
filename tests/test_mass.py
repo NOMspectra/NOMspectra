@@ -6,11 +6,10 @@ import unittest
 import numpy as np
 import pandas as pd
 
+import settings
 from brutto_generator import generate_brutto_formulas
 from mass import MassSpectrum
 from utils import calculate_mass
-import settings
-from functools import reduce
 
 
 class Test(unittest.TestCase):
@@ -26,13 +25,12 @@ class Test(unittest.TestCase):
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
         for filename in os.listdir(settings.DATA_FOLDER):
-            self.masses.append(MassSpectrum())
-            self.masses[-1].load(
+            self.masses.append(MassSpectrum().load(
                 f"{settings.DATA_FOLDER}/{filename}",
                 mapper=mapper,
                 sep=',',
                 ignore_columns=["peakNo", "errorPPM", "DBE", "class", "z"]
-            )
+            ))
 
     def test_get_mass(self):
 
@@ -232,6 +230,13 @@ class Test(unittest.TestCase):
 
         for i, ms in enumerate([x, y, z]):
             self.assertTrue(len(ms) < lens[i])
+
+    def test_reset_to_one(self):
+        x, y, z = self.masses[3:6]
+
+        union = (x + y + z).reset_to_one()
+
+        self.assertEqual(1, np.mean(union.table.numbers == 1))
 
     def test_calculate_dbe(self):
         pass

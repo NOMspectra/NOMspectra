@@ -1,6 +1,5 @@
-from pathlib import Path
-
 import os.path
+from pathlib import Path
 
 # Get the absolute path of the settings.py file's directory
 PWD = os.path.dirname(os.path.realpath(__file__ ))

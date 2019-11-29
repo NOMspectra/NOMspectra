@@ -1,7 +1,4 @@
 import logging
-import re
-import time
-from collections import Counter
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
 
@@ -270,7 +267,7 @@ class MassSpectrum(object):
 
     def reset_to_one(self) -> "MassSpectrum":
         table = self.table.copy()
-        table["nubmers"] = 1
+        table["numbers"] = 1
 
         return MassSpectrum(table)
 
