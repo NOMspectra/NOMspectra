@@ -60,7 +60,7 @@ class Brutto(object):
         pass
 
 
-class MassSpectra(object):
+class MassSpectrum(object):
     # should be columns: mass (!), I, calculated_mass, abs_error, rel_error
 
     def __init__(
@@ -102,7 +102,7 @@ class MassSpectra(object):
             generated_bruttos_table: pd.DataFrame,
             elems: Sequence[str],
             rel_error: float = 0.5
-    ) -> "MassSpectra":
+    ) -> "MassSpectrum":
 
         """Finding the nearest mass in generated_bruttos_table
 
@@ -137,7 +137,7 @@ class MassSpectra(object):
             else:
                 res = res.append({"assign": False}, ignore_index=True)
 
-        return MassSpectra(table.join(res))
+        return MassSpectrum(table.join(res))
 
     def __repr__(self):
         # repr only useful columns
@@ -147,9 +147,10 @@ class MassSpectra(object):
         return self.table[columns].__repr__()
 
     def __str__(self):
-        return self.table[self.features].__str__()
+        columns = [column for column in self.features if column in self.table]
+        return self.table[columns].__str__()
 
-    def calculate_error(self) -> "MassSpectra":
+    def calculate_error(self) -> "MassSpectrum":
         if "calculated_mass" not in self.table:
             table = self.calculate_mass()
         else:
@@ -158,12 +159,12 @@ class MassSpectra(object):
         table["abs_error"] = table["mass"] - table["calculated_mass"]
         table["rel_error"] = table["abs_error"] / table["mass"] * 1e6
 
-        return MassSpectra(table)
+        return MassSpectrum(table)
 
-    def calculate_mass(self) -> "MassSpectra":
+    def calculate_mass(self) -> "MassSpectrum":
         table = self.table.copy()
         table["calculated_mass"] = calculate_mass(self.table[self.elems].values, self.elems)
-        return MassSpectra(table)
+        return MassSpectrum(table)
 
     def get_brutto_list(self) -> Sequence[Tuple[float]]:
         return self.table[self.elems].values
@@ -191,7 +192,7 @@ class MassSpectra(object):
 
         return res
 
-    def __or__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
+    def __or__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
         a = self.get_brutto_dict()
         b = other.get_brutto_dict()
 
@@ -221,9 +222,9 @@ class MassSpectra(object):
 
         res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
 
-        return MassSpectra(res)
+        return MassSpectrum(res)
 
-    def __xor__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
+    def __xor__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
         a = self.get_brutto_dict()
         b = other.get_brutto_dict()
 
@@ -244,9 +245,9 @@ class MassSpectra(object):
 
         res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
 
-        return MassSpectra(res)
+        return MassSpectrum(res)
 
-    def __and__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
+    def __and__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
         a = self.get_brutto_dict()
         b = other.get_brutto_dict()
 
@@ -268,9 +269,9 @@ class MassSpectra(object):
 
         res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
 
-        return MassSpectra(res)
+        return MassSpectrum(res)
 
-    def __add__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
+    def __add__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
         return self.__or__(other)
 
     def __sub__(self, other):
@@ -291,34 +292,34 @@ class MassSpectra(object):
 
         res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
 
-        return MassSpectra(res)
+        return MassSpectrum(res)
 
     def __len__(self):
         return len(self.table)
 
-    def __lt__(self, n: int) -> "MassSpectra":
-        return MassSpectra(self.table[self.table["numbers"] < n])
+    def __lt__(self, n: int) -> "MassSpectrum":
+        return MassSpectrum(self.table[self.table["numbers"] < n])
 
-    def __le__(self, n: int) -> "MassSpectra":
-        return MassSpectra(self.table[self.table["numbers"] <= n])
+    def __le__(self, n: int) -> "MassSpectrum":
+        return MassSpectrum(self.table[self.table["numbers"] <= n])
 
-    def __gt__(self, n: int) -> "MassSpectra":
-        return MassSpectra(self.table[self.table["numbers"] > n])
+    def __gt__(self, n: int) -> "MassSpectrum":
+        return MassSpectrum(self.table[self.table["numbers"] > n])
 
-    def __ge__(self, n: int) -> "MassSpectra":
-        return MassSpectra(self.table[self.table["numbers"] >= n])
+    def __ge__(self, n: int) -> "MassSpectrum":
+        return MassSpectrum(self.table[self.table["numbers"] >= n])
 
-    def drop_unassigned(self) -> "MassSpectra":
+    def drop_unassigned(self) -> "MassSpectrum":
         if "assign" not in self.table:
             raise SpectrumIsNotAssigned()
 
-        return MassSpectra(self.table[self.table["assign"].astype(bool)])
+        return MassSpectrum(self.table[self.table["assign"].astype(bool)])
 
-    def reset_to_one(self) -> "MassSpectra":
+    def reset_to_one(self) -> "MassSpectrum":
         table = self.table.copy()
         table["nubmers"] = 1
 
-        return MassSpectra(table)
+        return MassSpectrum(table)
 
     def calculate_jaccard_needham_score(self, other) -> float:
         return len(self & other) / len(self | other)

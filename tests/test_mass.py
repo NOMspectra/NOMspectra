@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from brutto_generator import generate_brutto_formulas
-from mass import MassSpectra
+from mass import MassSpectrum
 from utils import calculate_mass
 
 
@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
     def setUp(self) -> None:
         self.logger = logging.getLogger(__name__)
 
-        self.ms = MassSpectra()
+        self.ms = MassSpectrum()
         self.ms.load("test.csv")
         self.ms = self.ms.drop_unassigned()
 
@@ -46,7 +46,7 @@ class Test(unittest.TestCase):
         self.assertTrue(all(masses[i] <= masses[i+1] for i in range(len(masses)-1)))
 
     def test_load(self):
-        ms = MassSpectra()
+        ms = MassSpectrum()
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
         ms.load("../data/CHA-Florida.csv", mapper, sep=",")  # FIXME relative paths are bad
@@ -58,17 +58,17 @@ class Test(unittest.TestCase):
         self.assertFalse("relativeAbundance" in ms.table)
 
     def test_mass_spectra_constructor(self):
-        ms = MassSpectra()
+        ms = MassSpectrum()
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
         ms.load("../data/CHA-Florida.csv", mapper, sep=",")  # FIXME relative paths are bad
 
-        ms = MassSpectra(ms.table)
+        ms = MassSpectrum(ms.table)
 
     def test_assign(self):
 
         # load a spectrum
-        ms = MassSpectra()
+        ms = MassSpectrum()
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
         ms.load(
@@ -84,6 +84,26 @@ class Test(unittest.TestCase):
         ms = ms.assign(gen_brutto, elems=list("CHONS"))
 
         self.logger.info(f"Spectrum assignment is done for {time.time() - T} seconds")
+
+    def test_assign_only_masses(self):
+
+        N = 20
+        masses = (np.random.rand(N, 1) + 0.8) / 2 * 1000
+
+        df = pd.DataFrame(masses, columns=["mass"])
+
+        ms = MassSpectrum(df)
+
+        gen_brutto = pd.read_csv("../brutto_generator/C_H_O_N_S.csv", sep=";")
+        ms = ms.assign(gen_brutto, elems=list("CHNOS"))
+
+        self.assertEqual(N, len(ms))
+
+        self.assertTrue("C" in ms.table)
+        self.assertTrue("H" in ms.table)
+        self.assertTrue("N" in ms.table)
+        self.assertTrue("O" in ms.table)
+        self.assertTrue("S" in ms.table)
 
     def test_xor(self):
         # load a spectrum
@@ -114,7 +134,7 @@ class Test(unittest.TestCase):
         ms_1 = self.ms.drop_unassigned()
         length = len(ms_1)
 
-        ms_2 = MassSpectra()
+        ms_2 = MassSpectrum()
 
         ms = ms_1 | ms_2
 
@@ -124,21 +144,21 @@ class Test(unittest.TestCase):
 
     def test_get_brutto_dict(self):
         ms_1 = self.ms
-        ms_2 = MassSpectra()
+        ms_2 = MassSpectrum()
 
         ms_1.get_brutto_dict()
 
         ms_2.get_brutto_dict()
 
     def test_and_with_empties(self):
-        ms = MassSpectra()
+        ms = MassSpectrum()
 
         ms = ms & ms
 
         self.assertEqual(len(ms), 0)
 
     def test_and_with_one_empty(self):
-        ms_1 = MassSpectra()
+        ms_1 = MassSpectrum()
         ms_2 = self.ms
 
         ms = ms_1 & ms_2
@@ -146,7 +166,7 @@ class Test(unittest.TestCase):
         self.assertEqual(len(ms), 0)
 
     def test_xor_with_one_empty(self):
-        ms_1 = MassSpectra()
+        ms_1 = MassSpectrum()
         ms_2 = self.ms
 
         ms = ms_1 ^ ms_2
@@ -155,7 +175,7 @@ class Test(unittest.TestCase):
 
     def test_sum_of_ms(self):
         ms_1 = self.ms
-        ms_2 = MassSpectra()
+        ms_2 = MassSpectrum()
 
         ms = ms_1 + ms_2 + ms_1 + ms_2
 
@@ -170,7 +190,7 @@ class Test(unittest.TestCase):
 
     def test_subtract_with_empty(self):
         ms_1 = self.ms
-        ms_2 = MassSpectra()
+        ms_2 = MassSpectrum()
 
         self.assertEqual(0, len(ms_2 - ms_1))
         self.assertEqual(len(ms_1), len(ms_1 - ms_2))
