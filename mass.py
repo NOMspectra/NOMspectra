@@ -17,49 +17,6 @@ class SpectrumIsNotAssigned(Exception):
     pass
 
 
-class Brutto(object):
-    def __init__(self, brutto: Union[str, Mapping[str, int]]) -> None:
-        self.brutto = brutto
-
-        if isinstance(brutto, str):
-            if "_" in brutto:
-                brutto = brutto.replace("_", "")
-
-    def parse_brutto(self, brutto: str) -> Mapping[str, int]:
-        """
-        Ca3(PO4)2 -> {'Ca': 3, 'P': 4, 'O': 4}
-
-
-        """
-        br = Counter()
-        pattern = "[A-Z][a-z]?\d*|\((?:[^()]*(?:\(.*\))?[^()]*)+\)\d+"
-        while "(" in brutto:
-            for part in re.findall(pattern, brutto):
-                pass
-
-        for part in re.findall(pattern, brutto):
-            if "(" in part:
-                pass
-            else:
-                element = re.findall("[A-Z][a-z]", part)[0]
-                number = re.findall("\d+", part)
-
-    def __str__(self):
-        pass
-
-    def __repr__(self):
-        pass
-
-    def to_dict(self) -> Dict[str, int]:
-        pass
-
-    def to_tuple(self):
-        pass
-
-    def elemets(self):
-        pass
-
-
 class MassSpectrum(object):
     # should be columns: mass (!), I, calculated_mass, abs_error, rel_error
 
