@@ -1,5 +1,6 @@
 import logging
 import re
+import time
 from collections import Counter
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
@@ -10,6 +11,10 @@ import pandas as pd
 from utils import calculate_mass
 
 logger = logging.getLogger(__name__)
+
+
+class SpectrumIsNotAssigned(Exception):
+    pass
 
 
 class Brutto(object):
@@ -72,7 +77,7 @@ class MassSpectra(object):
                 self.table["numbers"] = 1
 
         else:
-            self.table = pd.DataFrame()
+            self.table = pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
 
     def load(
             self,
@@ -115,7 +120,7 @@ class MassSpectra(object):
             table = self.table.copy()
 
         masses = generated_bruttos_table["mass"]
-        masses -= 0.00054858 # electron mass
+        # masses -= 0.00054858  # electron mass
 
         elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
@@ -136,7 +141,9 @@ class MassSpectra(object):
 
     def __repr__(self):
         # repr only useful columns
-        columns = ["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"]
+        columns = [column for column in
+                   ["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"] if column in self.table]
+
         return self.table[columns].__repr__()
 
     def __str__(self):
@@ -158,10 +165,13 @@ class MassSpectra(object):
         table["calculated_mass"] = calculate_mass(self.table[self.elems].values, self.elems)
         return MassSpectra(table)
 
-    def get_list_brutto(self) -> Sequence[Tuple[float]]:
+    def get_brutto_list(self) -> Sequence[Tuple[float]]:
         return self.table[self.elems].values
 
-    def get_dict_brutto(self) -> Mapping[Tuple, Dict[str, float]]:
+    def get_brutto_dict(self) -> Mapping[Tuple, Dict[str, float]]:
+
+        if len(self.table) == 0:
+            return {}
 
         res = {}
         bruttos = self.table[self.elems].values.tolist()
@@ -182,62 +192,81 @@ class MassSpectra(object):
         return res
 
     def __or__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
-        a = self.get_dict_brutto()
-        b = self.get_dict_brutto()
+        a = self.get_brutto_dict()
+        b = other.get_brutto_dict()
 
         bruttos = set(a.keys()) | set(b.keys())
 
-        res = pd.DataFrame()
+        # FIXME probably bad solution, hardcoded columns
+        res = pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+        res = []
         for brutto in bruttos:
-            if brutto in a and brutto in b:
+            if (brutto in a) and (brutto in b):
                 # number is sum of a['numbers'] and b['numbers']
                 c = a[brutto].copy()
                 c["numbers"] += b[brutto]["numbers"]
 
-                res.append(c, ignore_index=True)
+                res.append(c)
 
             elif brutto in a:
-                res.append(a[brutto], ignore_index=True)
+                res.append(a[brutto])
             else:
-                res.append(b[brutto], ignore_index=True)
+                res.append(b[brutto])
 
-        bruttos = pd.DataFrame(np.array(bruttos), columns=self.elems)
-        res = pd.concat([res, bruttos], axis=1, sort=False).sort(by="mass")
+        # FIXME probably bad solution, hardcoded columns
+        res = pd.DataFrame(res) if len(res) > 0 else \
+            pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+        bruttos = np.zeros((0, len(self.elems))) if len(bruttos) == 0 else list(bruttos)
+        bruttos = pd.DataFrame(bruttos, columns=self.elems)
+
+        res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
 
         return MassSpectra(res)
 
     def __xor__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
-        a = self.get_dict_brutto()
-        b = self.get_dict_brutto()
+        a = self.get_brutto_dict()
+        b = other.get_brutto_dict()
 
         bruttos = set(a.keys()) ^ set(b.keys())
 
-        res = pd.DataFrame()
+        res = []
         for brutto in bruttos:
             if brutto in a:
-                res.append(a[brutto], ignore_index=True)
+                res.append(a[brutto])
             else:
-                res.append(b[brutto], ignore_index=True)
+                res.append(b[brutto])
 
-        bruttos = pd.DataFrame(np.array(bruttos), columns=self.elems)
-        res = pd.concat([res, bruttos], axis=1, sort=False).sort(by="mass")
+        # FIXME probably bad solution, hardcoded columns
+        res = pd.DataFrame(res) if len(res) > 0 else \
+            pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+        bruttos = np.zeros((0, len(self.elems))) if len(bruttos) == 0 else list(bruttos)
+        bruttos = pd.DataFrame(bruttos, columns=self.elems)
+
+        res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
 
         return MassSpectra(res)
 
     def __and__(self: "MassSpectra", other: "MassSpectra") -> "MassSpectra":
-        a = self.get_dict_brutto()
-        b = self.get_dict_brutto()
+        a = self.get_brutto_dict()
+        b = other.get_brutto_dict()
 
+        T = time.time()
         bruttos = set(a.keys()) & set(b.keys())
+        print(T - time.time())
 
-        res = pd.DataFrame()
+        res = []
         for brutto in bruttos:
             c = a[brutto].copy()
             c["numbers"] += b[brutto]["numbers"]
-            res.append(c, ignore_index=True)
+            res.append(c)
 
-        bruttos = pd.DataFrame(np.array(brutto), columns=self.elems)
-        res = pd.concat([res, bruttos], axis=1, sort=False).sort(by="mass")
+        # FIXME probably bad solution, hardcoded columns
+        res = pd.DataFrame(res) if len(res) > 0 else \
+            pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+        bruttos = np.zeros((0, len(self.elems))) if len(bruttos) == 0 else list(bruttos)
+        bruttos = pd.DataFrame(bruttos, columns=self.elems)
+
+        res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
 
         return MassSpectra(res)
 
@@ -245,17 +274,22 @@ class MassSpectra(object):
         return self.__or__(other)
 
     def __sub__(self, other):
-        a = self.get_dict_brutto()
-        b = self.get_dict_brutto()
+        a = self.get_brutto_dict()
+        b = other.get_brutto_dict()
 
         bruttos = set(a.keys()) - set(b.keys())
 
-        res = pd.DataFrame()
+        res = []
         for brutto in bruttos:
-            res.append(a[brutto], ignore_index=True)
+            res.append(a[brutto])
 
-        bruttos = pd.DataFrame(np.array(brutto), columns=self.elems)
-        res = pd.concat([res, bruttos], axis=1, sort=False).sort(by="mass")
+        # FIXME probably bad solution, hardcoded columns
+        res = pd.DataFrame(res) if len(res) > 0 else \
+            pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+        bruttos = np.zeros((0, len(self.elems))) if len(bruttos) == 0 else list(bruttos)
+        bruttos = pd.DataFrame(bruttos, columns=self.elems)
+
+        res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
 
         return MassSpectra(res)
 
@@ -273,6 +307,18 @@ class MassSpectra(object):
 
     def __ge__(self, n: int) -> "MassSpectra":
         return MassSpectra(self.table[self.table["numbers"] >= n])
+
+    def drop_unassigned(self) -> "MassSpectra":
+        if "assign" not in self.table:
+            raise SpectrumIsNotAssigned()
+
+        return MassSpectra(self.table[self.table["assign"].astype(bool)])
+
+    def reset_to_one(self) -> "MassSpectra":
+        table = self.table.copy()
+        table["nubmers"] = 1
+
+        return MassSpectra(table)
 
     def calculate_jaccard_needham_score(self, other) -> float:
         return len(self & other) / len(self | other)

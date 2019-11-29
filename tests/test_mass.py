@@ -1,7 +1,9 @@
 import logging
+import os
 import time
 import unittest
 
+import numpy as np
 import pandas as pd
 
 from brutto_generator import generate_brutto_formulas
@@ -13,6 +15,10 @@ class Test(unittest.TestCase):
 
     def setUp(self) -> None:
         self.logger = logging.getLogger(__name__)
+
+        self.ms = MassSpectra()
+        self.ms.load("test.csv")
+        self.ms = self.ms.drop_unassigned()
 
     def test_get_mass(self):
 
@@ -79,12 +85,102 @@ class Test(unittest.TestCase):
 
         self.logger.info(f"Spectrum assignment is done for {time.time() - T} seconds")
 
-        ms = ms.calculate_mass().calculate_error()
+    def test_xor(self):
+        # load a spectrum
+        ms = self.ms.drop_unassigned()
+
+        ms = ms ^ ms
+
+        self.assertEqual(len(ms), 0)
+
+    def test_and(self):
+        ms = self.ms.drop_unassigned()
+        length = len(ms)
+        ms = ms & ms
+        self.assertEqual(length, len(ms))
+
+        self.assertEqual(1, np.mean(ms.table.numbers == 2))
+
+    def test_or_equal(self):
+        ms = self.ms.drop_unassigned()
+        length = len(ms)
+        ms = ms | ms
+
+        self.assertEqual(length, len(ms))
+
+        self.assertEqual(1, np.mean(ms.table.numbers == 2))
+
+    def test_or_with_empty(self):
+        ms_1 = self.ms.drop_unassigned()
+        length = len(ms_1)
+
+        ms_2 = MassSpectra()
+
+        ms = ms_1 | ms_2
+
+        self.assertEqual(length, len(ms))
+        print(ms_1.table.numbers)
+        self.assertEqual(1, np.mean(ms.table.numbers == 1))
+
+    def test_get_brutto_dict(self):
+        ms_1 = self.ms
+        ms_2 = MassSpectra()
+
+        ms_1.get_brutto_dict()
+
+        ms_2.get_brutto_dict()
+
+    def test_and_with_empties(self):
+        ms = MassSpectra()
+
+        ms = ms & ms
+
+        self.assertEqual(len(ms), 0)
+
+    def test_and_with_one_empty(self):
+        ms_1 = MassSpectra()
+        ms_2 = self.ms
+
+        ms = ms_1 & ms_2
+
+        self.assertEqual(len(ms), 0)
+
+    def test_xor_with_one_empty(self):
+        ms_1 = MassSpectra()
+        ms_2 = self.ms
+
+        ms = ms_1 ^ ms_2
+
+        self.assertEqual(len(ms), len(ms_2))
+
+    def test_sum_of_ms(self):
+        ms_1 = self.ms
+        ms_2 = MassSpectra()
+
+        ms = ms_1 + ms_2 + ms_1 + ms_2
+
+        self.assertEqual(1, np.mean(ms.table.numbers == 2))
+
+    def test_subtract(self):
+        ms = self.ms
+
+        ms = ms - ms
+
+        self.assertEqual(0, len(ms))
+
+    def test_subtract_with_empty(self):
+        ms_1 = self.ms
+        ms_2 = MassSpectra()
+
+        self.assertEqual(0, len(ms_2 - ms_1))
+        self.assertEqual(len(ms_1), len(ms_1 - ms_2))
+
+    def test_save(self):
+        ms = self.ms
 
         ms.save("tmp.csv")
 
-    def test_save(self):
-        pass
+        os.remove("tmp.csv")
 
     def test_calculate_dbe(self):
         pass

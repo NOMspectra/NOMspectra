@@ -31,5 +31,6 @@ def calculate_mass(
     elem_masses = np.array(elem_masses)
     return np.sum(np.array(brutto_formulas) * elem_masses, axis=1)
 
+
 if __name__ == '__main__':
     calculate_mass([()])
