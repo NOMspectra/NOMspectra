@@ -42,14 +42,18 @@ class MassSpectrum(object):
             mapper: Optional[Mapping[str, str]] = None,
             ignore_columns: Optional[Sequence[str]] = None,
             sep: str = ";"
-    ) -> None:
-
+    ) -> "MassSpectrum":
         self.table = pd.read_csv(filename, sep=sep)
         if mapper:
             self.table = self.table.rename(columns=mapper)
 
         if ignore_columns:
             self.table = self.table.drop(columns=ignore_columns)
+
+        if "numbers" not in self.table:
+            self.table["numbers"] = 1
+
+        return self
 
     def save(self, filename: Union[Path, str], sep: str = ";") -> None:
         self.table.to_csv(filename, sep=sep, index=False)
@@ -132,20 +136,14 @@ class MassSpectrum(object):
             return {}
 
         res = {}
+
+        # TODO very careful
         bruttos = self.table[self.elems].values.tolist()
         bruttos = [tuple(brutto) for brutto in bruttos]
 
-        for [mass, calculated_mass, I, abs_error, rel_error, numbers], brutto \
-                in zip(self.table[self.features].values, bruttos):
-
-            res[brutto] = {
-                "mass": mass,
-                "calculated_mass": calculated_mass,
-                "I": I,
-                "abs_error": abs_error,
-                "rel_error": rel_error,
-                "numbers": numbers
-            }
+        columns = list(self.table.drop(columns=self.elems))
+        for values, brutto in zip(self.table[columns].values, bruttos):
+            res[brutto] = dict(zip(columns, values.tolist()))
 
         return res
 
@@ -208,9 +206,7 @@ class MassSpectrum(object):
         a = self.get_brutto_dict()
         b = other.get_brutto_dict()
 
-        T = time.time()
         bruttos = set(a.keys()) & set(b.keys())
-        print(T - time.time())
 
         res = []
         for brutto in bruttos:

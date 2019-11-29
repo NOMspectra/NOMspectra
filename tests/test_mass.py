@@ -9,6 +9,8 @@ import pandas as pd
 from brutto_generator import generate_brutto_formulas
 from mass import MassSpectrum
 from utils import calculate_mass
+import settings
+from functools import reduce
 
 
 class Test(unittest.TestCase):
@@ -19,6 +21,18 @@ class Test(unittest.TestCase):
         self.ms = MassSpectrum()
         self.ms.load("test.csv")
         self.ms = self.ms.drop_unassigned()
+
+        self.masses = []
+
+        mapper = {"mw": "mass", "relativeAbundance": "I"}
+        for filename in os.listdir(settings.DATA_FOLDER):
+            self.masses.append(MassSpectrum())
+            self.masses[-1].load(
+                f"{settings.DATA_FOLDER}/{filename}",
+                mapper=mapper,
+                sep=',',
+                ignore_columns=["peakNo", "errorPPM", "DBE", "class", "z"]
+            )
 
     def test_get_mass(self):
 
@@ -32,7 +46,6 @@ class Test(unittest.TestCase):
         ]
 
         ans = calculate_mass(bruttos)
-        print(ans)
         self.assertEqual(len(ans), 6)
 
         expected = [27.994915, 28.006148, 28.0313, 16.0313, 31.042199, 48.003371]
@@ -49,7 +62,7 @@ class Test(unittest.TestCase):
         ms = MassSpectrum()
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
-        ms.load("../data/CHA-Florida.csv", mapper, sep=",")  # FIXME relative paths are bad
+        ms.load(f"{settings.DATA_FOLDER}/a_1.csv", mapper, sep=",")  # FIXME relative paths are bad
 
         self.assertTrue("mass" in ms.table)
         self.assertTrue("I" in ms.table)
@@ -57,11 +70,11 @@ class Test(unittest.TestCase):
         self.assertFalse("mw" in ms.table)
         self.assertFalse("relativeAbundance" in ms.table)
 
-    def test_mass_spectra_constructor(self):
+    def test_mass_spectrum_constructor(self):
         ms = MassSpectrum()
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
-        ms.load("../data/CHA-Florida.csv", mapper, sep=",")  # FIXME relative paths are bad
+        ms.load(f"{settings.DATA_FOLDER}/a_1.csv", mapper, sep=",")
 
         ms = MassSpectrum(ms.table)
 
@@ -72,7 +85,7 @@ class Test(unittest.TestCase):
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
         ms.load(
-            "../data/CHA-Florida.csv",
+            "../data/a_1.csv",
             mapper,
             sep=',',
             ignore_columns=["peakNo", "errorPPM", "DBE", "class", "C", "H", "O", "N", "S", "z"]
@@ -139,7 +152,6 @@ class Test(unittest.TestCase):
         ms = ms_1 | ms_2
 
         self.assertEqual(length, len(ms))
-        print(ms_1.table.numbers)
         self.assertEqual(1, np.mean(ms.table.numbers == 1))
 
     def test_get_brutto_dict(self):
@@ -201,6 +213,25 @@ class Test(unittest.TestCase):
         ms.save("tmp.csv")
 
         os.remove("tmp.csv")
+
+    def test_arithmetic(self):
+        x, y, z = self.masses[:3]
+
+        union = x + y + z
+
+        lens = []
+        for i in [x, y, z]:
+            lens.append(len(i))
+            union.calculate_jaccard_needham_score(i)
+
+        self.assertTrue(len(union > 2) > 0)
+
+        x -= union
+        y -= union
+        z -= union
+
+        for i, ms in enumerate([x, y, z]):
+            self.assertTrue(len(ms) < lens[i])
 
     def test_calculate_dbe(self):
         pass
