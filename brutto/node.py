@@ -1,4 +1,5 @@
 from typing import Optional, Mapping, Union
+from collections import Counter
 
 
 class Node(object):
@@ -42,8 +43,6 @@ class Node(object):
 
     def dfs(self):
         v = self
-        if v is None:
-            return
 
         if v.child:
             print("(", end="")
@@ -57,6 +56,20 @@ class Node(object):
                 print(v.amount, end="")
         if v.next:
             v.next.dfs()
+
+    def get_dict(self, coefficient=1) -> Mapping[str, int]:
+        c = Counter()
+        v = self
+
+        if v.child:
+            c += v.child.get_dict(coefficient=coefficient * v.amount)
+        else:
+            c[self.element] += self.amount * coefficient
+
+        if v.next:
+            c += v.next.get_dict(coefficient)
+
+        return c
 
 
 def read(s: str, i: int) -> [str, Union[str, int], int]:
@@ -93,11 +106,11 @@ def brutto_iterator(brutto: str):
         yield status, value
 
 
-# wihtout automaton programming
+# without automaton programming
 def build_brutto_tree(brutto: str) -> Node:
 
     current = Node()
-    begin = current
+    start = current
     for status, value in brutto_iterator(brutto):
         if status == "element":
             prev = current
@@ -119,9 +132,14 @@ def build_brutto_tree(brutto: str) -> Node:
             prev = current
             current = Node(element="NEW")
 
-            prev.next = current
-            current.prev = prev
-            current.parent = prev.parent
+            if prev.element == "NEW":
+                current.parent = prev
+                prev.child = current
+
+            else:
+                prev.next = current
+                current.prev = prev
+                current.parent = prev.parent
 
         if status == "end":
             if current.parent is None:
@@ -130,20 +148,26 @@ def build_brutto_tree(brutto: str) -> Node:
             current = current.parent
             current.element = "NEW_END"
 
-    return begin.next
+    start = start.next
+    start.prev = None
+    return start
+
+
+# automaton programming
+def bind_nodes(prev: Node, next: Node):
+    prev.next = next
+    next.prev = prev
+
+
+def build_brutto_tree_2(brutto: str) -> Node:
+    raise NotImplementedError
 
 
 if __name__ == '__main__':
-    brutto = "A2BCu(C2(CN)4)F3"
+    brutto = "(A2BCu(C2(CN)4)F3)"
+
+    brutto = "(((CH2)2)2)2H2"
     # print(parse_brutto(brutto))
     print(brutto)
     node = build_brutto_tree(brutto)
-    # print(node.next.__repr__())
-    # print(node.next.next.__repr__())
-    # print(node.next.next.next.__repr__())
-    # print(node.next.next.next.next.__repr__())
-
-    print(node.dfs())
-
-    # Node.dfs(node)
-
+    print(node.get_dict())
