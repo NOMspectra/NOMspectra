@@ -19,7 +19,19 @@ class Node(object):
         self.parent = parent
 
     def __repr__(self):
-        return self.element, self.amount
+        if self.element == "NEW_END":
+            return f"({''.join([x.__repr__() for x in self.child.get_chain()])}){self.amount}"
+
+        return f"{self.element}{self.amount}"
+
+    def get_chain(self):
+        nodes = []
+        node = self
+        while node is not None:
+            nodes.append(node)
+            node = node.next
+
+        return nodes
 
     def __str__(self):
         return str(self.__repr__())
@@ -28,9 +40,23 @@ class Node(object):
     def copy():
         pass
 
-    @staticmethod
-    def dfs():
-        pass
+    def dfs(self):
+        v = self
+        if v is None:
+            return
+
+        if v.child:
+            print("(", end="")
+            v.child.dfs()
+            print(")", end="")
+            if v.amount != 1:
+                print(v.amount, end="")
+        else:
+            print(v.element, end="")
+            if v.amount != 1:
+                print(v.amount, end="")
+        if v.next:
+            v.next.dfs()
 
 
 def read(s: str, i: int) -> [str, Union[str, int], int]:
@@ -38,10 +64,10 @@ def read(s: str, i: int) -> [str, Union[str, int], int]:
         return "EOF", "EOF", i
 
     if s[i] == "(":
-        return "new", "(", i + 1
+        return "new", "NEW", i + 1
 
     if s[i] == ")":
-        return "end", ")", i + 1
+        return "end", "END", i + 1
 
     if s[i].isdigit():
         j = i + 1
@@ -67,6 +93,7 @@ def brutto_iterator(brutto: str):
         yield status, value
 
 
+# wihtout automaton programming
 def build_brutto_tree(brutto: str) -> Node:
 
     current = Node()
@@ -88,29 +115,35 @@ def build_brutto_tree(brutto: str) -> Node:
         if status == "number":
             current.amount = value
 
-        if status == "(":
+        if status == "new":
             prev = current
             current = Node(element="NEW")
 
             prev.next = current
             current.prev = prev
+            current.parent = prev.parent
 
-        if status == ")":
+        if status == "end":
+            if current.parent is None:
+                raise Exception()
+
             current = current.parent
+            current.element = "NEW_END"
 
-    return begin
+    return begin.next
 
 
 if __name__ == '__main__':
     brutto = "A2BCu(C2(CN)4)F3"
     # print(parse_brutto(brutto))
-
+    print(brutto)
     node = build_brutto_tree(brutto)
+    # print(node.next.__repr__())
+    # print(node.next.next.__repr__())
+    # print(node.next.next.next.__repr__())
+    # print(node.next.next.next.next.__repr__())
 
-    print(node)
-    print(node.next)
-    print(node.next.next)
-    print(node.next.next.next)
-    print(node.next.next.next.next)
+    print(node.dfs())
 
+    # Node.dfs(node)
 
