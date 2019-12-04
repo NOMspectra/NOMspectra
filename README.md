@@ -53,7 +53,7 @@ for filename in sorted(os.listdir(settings.DATA_FOLDER)):
     
 x, y, z = masses[:3]
 
-union = (x + y + z).reset_to_one()
+union = (x + y + z)
 print(len(union > 2))  # intersection of all three
 print(len(union > 1))  # number of bruttos which is presented at least 2 out of 3 spectra
 

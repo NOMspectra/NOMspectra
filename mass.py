@@ -274,8 +274,12 @@ class MassSpectrum(object):
     def calculate_jaccard_needham_score(self, other) -> float:
         return len(self & other) / len(self | other)
 
-    def get_van_krevelen(self):
-        pass
+    def get_van_krevelen(self, r, c):
+
+        x = np.linspace(0.2, 2.2, r + 1)  # 0.4
+        y = np.linspace(0, 1, c + 1)  # 0.25
+
+
 
     def flat_van_krevelen(self):
         pass
@@ -285,3 +289,42 @@ class MassSpectrum(object):
 
     def calculate_ai(self) -> None:
         pass
+
+
+class CanNotCreateVanKrevelen(Exception):
+    pass
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+class VanKrevelen(object):
+    def __init__(self, table: Optional[pd.DataFrame]=None):
+
+        if not (("C" in table and "H" in table and "O" in table) or ("O/C" in table or "H/C" in table)):
+            raise CanNotCreateVanKrevelen()
+
+        self.table = table
+        if "O/C" not in self.table:
+            self.table["O/C"] = self.table["O"] / self.table["H"]
+
+        if "H/C" not in self.table:
+            self.table["H/C"] = self.table["H"] / self.table["C"]
+
+    def draw_density(self, color=None):
+        sns.jointplot(x="O/C", y="H/C", data=self.table, kind="kde", color=color)
+
+    def draw_scatter(self):
+        sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
+
+    def boxed_van_krevelen(self):
+        pass
+
+
+if __name__ == '__main__':
+    ms = MassSpectrum().load('tests/test.csv').drop_unassigned()
+
+    vk = VanKrevelen(ms.table)
+    vk.draw_density()
+    plt.show()

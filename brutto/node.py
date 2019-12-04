@@ -164,9 +164,8 @@ def build_brutto_tree_2(brutto: str) -> Node:
 
 
 if __name__ == '__main__':
-    brutto = "(A2BCu(C2(CN)4)F3)"
 
-    brutto = "(((CH2)2)2)2H2"
+    brutto = "Ca3(PO4)(PO4)"
     # print(parse_brutto(brutto))
     print(brutto)
     node = build_brutto_tree(brutto)
