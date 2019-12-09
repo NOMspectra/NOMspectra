@@ -1,63 +1,61 @@
-import pandas as pd
-import re
-import numpy as np
+from typing import Union, Mapping, Dict, Tuple
+
+from brutto.node import build_brutto_tree
+from distribution_generation.mass_distribution import IsotopeDistribution
 from utils import calculate_mass
-from typing import Union, Mapping, Dict, Sequence, Tuple
-from collections import Counter
 
 
 class Brutto(object):
     def __init__(self, brutto: Union[str, Mapping[str, int]]) -> None:
-        self.brutto = brutto
 
         if isinstance(brutto, str):
-            if "_" in brutto:
-                brutto = brutto.replace("_", "")
+            self.brutto = brutto
+            self.parse_brutto()
+        elif isinstance(brutto, dict):
+            self.dict = brutto
+            self.compile_brutto()
 
-    def parse_brutto(self, brutto: str) -> Mapping[str, int]:
-        """
-        Ca3(PO4)2 -> {'Ca': 3, 'P': 4, 'O': 4}
+    def parse_brutto(self) -> None:
+        """Takes self.brutto string and create dict of elements
+        Ca3(PO4)2 -> {'Ca': 3, 'P': 4, 'O': 4}"""
 
+        self.dict = {}
+        node = build_brutto_tree(self.brutto)
+        self.dict = dict(node.get_dict())
 
-        """
-        br = Counter()
-        pattern = "[A-Z][a-z]?\d*|\((?:[^()]*(?:\(.*\))?[^()]*)+\)\d+"
-        while "(" in brutto:
-            for part in re.findall(pattern, brutto):
-                pass
+    def compile_brutto(self) -> None:
+        """Takes the self.dict and make it string brutto"""
 
-        for part in re.findall(pattern, brutto):
-            if "(" in part:
-                pass
-            else:
-                element = re.findall("[A-Z][a-z]", part)[0]
-                number = re.findall("\d+", part)
+        # future brutto
+        s = ""
+        for element in self.dict:
+            s += element + ("" if self.dict[element] == 1 else str(self.dict[element]))
+
+        self.brutto = s
 
     def __str__(self):
-        raise NotImplementedError()
+        return self.brutto
 
     def __repr__(self):
-        raise NotImplementedError()
+        return self.brutto
 
     def to_dict(self) -> Dict[str, int]:
-        raise NotImplementedError()
+        return self.dict
 
-    def to_tuple(self):
-        raise NotImplementedError()
+    def get_coef(self) -> Tuple[int]:
+        return tuple(self.dict.values())
 
-    def elemets(self):
-        raise NotImplementedError()
+    def get_elemets(self) -> Tuple[str]:
+        return tuple(self.dict.keys())
 
-    def exact_mass(self):
-        raise NotImplementedError()
+    def exact_mass(self) -> float:
+        """Calculates exact monoisotopic mass for brutto"""
 
-    def build_distribution(self):
-        raise NotImplementedError()
+        return float(calculate_mass([self.to_tuple()], elems=self.elemets())[0])
 
-    @staticmethod
-    def from_array_to_bruttos() -> Sequence["Brutto"]:
-        raise NotImplementedError()
+    def build_distribution(self, n: int = 100000) -> None:
+        IsotopeDistribution(self.dict).generate_iterations(n).draw()
 
-    @staticmethod
-    def from_bruttos_to_array() -> Tuple[Sequence[Sequence], Sequence[str]]:
-        pass
+
+if __name__ == '__main__':
+    Brutto('PtCl2').build_distribution()

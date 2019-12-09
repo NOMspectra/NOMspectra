@@ -22,7 +22,7 @@ class IsotopeDistribution(object):
         self.brutto = brutto  # {"C": 2, "H": 6, "O": 1}
         self.generated_masses = np.array([])
 
-    def generate_iterations(self, n: int):
+    def generate_iterations(self, n: int) -> 'IsotopeDistribution':
         """
         Draw a sample of the molecule N times
         :param n: number of iterations
@@ -39,6 +39,8 @@ class IsotopeDistribution(object):
 
         self.generated_masses = np.concatenate((self.generated_masses, res.sum(axis=1)))
         self.generated_masses.sort()
+
+        return self
 
     def get_density(self, x: Sequence[float], eps: float = 0.05) -> Sequence[float]:
         """
