@@ -317,17 +317,40 @@ class MassSpectrum(object):
     def flat_van_krevelen(self):
         pass
 
-    def calculate_dbe(self) -> None:
-        pass
+    def calculate_ai(self) -> 'MassSpectrum':
+        table = self.calculate_cai().calculate_dbe().table
+        table["AI"] = table["DBE"] / table["CAI"]
 
-    def calculate_ai(self) -> None:
-        pass
+        return MassSpectrum(table)
+
+    def calculate_cai(self) -> 'MassSpectrum':
+        table = self.table.copy()
+
+        # very careful
+        # anyway it's necessary to have at least column with C?
+        for element in "CONSP":
+            if element not in table:
+                table[element] = 0
+
+        table['CAI'] = table["C"] - table["O"] - table["N"] - table["S"] - table["P"]
+
+        return MassSpectrum(table)
+
+    def calculate_dbe(self) -> 'MassSpectrum':
+        table = self.table.copy()
+        table['DBE'] = 1.0 + table["C"] - table["O"] - table["S"] - 0.5 * table["H"]
+
+        return MassSpectrum(table)
+
+    def __getitem__(self, item: Union[str, Sequence[str]]) -> pd.Series:
+        return self.table[item]
 
     def head(self):
         return self.table.head()
 
     def tail(self):
         return self.table.tail()
+
 
 class CanNotCreateVanKrevelen(Exception):
     pass
