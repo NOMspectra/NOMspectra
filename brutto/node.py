@@ -10,10 +10,12 @@ class Node(object):
             next: Optional['Node'] = None,
             prev: Optional['Node'] = None,
             child: Optional['Node'] = None,
-            parent: Optional['Node'] = None
+            parent: Optional['Node'] = None,
+            isotope: Optional['Node'] = None
     ):
         self.element = element
         self.next = next
+        self.isotope = isotope
         self.amount = amount
         self.prev = prev
         self.child = child

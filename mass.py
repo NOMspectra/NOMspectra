@@ -274,13 +274,6 @@ class MassSpectrum(object):
     def calculate_jaccard_needham_score(self, other) -> float:
         return len(self & other) / len(self | other)
 
-    def get_van_krevelen(self, r, c):
-
-        x = np.linspace(0.2, 2.2, r + 1)  # 0.4
-        y = np.linspace(0, 1, c + 1)  # 0.25
-
-
-
     def flat_van_krevelen(self):
         pass
 
@@ -300,7 +293,8 @@ import matplotlib.pyplot as plt
 
 
 class VanKrevelen(object):
-    def __init__(self, table: Optional[pd.DataFrame]=None):
+    def __init__(self, table: Optional[pd.DataFrame] = None, name: Optional[str] = None):
+        self.name = name
 
         if not (("C" in table and "H" in table and "O" in table) or ("O/C" in table or "H/C" in table)):
             raise CanNotCreateVanKrevelen()
@@ -318,13 +312,46 @@ class VanKrevelen(object):
     def draw_scatter(self):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
-    def boxed_van_krevelen(self):
-        pass
+    def boxed_van_krevelen(self, r=5, c=4) -> Sequence[Sequence]:
+        # (array([0.2, 0.6, 1. , 1.4, 1.8, 2.2]), array([0.  , 0.25, 0.5 , 0.75, 1.  ]))
+
+        df = self.table
+        x = np.linspace(0.2, 2.2, r + 1)  # 0.4
+        y = np.linspace(0, 1, c + 1)  # 0.25
+
+        vc = []
+        for i in range(r):
+            vc.append([])
+            for j in range(c):
+                vc[-1].append(
+                    df[
+                        (df["H/C"] > x[i]) &
+                        (df["H/C"] <= x[i] + 2.0 / r) &
+                        (df["O/C"] > y[j]) &
+                        (df["O/C"] <= y[j] + 1.0 / c)
+                    ])
+
+        return vc
+
+    def density_boxed_van_crevelen(self, r=5, c=4):
+        vc = self.boxed_van_krevelen(r=r, c=c)
+
+        res = np.zeros((r, c))
+        for i in range(len(vc)):
+            for j in range(len(vc[0])):
+                res[i][j] = len(vc[i][j])
+
+        res = np.array(res)
+        res /= np.sum(res)
+
+        return res
 
 
 if __name__ == '__main__':
     ms = MassSpectrum().load('tests/test.csv').drop_unassigned()
 
-    vk = VanKrevelen(ms.table)
-    vk.draw_density()
+    vk = VanKrevelen(ms.table, name="Test VK")
+    # vk.draw_density()
+
+    print(vk.density_boxed_van_crevelen())
     plt.show()
