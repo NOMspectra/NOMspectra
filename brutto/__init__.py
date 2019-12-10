@@ -1,5 +1,5 @@
 from typing import Union, Mapping, Dict, Tuple
-
+from collections import Counter
 from brutto.node import build_brutto_tree
 from distribution_generation.mass_distribution import IsotopeDistribution
 from utils import calculate_mass
@@ -39,13 +39,20 @@ class Brutto(object):
     def __repr__(self):
         return self.brutto
 
+    def __getitem__(self, item: str) -> int:
+        return self.dict[item] if item in self.dict else 0
+
+    def to_tuple(self, elems):
+        counter = Counter(self.dict)
+        return tuple([counter[e] for e in elems])
+
     def to_dict(self) -> Dict[str, int]:
         return self.dict
 
     def get_coef(self) -> Tuple[int]:
         return tuple(self.dict.values())
 
-    def get_elemets(self) -> Tuple[str]:
+    def get_elements(self) -> Tuple[str]:
         return tuple(self.dict.keys())
 
     def exact_mass(self) -> float:

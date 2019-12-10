@@ -2,10 +2,13 @@ import logging
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 from utils import calculate_mass
+from brutto import Brutto
 
 logger = logging.getLogger(__name__)
 
@@ -96,6 +99,43 @@ class MassSpectrum(object):
                 res = res.append({"assign": False}, ignore_index=True)
 
         return MassSpectrum(table.join(res))
+
+    def assignment_from_brutto(self) -> 'MassSpectrum':
+        if "brutto" not in self.table:
+            raise Exception("There is no brutto in MassSpectra")
+
+        # before new assignment it's necessary to drop old assignment
+        table = self.table.drop(columns=self.elems)
+
+        elems = set.union(*[set(list(x)) for x in self.table.brutto.apply(lambda x: x.replace("_", "")).apply(
+            lambda x: Brutto(x).get_elements()).tolist()])
+
+        for element in elems:
+            table[element] = table.brutto.apply(lambda x: Brutto(x.replace("_", ""))[element])
+
+        return MassSpectrum(table, elems=elems)
+
+    def compile_brutto(self) -> 'MassSpectrum':
+        def compile_one(a: Sequence[Union[int, float]], elems: Sequence[str]) -> str:
+            s = ''
+            for c, e in zip(a, elems):
+                if not np.isnan(c):
+                    s += e + ('' if c == 1 else str(int(c)))
+                else:
+                    # if coefficients is Not a Number (is nan)
+                    # formula is unknown
+                    return ''
+            return s
+
+        table = self.table.copy()
+
+        # iterations by rows, so axis=1
+        table["brutto"] = self.table[self.elems].apply(lambda x: compile_one(x.values, self.elems), axis=1)
+
+        return MassSpectrum(table)
+
+    def copy(self):
+        return MassSpectrum(self.table)
 
     def __repr__(self):
         # repr only useful columns
@@ -283,13 +323,14 @@ class MassSpectrum(object):
     def calculate_ai(self) -> None:
         pass
 
+    def head(self):
+        return self.table.head()
+
+    def tail(self):
+        return self.table.tail()
 
 class CanNotCreateVanKrevelen(Exception):
     pass
-
-
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 
 class VanKrevelen(object):
