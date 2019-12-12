@@ -56,6 +56,7 @@ class MassSpectrum(object):
         return self
 
     def save(self, filename: Union[Path, str], sep: str = ";") -> None:
+        """Saves to csv MassSpectrum"""
         self.table.to_csv(filename, sep=sep, index=False)
 
     def assign(
@@ -134,7 +135,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(table)
 
-    def copy(self):
+    def copy(self) -> 'MassSpectrum':
         return MassSpectrum(self.table)
 
     def __repr__(self):
@@ -144,7 +145,7 @@ class MassSpectrum(object):
 
         return self.table[columns].__repr__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         columns = [column for column in self.features if column in self.table]
         return self.table[columns].__str__()
 
@@ -191,7 +192,7 @@ class MassSpectrum(object):
         bruttos = set(a.keys()) | set(b.keys())
 
         # FIXME probably bad solution, hardcoded columns
-        res = pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+        # res = pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
         res = []
         for brutto in bruttos:
             if (brutto in a) and (brutto in b):
@@ -284,7 +285,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(res)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.table)
 
     def __lt__(self, n: int) -> "MassSpectrum":
@@ -314,9 +315,6 @@ class MassSpectrum(object):
     def calculate_jaccard_needham_score(self, other) -> float:
         return len(self & other) / len(self | other)
 
-    def flat_van_krevelen(self):
-        pass
-
     def calculate_ai(self) -> 'MassSpectrum':
         table = self.calculate_cai().calculate_dbe().table
         table["AI"] = table["DBE"] / table["CAI"]
@@ -345,10 +343,10 @@ class MassSpectrum(object):
     def __getitem__(self, item: Union[str, Sequence[str]]) -> pd.Series:
         return self.table[item]
 
-    def head(self):
+    def head(self) -> pd.DataFrame:
         return self.table.head()
 
-    def tail(self):
+    def tail(self) -> pd.DataFrame:
         return self.table.tail()
 
 
