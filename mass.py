@@ -343,6 +343,16 @@ class MassSpectrum(object):
     def __getitem__(self, item: Union[str, Sequence[str]]) -> pd.Series:
         return self.table[item]
 
+    def normalize(self) -> 'MassSpectrum':
+        """This function return intensity normalized MassSpectrum instance"""
+
+        table = self.table.copy()
+        table["I"] /= table["I"].max()
+        return MassSpectrum(table["I"])
+
+    def draw(self) -> None:
+        raise NotImplementedError
+
     def head(self) -> pd.DataFrame:
         return self.table.head()
 
