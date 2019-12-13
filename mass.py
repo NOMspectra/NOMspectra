@@ -350,14 +350,50 @@ class MassSpectrum(object):
         table["I"] /= table["I"].max()
         return MassSpectrum(table["I"])
 
-    def draw(self) -> None:
-        raise NotImplementedError
-
     def head(self) -> pd.DataFrame:
         return self.table.head()
 
     def tail(self) -> pd.DataFrame:
         return self.table.tail()
+
+    def draw(self,
+             xlim: Tuple[Optional[float], Optional[float]] = (None, None),
+             ylim: Tuple[Optional[float], Optional[float]] = (None, None),
+             color: str = 'black'
+    ) -> None:
+
+        df = self.table.sort_values(by="mass")
+
+        mass = df.mass.values
+        if xlim[0] is None:
+            xlim = (mass.min(), xlim[1])
+        if xlim[1] is None:
+            xlim = (xlim[0], mass.max())
+
+        intensity = df.I.values
+        # filter first intensity and only after mass (because we will lose the information)
+        intensity = intensity[(xlim[0] <= mass) & (mass <= xlim[1])]
+        mass = mass[(xlim[0] <= mass) & (mass <= xlim[1])]
+
+        # bas solution, probably it's needed to rewrite this piece
+        M = np.zeros((len(mass), 3))
+        M[:, 0] = mass
+        M[:, 1] = mass
+        M[:, 2] = mass
+        M = M.reshape(-1)
+
+        I = np.zeros((len(intensity), 3))
+        I[:, 1] = intensity
+        I = I.reshape(-1)
+
+        plt.plot(M, I, color=color)
+        plt.plot([xlim[0], xlim[1]], [0, 0], color=color)
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+        plt.xlabel("m/z, Da")
+        plt.ylabel("Intensity")
+
+        return
 
 
 class CanNotCreateVanKrevelen(Exception):
