@@ -1,4 +1,5 @@
 import logging
+from functools import reduce
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
 
@@ -7,8 +8,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from utils import calculate_mass
 from brutto import Brutto
+from utils import calculate_mass
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +169,7 @@ class MassSpectrum(object):
     def get_brutto_list(self) -> Sequence[Tuple[float]]:
         return self.table[self.elems].values
 
-    def get_brutto_dict(self) -> Mapping[Tuple, Dict[str, float]]:
+    def get_brutto_dict(self, elems: Optional[Sequence[str]] = None) -> Mapping[Tuple, Dict[str, float]]:
 
         if len(self.table) == 0:
             return {}
@@ -176,7 +177,16 @@ class MassSpectrum(object):
         res = {}
 
         # TODO very careful
-        bruttos = self.table[self.elems].values.tolist()
+        if elems:
+            for elem in elems:
+                # careful change the object
+                if elem not in self.table:
+                    self.table[elem] = 0
+
+            bruttos = self.table[elems].values.tolist()
+        else:
+            bruttos = self.table[self.elems].values.tolist()
+
         bruttos = [tuple(brutto) for brutto in bruttos]
 
         columns = list(self.table.drop(columns=self.elems))
@@ -453,6 +463,51 @@ class VanKrevelen(object):
         res /= np.sum(res)
 
         return res
+
+
+class MassSpectrumList(object):
+    def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]]):
+        self.spectra = spectra
+        if names:
+            self.names = names
+        else:
+            self.names = list(range(len(spectra)))
+
+        self.elems = self.find_elems()
+        self.pivot = self.union()
+
+    def find_elems(self):
+        elems = set([])
+        for spectra in self.spectra:
+            elems.update(set(spectra.elems))
+
+        return list(elems)
+
+    def union(self):
+        spectra = []
+
+        for spectrum in self.spectra:
+            spectra.append(spectrum.get_brutto_dict(elems=self.elems))
+
+        bruttos = set()
+        for spectrum in spectra:
+            bruttos.update(set(spectrum.keys()))
+
+        pivot = []
+        for brutto in bruttos:
+            vector = []
+            for spectrum in spectra:
+                vector.append(spectrum[brutto]["I"] if brutto in spectrum else 0)
+
+            pivot.append(vector)
+
+        print(len(bruttos))
+
+        pivot = pd.DataFrame(pivot, columns=self.names)
+        for i, elem in enumerate(self.elems):
+            pivot[elem] = [brutto[i] for brutto in bruttos]
+
+        return pivot
 
 
 if __name__ == '__main__':
