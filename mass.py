@@ -475,6 +475,17 @@ class MassSpectrumList(object):
         self.elems = self.find_elems()
         self.pivot = self.calculate_pivot()
 
+    def load_from_table(
+            self,
+            pivot: pd.DataFrame,
+            names: Sequence[str],
+            elems: Optional[Sequence[str]] = None
+    ) -> None:
+        self.names = names
+        self.pivot = pivot
+        if None:
+            self.elems = elems
+
     def find_elems(self):
         elems = set([])
         for spectra in self.spectra:
@@ -499,8 +510,6 @@ class MassSpectrumList(object):
                 vector.append(spectrum[brutto]["I"] if brutto in spectrum else 0)
 
             pivot.append(vector)
-
-        print(len(bruttos))
 
         pivot = pd.DataFrame(pivot, columns=self.names)
         for i, elem in enumerate(self.elems):
