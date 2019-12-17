@@ -1,5 +1,4 @@
 import logging
-from functools import reduce
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
 
@@ -474,7 +473,7 @@ class MassSpectrumList(object):
             self.names = list(range(len(spectra)))
 
         self.elems = self.find_elems()
-        self.pivot = self.union()
+        self.pivot = self.calculate_pivot
 
     def find_elems(self):
         elems = set([])
@@ -483,7 +482,7 @@ class MassSpectrumList(object):
 
         return list(elems)
 
-    def union(self):
+    def calculate_pivot(self) -> pd.DataFrame:
         spectra = []
 
         for spectrum in self.spectra:
@@ -508,6 +507,27 @@ class MassSpectrumList(object):
             pivot[elem] = [brutto[i] for brutto in bruttos]
 
         return pivot
+
+    def calculate_jaccard(self) -> np.ndarray:
+        def jaccard(a, b):
+            pass
+
+        return np.zeros((len(self.names, len(self.names))))
+
+    def calculate_tanimoto(self) -> np.ndarray:
+        def tanimoto(a, b):
+            pass
+
+    def calculate_correlation_for_common(self) -> np.ndarray:
+        def corr(a, b):
+            pass
+
+    def calculate_correlation_for_all(self) -> np.ndarray:
+        def corr(a, b):
+            pass
+
+    def draw(self, values: np.ndarray, title: str = "") -> None:
+        pass
 
 
 if __name__ == '__main__':
