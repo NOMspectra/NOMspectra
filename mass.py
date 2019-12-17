@@ -473,7 +473,7 @@ class MassSpectrumList(object):
             self.names = list(range(len(spectra)))
 
         self.elems = self.find_elems()
-        self.pivot = self.calculate_pivot
+        self.pivot = self.calculate_pivot()
 
     def find_elems(self):
         elems = set([])
@@ -508,26 +508,73 @@ class MassSpectrumList(object):
 
         return pivot
 
-    def calculate_jaccard(self) -> np.ndarray:
+    def calculate_score(self, mode: str = "taminoto") -> np.ndarray:
+        """Calculate similarity matrix for all spectra in MassSpectrumList
+
+        :param mode: one of the similarity functions.
+        Mode can be: "tanimoto", "jaccard", "correlation", "common_correlation"
+
+        :return: similarity matrix, 2d np.ndarray with size [len(names), len(names)]"""
+
         def jaccard(a, b):
-            pass
+            a = a.astype(bool)
+            b = b.astype(bool)
 
-        return np.zeros((len(self.names, len(self.names))))
+            return (a & b).sum() / (a | b).sum()
 
-    def calculate_tanimoto(self) -> np.ndarray:
         def tanimoto(a, b):
-            pass
+            return (a * b).sum() / ((a * a).sum() + (b * b).sum() - (a * b).sum())
 
-    def calculate_correlation_for_common(self) -> np.ndarray:
-        def corr(a, b):
-            pass
+        def common_correlation(a, b):
+            A = a[a.astype(bool) == b.astype(bool)]
+            B = b[a.astype(bool) == b.astype(bool)]
 
-    def calculate_correlation_for_all(self) -> np.ndarray:
-        def corr(a, b):
-            pass
+            return np.corrcoef(A, B)[0, 1]
 
-    def draw(self, values: np.ndarray, title: str = "") -> None:
-        pass
+        def correlation(a, b):
+            return np.corrcoef(a, b)[0, 1]
+
+        if mode == "jaccard":
+            similarity_func = jaccard
+        elif mode == "tanimoto":
+            similarity_func = tanimoto
+        elif mode == "correlation":
+            similarity_func = correlation
+        elif mode == "common_correlation":
+            similarity_func = common_correlation
+        else:
+            raise Exception(f"There is no such mode: {mode}")
+
+        df = self.pivot
+        values = []
+        for i in self.names:
+            values.append([])
+            for j in self.names:
+                values[-1].append(similarity_func(df[i], df[j]))
+
+        return np.array(values)
+
+    def draw(
+            self,
+            values: np.ndarray,
+            title: str = ""
+    ) -> None:
+        """Draw similarity matrix by using seaborn
+
+        :param values: similarity matix
+        :param title: title for plot
+        :return: None"""
+
+        sns.heatmap(np.array(values), vmin=0, vmax=1, annot=True)
+
+        plt.xticks(np.arange(len(self.names)) + .5, self.names, rotation="vertical")
+        plt.yticks(np.arange(len(self.names)) + .5, self.names, rotation="horizontal")
+        plt.title(title)
+        b, t = plt.ylim()  # discover the values for bottom and top
+        b += 0.5  # Add 0.5 to the bottom
+        t -= 0.5  # Subtract 0.5 from the top
+        plt.ylim(b, t)  # update the ylim(bottom, top) values
+        plt.xlim(b, t)
 
 
 if __name__ == '__main__':
