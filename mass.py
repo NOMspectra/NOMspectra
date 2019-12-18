@@ -540,6 +540,9 @@ class MassSpectrumList(object):
 
             return np.corrcoef(A, B)[0, 1]
 
+        def cosine(a, b):
+            return (a*b).sum() / ((a*a).sum() * (b*b).sum())**0.5
+
         def correlation(a, b):
             return np.corrcoef(a, b)[0, 1]
 
@@ -550,6 +553,8 @@ class MassSpectrumList(object):
         elif mode == "correlation":
             similarity_func = correlation
         elif mode == "common_correlation":
+            similarity_func = common_correlation
+        elif mode == 'cosine':
             similarity_func = common_correlation
         else:
             raise Exception(f"There is no such mode: {mode}")
