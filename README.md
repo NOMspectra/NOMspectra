@@ -93,3 +93,38 @@ ms = MassSpectrum().load(
 
 print(time.time() - T)
 ```
+
+Usage to plot similarity matrix
+
+```python
+import os
+
+import matplotlib.pyplot as plt
+
+from mass import MassSpectrum, MassSpectrumList
+
+# load data
+masses = []
+mapper = {"mw": "mass", "relativeAbundance": "I", "formula":"brutto"}
+for filename in sorted(os.listdir("data"))[:5]:
+    masses.append(MassSpectrum().load(
+        f"data/{filename}",
+        mapper=mapper,
+        sep='\t',
+        ignore_columns=["peakNo", "errorPPM", "DBE", "class", "z"]
+    ).assignment_from_brutto())  # It's important, that similarity can be calculated only by formulae
+
+# MassSpectrumList instance creating, 
+collection = MassSpectrumList(masses, names=["1", "2", "3", "4", "5"])
+
+# calculate and draw cosine similarity matrix
+plt.figure(figsize=(12, 10))
+collection.draw(collection.calculate_score(mode="common_correlation"), title="cosine")
+plt.show()
+
+# calculate and draw taminoto similarity matrix
+plt.figure(figsize=(12, 10))
+collection.draw(collection.calculate_score(mode="common_correlation"), title="tanimoto")
+plt.show()
+
+```
