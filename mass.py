@@ -555,7 +555,7 @@ class MassSpectrumList(object):
         elif mode == "common_correlation":
             similarity_func = common_correlation
         elif mode == 'cosine':
-            similarity_func = common_correlation
+            similarity_func = cosine
         else:
             raise Exception(f"There is no such mode: {mode}")
 
