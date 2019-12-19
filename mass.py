@@ -517,7 +517,7 @@ class MassSpectrumList(object):
 
         return pivot
 
-    def calculate_score(self, mode: str = "taminoto") -> np.ndarray:
+    def calculate_similarity(self, mode: str = "taminoto") -> np.ndarray:
         """Calculate similarity matrix for all spectra in MassSpectrumList
 
         :param mode: one of the similarity functions.
@@ -567,6 +567,9 @@ class MassSpectrumList(object):
                 values[-1].append(similarity_func(df[i], df[j]))
 
         return np.array(values)
+
+    def calculate_dissimilarity(self, mode: str = "tanimoto"):
+        return 1 - self.calculate_dissimilarity(mode=mode)
 
     def draw(
             self,
