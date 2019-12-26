@@ -418,16 +418,25 @@ class VanKrevelen(object):
 
         self.table = table
         if "O/C" not in self.table:
-            self.table["O/C"] = self.table["O"] / self.table["H"]
+            self.table["O/C"] = self.table["O"] / self.table["C"]
 
         if "H/C" not in self.table:
             self.table["H/C"] = self.table["H"] / self.table["C"]
 
-    def draw_density(self, color=None):
-        sns.jointplot(x="O/C", y="H/C", data=self.table, kind="kde", color=color)
+    def draw_density(self, cmap="Blues", ax=None, shade=True):
+        sns.kdeplot(self.table["O/C"], self.table["H/C"], ax=ax, cmap=cmap, shade=shade)
+
+    def draw_density_with_marginals(self, color=None, ax=None):
+        sns.jointplot(x="O/C", y="H/C", data=self.table, kind="kde", color=color, ax=ax)
+
+    def draw_scatter_with_marginals(self):
+        sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
     def draw_scatter(self):
-        sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
+        plt.scatter(self.table["O/C"], self.table["H/C"])
+        plt.xlabel("O/C")
+        plt.ylabel("H/C")
+        plt.axis("equal")
 
     def boxed_van_krevelen(self, r=5, c=4) -> Sequence[Sequence]:
         # (array([0.2, 0.6, 1. , 1.4, 1.8, 2.2]), array([0.  , 0.25, 0.5 , 0.75, 1.  ]))
