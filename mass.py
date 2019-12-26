@@ -432,11 +432,15 @@ class VanKrevelen(object):
     def draw_scatter_with_marginals(self):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
-    def draw_scatter(self):
-        plt.scatter(self.table["O/C"], self.table["H/C"])
-        plt.xlabel("O/C")
-        plt.ylabel("H/C")
-        plt.axis("equal")
+    def draw_scatter(self, ax=None, s=10):
+        if ax:
+            ax.scatter(self.table["O/C"], self.table["H/C"], s=10)
+            ax.set_xlabel("O/C")
+            ax.set_ylabel("H/C")
+        else:
+            plt.scatter(self.table["O/C"], self.table["H/C"], s=10)
+            plt.xlabel("O/C")
+            plt.ylabel("H/C")
 
     def boxed_van_krevelen(self, r=5, c=4) -> Sequence[Sequence]:
         # (array([0.2, 0.6, 1. , 1.4, 1.8, 2.2]), array([0.  , 0.25, 0.5 , 0.75, 1.  ]))
