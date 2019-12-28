@@ -606,6 +606,9 @@ class MassSpectrumList(object):
         plt.ylim(b, t)  # update the ylim(bottom, top) values
         plt.xlim(b, t)
 
+    def draw_mass_spectrum(self):
+        raise NotImplementedError
+
 
 if __name__ == '__main__':
     ms = MassSpectrum().load('tests/test.csv').drop_unassigned()
