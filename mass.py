@@ -432,9 +432,9 @@ class VanKrevelen(object):
     def draw_scatter_with_marginals(self):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
-    def draw_scatter(self, ax=None, s=10):
+    def draw_scatter(self, ax=None, s=10, alpha=0.1):
         if ax:
-            ax.scatter(self.table["O/C"], self.table["H/C"], s=10)
+            ax.scatter(self.table["O/C"], self.table["H/C"], s=s, alpha=alpha)
             ax.set_xlabel("O/C")
             ax.set_ylabel("H/C")
         else:
