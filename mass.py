@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
 from brutto import Brutto
 from utils import calculate_mass
@@ -606,8 +607,28 @@ class MassSpectrumList(object):
         plt.ylim(b, t)  # update the ylim(bottom, top) values
         plt.xlim(b, t)
 
-    def draw_mass_spectrum(self):
-        raise NotImplementedError
+    def draw_mass_spectrum(self, fig):
+        """
+        NEED TO BE TESTED
+
+        :param fig:
+        :return:
+        """
+        spectra = self.spectra
+        # fig = plt.figure(figsize=(15, 8))
+        for i, spectrum in enumerate(spectra):
+            ax = fig.add_subplot(3, 4, i + 1)
+
+            # plt.title(spectrum) - I'm a little bit unsure here
+            spectrum.normalize().draw(xlim=(200, 1000))
+            inset_axes = inset_axes_func(ax,
+                                         width="40%",  # width = 30% of parent_bbox
+                                         height="40%",  # height : 1 inch
+                                         )
+            spectrum.draw(xlim=(385, 385.225))
+            plt.xticks([385., 385.1, 385.2])
+
+        plt.tight_layout()
 
 
 if __name__ == '__main__':
