@@ -607,17 +607,18 @@ class MassSpectrumList(object):
         plt.ylim(b, t)  # update the ylim(bottom, top) values
         plt.xlim(b, t)
 
-    def draw_mass_spectrum(self, fig):
+    def draw_mass_spectrum(self, fig=None):
         """
-        NEED TO BE TESTED
+        TODO NEED TO BE TESTED
 
         :param fig:
         :return:
         """
         spectra = self.spectra
-        # fig = plt.figure(figsize=(15, 8))
+        if fig is None:
+            fig = plt.figure(figsize=(15, 8))
         for i, spectrum in enumerate(spectra):
-            ax = fig.add_subplot(3, 4, i + 1)
+            ax = fig.add_subplot(len(spectra) // 4 + int((len(spectra) % 4) > 0), 4, i + 1)
 
             # plt.title(spectrum) - I'm a little bit unsure here
             spectrum.normalize().draw(xlim=(200, 1000))
