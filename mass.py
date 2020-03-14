@@ -42,9 +42,10 @@ class MassSpectrum(object):
             filename: Union[Path, str],
             mapper: Optional[Mapping[str, str]] = None,
             ignore_columns: Optional[Sequence[str]] = None,
+            names: Optional[Sequence[str]] = None,
             sep: str = ";"
     ) -> "MassSpectrum":
-        self.table = pd.read_csv(filename, sep=sep)
+        self.table = pd.read_csv(filename, sep=sep, names=names)
         if mapper:
             self.table = self.table.rename(columns=mapper)
 
