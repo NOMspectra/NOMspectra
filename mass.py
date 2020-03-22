@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
+from typing import Sequence, Union, Optional, Mapping, Tuple, Dict, SupportsFloat
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,6 +10,7 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
 from brutto import Brutto
 from utils import calculate_mass
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -406,6 +407,15 @@ class MassSpectrum(object):
 
         return
 
+    def intergrate(self, normalize=False) -> Tuple[np.ndarray, np.ndarray]:
+        tmp = self.table[["mass"]]
+        tmp = tmp.append({"mass": 0}, ignore_index=True).sort_values("mass")
+        tmp["index"] = pd.RangeIndex(start=0, stop=len(tmp), step=1)
+        if normalize:
+            tmp['index'] /= len(tmp)
+
+        return tmp["mass"].values, tmp["index"].values
+
 
 class CanNotCreateVanKrevelen(Exception):
     pass
@@ -479,16 +489,64 @@ class VanKrevelen(object):
         return res
 
 
+def calculate_ppm(x: float, y: float) -> float:
+    return np.fabs((x - y) / y * 1e6)
+
+
 class MassSpectrumList(object):
-    def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]]):
+    def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]] = None):
         self.spectra = spectra
         if names:
             self.names = names
         else:
             self.names = list(range(len(spectra)))
 
-        self.elems = self.find_elems()
-        self.pivot = self.calculate_pivot()
+        # self.elems = self.find_elems()
+        # self.pivot = self.calculate_pivot()
+
+    def calculate_pivot_without_brutto(self, delta_ppm: float = 1) -> pd.DataFrame:
+        masses = []
+        for spectrum in self.spectra:
+            masses.append(spectrum["mass"].values)
+
+        masses = np.concatenate(masses)
+        masses = np.sort(masses)
+        clusters = []
+        print("SORTED")
+        for mass in masses:
+            if len(clusters) == 0:
+                clusters.append([mass])
+
+            else:
+                if calculate_ppm(clusters[-1][-1], mass) < delta_ppm:
+                    clusters[-1].append(mass)
+
+                else:
+                    clusters.append([mass])
+
+        print(f"Median Calculating, len(clusters) = {len(clusters)}")
+        median_masses = []
+        for cluster in clusters:
+            median_masses.append(np.median(cluster))
+
+        table = []
+        print("Search begins")
+        for mass in tqdm(median_masses):
+            table.append([])
+            for spectrum in self.spectra:
+                masses = spectrum["mass"].values
+                idx = np.searchsorted(masses, mass, side='left')
+                if idx > 0 and (idx == len(masses) or (np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx]))):
+                    idx -= 1
+
+                if calculate_ppm(masses[idx], float(mass)) < delta_ppm:
+                    table[-1].append(spectrum["I"].values[idx])
+                else:
+                    table[-1].append(0)
+
+        df = pd.DataFrame(table, columns=self.names)
+        df['mass'] = median_masses
+        return df[['mass'] + self.names]
 
     def load_from_table(
             self,
