@@ -119,9 +119,7 @@ print(time.time() - T)
 
 
 import os
-
 import matplotlib.pyplot as plt
-
 from mass import MassSpectrum, MassSpectrumList
 
 # load data
@@ -149,8 +147,21 @@ plt.figure(figsize=(12, 10))
 collection.draw(collection.calculate_similarity(mode="common_correlation"), title="tanimoto")
 plt.show()
 
+# ### Usage for Brutto table generation
 
-# In[ ]:
+# In[7]:
+
+import time
+from brutto_generator import generate_brutto_formulas
+
+T = time.time()
+df = generate_brutto_formulas(
+    min_n=(6, 6, 0, 0, 0),
+    max_n=(40, 40, 5, 5, 5),
+    elems=tuple("CHONS")
+)
+df.to_csv("test_C_H_O_N_S.csv", sep=";", index=False)
+print(time.time() - T)
 
 
 

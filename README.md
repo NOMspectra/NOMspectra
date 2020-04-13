@@ -145,3 +145,20 @@ collection.draw(collection.calculate_score(mode="common_correlation"), title="ta
 plt.show()
 
 ```
+
+Usage for <b>Brutto table generation</b>
+
+
+```python
+import time
+from brutto_generator import generate_brutto_formulas
+T = time.time()
+df = generate_brutto_formulas(
+    min_n=(6, 6, 0, 0, 0),
+    max_n=(40, 40, 5, 5, 5),
+    elems=tuple("CHONS")
+)
+df.to_csv("test_C_H_O_N_S.csv", sep=";", index=False)
+print(time.time() - T)
+
+```
