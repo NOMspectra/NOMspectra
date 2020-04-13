@@ -9,6 +9,23 @@ This lib supports
     <li> Working with spectra as with sets (intersection, union, etc) </li>
 </ul>
 
+<h2>Installation</h2>
+
+For installing this lib it's only necessary to download project, and before using just add path for the lib to the path
+lib_path = 'YOUR PATH TO THE LIB'
+
+```python
+lib_path = 'ENTER PATH TO THE LIB'
+# for example:
+# lib_path = '/home/dpreer/Polarwind/masslib'
+# or it's possible to use relative path
+# lib_path = 'Polarwind/masslib'
+
+import sys
+sys.path.insert(1, lib_path)
+from mass import MassSpectrum
+```
+
 <h2>Usage Examples</h2>
 
 Usage example for <b>isotope distribution generator</b>:
