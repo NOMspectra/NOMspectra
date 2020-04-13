@@ -501,8 +501,8 @@ class MassSpectrumList(object):
         else:
             self.names = list(range(len(spectra)))
 
-        # self.elems = self.find_elems()
-        # self.pivot = self.calculate_pivot()
+        self.elems = self.find_elems()
+        self.pivot = self.calculate_pivot()
 
     def calculate_pivot_without_brutto(self, delta_ppm: float = 1) -> pd.DataFrame:
         masses = []
