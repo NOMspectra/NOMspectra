@@ -85,7 +85,7 @@ class MassSpectrum(object):
             table = self.table.copy()
 
         masses = generated_bruttos_table["mass"]
-        # masses -= 0.00054858  # electron mass
+        masses -= 0.00054858  # electron mass
 
         elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
