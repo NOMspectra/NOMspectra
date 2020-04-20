@@ -66,7 +66,8 @@ class MassSpectrum(object):
             self,
             generated_bruttos_table: pd.DataFrame,
             elems: Sequence[str],
-            rel_error: float = 0.5
+            rel_error: float = 0.5,
+            sign='-'
     ) -> "MassSpectrum":
 
         """Finding the nearest mass in generated_bruttos_table
@@ -85,7 +86,11 @@ class MassSpectrum(object):
             table = self.table.copy()
 
         masses = generated_bruttos_table["mass"]
-        masses -= 0.00054858  # electron mass
+
+        if sign == '-':
+            masses -= 0.00054858  # electron mass
+        if sign == '+':
+            masses += 0.00054858  # electron mass
 
         elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
@@ -103,6 +108,100 @@ class MassSpectrum(object):
                 res = res.append({"assign": False}, ignore_index=True)
 
         return MassSpectrum(table.join(res))
+
+    def brutto_gen_test(self, elems='CHONS'):
+
+        H = 1.007825
+        C = 12.000000
+        N = 14.003074
+        O = 15.994915
+        S = 31.972071
+
+        brutto_gen = {}
+        for c in range(1,51,1):
+            for h in range (0, 100,1):
+                for o in range (0, 50,1):
+                    for n in range (0, 4,1):
+                        for s in range (0, 2, 1):
+                            
+                            if h/c > 2 or h/c < 0.25:
+                                continue
+                            if o/c > 1:
+                                continue
+                            if c < 15 and n > 0:
+                                continue
+                            if c < 25 and s > 0:
+                                continue
+
+                            if (h%2 == 0 and n%2 != 0) or (n%2 == 0 and h%2 != 0):
+                                continue
+
+                            if n > 0 and 'N' not in elems:
+                                continue
+                            if s > 0 and 'S' not in elems:
+                                continue
+                            
+                            mass = round(c*C + h*H + o*O + n*N + s*S, 6)
+                            brutto_gen[mass] = [c, h, o, n, s]
+
+        return brutto_gen
+
+    def assign_test(
+            self,
+            elems: str = 'CHONS',
+            rel_error: float = 0.5,
+            sign='-'
+    ) -> "MassSpectrum":
+
+        """Finding the nearest mass in generated_bruttos_table
+
+        :param elems: Sequence of elements corresponding to generated_bruttos_table
+        :param rel_error: error in ppm
+        :return: MassSpectra object with assigned signals
+        """
+
+
+        overlap_columns = set(elems) & set(list(self.table))
+        if overlap_columns:
+            logger.warning(f"Following columns will be dropped: {overlap_columns}")
+            table = self.table.drop(columns=elems)
+        else:
+            table = self.table.copy()
+
+        generated_bruttos_dict = self.brutto_gen_test(elems)
+        elem_order = {'C':0, 'H':1, 'O':2, 'N':3, 'S':4}
+
+        for elem in elems:
+            table[elem] = np.NaN
+        table['assign'] = 0
+        
+        if sign == '-':
+            mass_shift = - 0.00054858  # electron mass
+        if sign == '+':
+            mass_shift = 0.00054858  # electron mass
+
+        for i in range(table.shape[0]):
+            mass = round(table.loc[i, 'mass'] + mass_shift, 6) 
+            mass_error = mass * rel_error * 0.000001
+            
+            mass_dif = 0
+            while mass_dif < mass_error:
+                if round(mass + mass_dif, 6) in generated_bruttos_dict:
+                    chons = generated_bruttos_dict[round(mass + mass_dif, 6)]
+                    for elem in elems:
+                        table.at[i, elem] = chons[elem_order[elem]]
+                    table.at[i, 'assign'] = 1    
+                    break
+                elif round(mass - mass_dif, 6) in generated_bruttos_dict:
+                    chons = generated_bruttos_dict[round(mass - mass_dif, 6)]
+                    for elem in elems:
+                        table.at[i, elem] = chons[elem_order[elem]]
+                    table.at[i, 'assign'] = 1
+                    break
+                else:
+                    mass_dif += 0.000001
+        
+        return MassSpectrum(table)
 
     def assignment_from_brutto(self) -> 'MassSpectrum':
         if "brutto" not in self.table:
