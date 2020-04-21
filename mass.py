@@ -109,7 +109,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(table.join(res))
 
-    def brutto_gen_test(self, elems='CHONS'):
+    def brutto_gen_dummy(self, elems, round_search):
 
         H = 1.007825
         C = 12.000000
@@ -124,15 +124,19 @@ class MassSpectrum(object):
                     for n in range (0, 4,1):
                         for s in range (0, 2, 1):
                             
+                            # compounds with these atomic ratios are unlikely to meet
                             if h/c > 2 or h/c < 0.25:
                                 continue
                             if o/c > 1:
                                 continue
+
+                            # it is unlikely that there will be low molecular weight molecules containing sulfur or nitrogen
                             if c < 15 and n > 0:
                                 continue
                             if c < 25 and s > 0:
                                 continue
-
+                            
+                            #check hydrogen atom parity
                             if (h%2 == 0 and n%2 != 0) or (n%2 == 0 and h%2 != 0):
                                 continue
 
@@ -141,25 +145,27 @@ class MassSpectrum(object):
                             if s > 0 and 'S' not in elems:
                                 continue
                             
-                            mass = round(c*C + h*H + o*O + n*N + s*S, 6)
+                            mass = round(c*C + h*H + o*O + n*N + s*S, round_search)
                             brutto_gen[mass] = [c, h, o, n, s]
 
         return brutto_gen
 
-    def assign_test(
+    def assign_dummy(
             self,
             elems: str = 'CHONS',
             rel_error: float = 0.5,
-            sign='-'
+            sign='-',
+            round_search: int = 5
     ) -> "MassSpectrum":
 
         """Finding the nearest mass in generated_bruttos_table
 
         :param elems: Sequence of elements corresponding to generated_bruttos_table
         :param rel_error: error in ppm
+        :param sign: mode of spectrum '-' means subtracting the mass of the electron and hydrogen, '+' means adding electron mass
+        :param round search: error of mass calculate 10^(-round_search)
         :return: MassSpectra object with assigned signals
         """
-
 
         overlap_columns = set(elems) & set(list(self.table))
         if overlap_columns:
@@ -168,7 +174,7 @@ class MassSpectrum(object):
         else:
             table = self.table.copy()
 
-        generated_bruttos_dict = self.brutto_gen_test(elems)
+        generated_bruttos_dict = self.brutto_gen_dummy(elems, round_search)
         elem_order = {'C':0, 'H':1, 'O':2, 'N':3, 'S':4}
 
         for elem in elems:
@@ -177,30 +183,33 @@ class MassSpectrum(object):
         
         if sign == '-':
             mass_shift = - 0.00054858  # electron mass
+            table['mass'] -= 1.007825
+
         if sign == '+':
             mass_shift = 0.00054858  # electron mass
 
+        step = pow(10, -round_search)
         for i in range(table.shape[0]):
             mass = round(table.loc[i, 'mass'] + mass_shift, 6) 
             mass_error = mass * rel_error * 0.000001
             
             mass_dif = 0
+            chons = []
             while mass_dif < mass_error:
-                if round(mass + mass_dif, 6) in generated_bruttos_dict:
-                    chons = generated_bruttos_dict[round(mass + mass_dif, 6)]
-                    for elem in elems:
-                        table.at[i, elem] = chons[elem_order[elem]]
-                    table.at[i, 'assign'] = 1    
+                if round(mass + mass_dif, round_search) in generated_bruttos_dict:
+                    chons = generated_bruttos_dict[round(mass + mass_dif, round_search)]
                     break
-                elif round(mass - mass_dif, 6) in generated_bruttos_dict:
-                    chons = generated_bruttos_dict[round(mass - mass_dif, 6)]
-                    for elem in elems:
-                        table.at[i, elem] = chons[elem_order[elem]]
-                    table.at[i, 'assign'] = 1
+                elif round(mass - mass_dif, round_search) in generated_bruttos_dict:
+                    chons = generated_bruttos_dict[round(mass - mass_dif, round_search)]
                     break
                 else:
-                    mass_dif += 0.000001
+                    mass_dif += step
         
+            if len(chons) > 0:
+                for elem in 'CHONS':
+                    table.at[i, elem] = chons[elem_order[elem]]
+                table.at[i, 'assign'] = 1    
+                    
         return MassSpectrum(table)
 
     def assignment_from_brutto(self) -> 'MassSpectrum':
