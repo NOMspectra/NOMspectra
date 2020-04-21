@@ -9,6 +9,7 @@ import seaborn as sns
 from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
 from brutto import Brutto
+from brutto_generator import brutto_gen_dummy
 from utils import calculate_mass
 from tqdm import tqdm
 
@@ -66,7 +67,8 @@ class MassSpectrum(object):
             self,
             generated_bruttos_table: pd.DataFrame,
             elems: Sequence[str],
-            rel_error: float = 0.5
+            rel_error: float = 0.5,
+            sign='-'
     ) -> "MassSpectrum":
 
         """Finding the nearest mass in generated_bruttos_table
@@ -85,7 +87,11 @@ class MassSpectrum(object):
             table = self.table.copy()
 
         masses = generated_bruttos_table["mass"]
-        masses -= 0.00054858  # electron mass
+
+        if sign == '-':
+            masses -= 0.00054858  # electron mass
+        if sign == '+':
+            masses += 0.00054858  # electron mass
 
         elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
@@ -103,6 +109,68 @@ class MassSpectrum(object):
                 res = res.append({"assign": False}, ignore_index=True)
 
         return MassSpectrum(table.join(res))
+
+    def assign_dummy(
+            self,
+            elems: str = 'CHONS',
+            rel_error: float = 0.5,
+            sign='-',
+            round_search: int = 5
+    ) -> "MassSpectrum":
+
+        """Finding the nearest mass in generated_bruttos_table
+
+        :param elems: Sequence of elements corresponding to generated_bruttos_table
+        :param rel_error: error in ppm
+        :param sign: mode of spectrum '-' means subtracting the mass of the electron and hydrogen, '+' means adding electron mass
+        :param round search: error of mass calculate 10^(-round_search)
+        :return: MassSpectra object with assigned signals
+        """
+
+        overlap_columns = set(elems) & set(list(self.table))
+        if overlap_columns:
+            logger.warning(f"Following columns will be dropped: {overlap_columns}")
+            table = self.table.drop(columns=elems)
+        else:
+            table = self.table.copy()
+
+        generated_bruttos_dict = brutto_gen_dummy(elems, round_search)
+        elem_order = {'C':0, 'H':1, 'O':2, 'N':3, 'S':4}
+
+        for elem in elems:
+            table[elem] = np.NaN
+        table['assign'] = 0
+        
+        if sign == '-':
+            mass_shift = - 0.00054858 - 1.007825 # electron and hydrogen mass
+
+        if sign == '+':
+            mass_shift = 0.00054858  # electron mass
+
+        step = pow(10, -round_search)
+        for i in range(table.shape[0]):
+            mass = table.loc[i, 'mass'] + mass_shift 
+            mass_error = mass * rel_error * 0.000001
+            
+            #formula find in brutto generator, search started with smallest error 
+            mass_dif = 0
+            chons = []
+            while mass_dif < mass_error:
+                if round(mass + mass_dif, round_search) in generated_bruttos_dict:
+                    chons = generated_bruttos_dict[round(mass + mass_dif, round_search)]
+                    break
+                elif round(mass - mass_dif, round_search) in generated_bruttos_dict:
+                    chons = generated_bruttos_dict[round(mass - mass_dif, round_search)]
+                    break
+                else:
+                    mass_dif += step
+        
+            if len(chons) > 0:
+                for elem in 'CHONS':
+                    table.at[i, elem] = chons[elem_order[elem]]
+                table.at[i, 'assign'] = 1    
+                    
+        return MassSpectrum(table)
 
     def assignment_from_brutto(self) -> 'MassSpectrum':
         if "brutto" not in self.table:
