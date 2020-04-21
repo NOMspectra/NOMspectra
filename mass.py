@@ -9,6 +9,7 @@ import seaborn as sns
 from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
 from brutto import Brutto
+from brutto_generator import brutto_gen_dummy
 from utils import calculate_mass
 from tqdm import tqdm
 
@@ -109,47 +110,6 @@ class MassSpectrum(object):
 
         return MassSpectrum(table.join(res))
 
-    def brutto_gen_dummy(self, elems, round_search):
-
-        H = 1.007825
-        C = 12.000000
-        N = 14.003074
-        O = 15.994915
-        S = 31.972071
-
-        brutto_gen = {}
-        for c in range(1,51,1):
-            for h in range (0, 100,1):
-                for o in range (0, 50,1):
-                    for n in range (0, 4,1):
-                        for s in range (0, 2, 1):
-                            
-                            # compounds with these atomic ratios are unlikely to meet
-                            if h/c > 2 or h/c < 0.25:
-                                continue
-                            if o/c > 1:
-                                continue
-
-                            # it is unlikely that there will be low molecular weight molecules containing sulfur or nitrogen
-                            if c < 15 and n > 0:
-                                continue
-                            if c < 25 and s > 0:
-                                continue
-                            
-                            #check hydrogen atom parity
-                            if (h%2 == 0 and n%2 != 0) or (n%2 == 0 and h%2 != 0):
-                                continue
-
-                            if n > 0 and 'N' not in elems:
-                                continue
-                            if s > 0 and 'S' not in elems:
-                                continue
-                            
-                            mass = round(c*C + h*H + o*O + n*N + s*S, round_search)
-                            brutto_gen[mass] = [c, h, o, n, s]
-
-        return brutto_gen
-
     def assign_dummy(
             self,
             elems: str = 'CHONS',
@@ -174,7 +134,7 @@ class MassSpectrum(object):
         else:
             table = self.table.copy()
 
-        generated_bruttos_dict = self.brutto_gen_dummy(elems, round_search)
+        generated_bruttos_dict = brutto_gen_dummy(elems, round_search)
         elem_order = {'C':0, 'H':1, 'O':2, 'N':3, 'S':4}
 
         for elem in elems:
@@ -182,17 +142,17 @@ class MassSpectrum(object):
         table['assign'] = 0
         
         if sign == '-':
-            mass_shift = - 0.00054858  # electron mass
-            table['mass'] -= 1.007825
+            mass_shift = - 0.00054858 - 1.007825 # electron and hydrogen mass
 
         if sign == '+':
             mass_shift = 0.00054858  # electron mass
 
         step = pow(10, -round_search)
         for i in range(table.shape[0]):
-            mass = round(table.loc[i, 'mass'] + mass_shift, 6) 
+            mass = table.loc[i, 'mass'] + mass_shift 
             mass_error = mass * rel_error * 0.000001
             
+            #formula find in brutto generator, search started with smallest error 
             mass_dif = 0
             chons = []
             while mass_dif < mass_error:
