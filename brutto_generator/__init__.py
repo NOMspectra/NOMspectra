@@ -39,6 +39,7 @@ def generate_brutto_formulas(
 
     return df
 
+
 def brutto_gen_dummy(
     elems: str = 'CHONS',
     round_search: int = 5
