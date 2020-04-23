@@ -60,7 +60,7 @@ class Test(unittest.TestCase):
         ms = MassSpectrum()
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
-        ms.load(f"{settings.DATA_FOLDER}/assigned.csv", mapper, sep=",")  # FIXME relative paths are bad
+        ms.load(f"{settings.DATA_FOLDER}/a_1.csv", mapper, sep=",")  # FIXME relative paths are bad
 
         self.assertTrue("mass" in ms.table)
         self.assertTrue("I" in ms.table)
@@ -72,7 +72,7 @@ class Test(unittest.TestCase):
         ms = MassSpectrum()
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
-        ms.load(f"{settings.DATA_FOLDER}/assigned.csv", mapper, sep=",")
+        ms.load(f"{settings.DATA_FOLDER}/a_1.csv", mapper, sep=",")
 
         ms = MassSpectrum(ms.table)
 
@@ -83,7 +83,7 @@ class Test(unittest.TestCase):
 
         mapper = {"mw": "mass", "relativeAbundance": "I"}
         ms.load(
-            "../data/assigned.csv",
+            "../data/a_1.csv",
             mapper,
             sep=',',
             ignore_columns=["peakNo", "errorPPM", "DBE", "class", "C", "H", "O", "N", "S", "z"]
