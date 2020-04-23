@@ -86,27 +86,33 @@ class MassSpectrum(object):
         else:
             table = self.table.copy()
 
-        masses = generated_bruttos_table["mass"]
+        masses = generated_bruttos_table["mass"].values
 
         if sign == '-':
-            masses -= 0.00054858  # electron mass
-        if sign == '+':
-            masses += 0.00054858  # electron mass
+            mass_shift = - 0.00054858 + 1.007825  # electron and hydrogen mass
+
+        elif sign == '+':
+            mass_shift = 0.00054858  # electron mass
+
+        else:
+            raise ValueError(f"sign can be only + or - rather than {sign}")
 
         elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
 
-        res = pd.DataFrame()
+        res = []
         for index, row in table.iterrows():
-            mass = row["mass"]
+            mass = row["mass"] + mass_shift
             idx = np.searchsorted(masses, mass, side='left')
             if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
                 idx -= 1
 
             if np.fabs(masses[idx] - mass) / mass * 1e6 <= rel_error:
-                res = res.append({**dict(zip(elems, bruttos[idx])), "assign": True}, ignore_index=True)
+                res.append({**dict(zip(elems, bruttos[idx])), "assign": True})
             else:
-                res = res.append({"assign": False}, ignore_index=True)
+                res.append({"assign": False})
+
+        res = pd.DataFrame(res)
 
         return MassSpectrum(table.join(res))
 
@@ -135,24 +141,27 @@ class MassSpectrum(object):
             table = self.table.copy()
 
         generated_bruttos_dict = brutto_gen_dummy(elems, round_search)
-        elem_order = {'C':0, 'H':1, 'O':2, 'N':3, 'S':4}
+        elem_order = {'C': 0, 'H': 1, 'O': 2, 'N': 3, 'S': 4}
 
         for elem in elems:
             table[elem] = np.NaN
         table['assign'] = 0
         
         if sign == '-':
-            mass_shift = - 0.00054858 - 1.007825 # electron and hydrogen mass
+            mass_shift = - 0.00054858 + 1.007825  # electron and hydrogen mass
 
-        if sign == '+':
+        elif sign == '+':
             mass_shift = 0.00054858  # electron mass
+
+        else:
+            raise ValueError(f"sign can be only + or - rather than {sign}")
 
         step = pow(10, -round_search)
         for i in range(table.shape[0]):
             mass = table.loc[i, 'mass'] + mass_shift 
             mass_error = mass * rel_error * 0.000001
             
-            #formula find in brutto generator, search started with smallest error 
+            # formula find in brutto generator, search started with smallest error
             mass_dif = 0
             chons = []
             while mass_dif < mass_error:
