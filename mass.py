@@ -490,10 +490,13 @@ class CanNotCreateVanKrevelen(Exception):
 
 
 class VanKrevelen(object):
-    def __init__(self, table: Optional[pd.DataFrame] = None, name: Optional[str] = None):
+    def __init__(self, table: Optional[Union[pd.DataFrame, 'MassSpectrum']] = None, name: Optional[str] = None):
         self.name = name
-        if not self.table:
+        if table is None:
             return
+
+        if isinstance(table, MassSpectrum):
+            table = table.table
 
         if not (("C" in table and "H" in table and "O" in table) or ("O/C" in table or "H/C" in table)):
             raise CanNotCreateVanKrevelen()
@@ -559,7 +562,7 @@ class VanKrevelen(object):
         return res
 
     @staticmethod
-    def save_fig(path) -> None:
+    def save_fig(path, dpi=300) -> None:
         """
         Save picture
         Be careful! If axes are used, it can work incorrect!
@@ -567,7 +570,16 @@ class VanKrevelen(object):
         :param path:
         :return:
         """
-        plt.savefig(path)
+        plt.savefig(path, dpi=dpi)
+
+    @staticmethod
+    def show():
+        """
+        This method is needed to hide plt
+        Sometimes we don't want to use additional imports
+        :return:
+        """
+        plt.show()
 
     def save(self, path: Union[Path, str], sep: str = ';') -> None:
         """

@@ -102,7 +102,7 @@ T = time.time()
 # assign
 # dropping unassigned bruttos
 ms = MassSpectrum().load(
-    "../data/a_1.csv",
+    "../data/assigned.csv",
     mapper,
     sep=',',
     ignore_columns=["peakNo", "errorPPM", "DBE", "class", "C", "H", "O", "N", "S", "z"]
