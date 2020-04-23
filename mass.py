@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Sequence, Union, Optional, Mapping, Tuple, Dict, SupportsFloat
+from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -499,8 +499,13 @@ class CanNotCreateVanKrevelen(Exception):
 
 
 class VanKrevelen(object):
-    def __init__(self, table: Optional[pd.DataFrame] = None, name: Optional[str] = None):
+    def __init__(self, table: Optional[Union[pd.DataFrame, 'MassSpectrum']] = None, name: Optional[str] = None):
         self.name = name
+        if table is None:
+            return
+
+        if isinstance(table, MassSpectrum):
+            table = table.table
 
         if not (("C" in table and "H" in table and "O" in table) or ("O/C" in table or "H/C" in table)):
             raise CanNotCreateVanKrevelen()
@@ -564,6 +569,48 @@ class VanKrevelen(object):
         res /= np.sum(res)
 
         return res
+
+    @staticmethod
+    def save_fig(path, dpi=300) -> None:
+        """
+        Save picture
+        Be careful! If axes are used, it can work incorrect!
+
+        :param path:
+        :return:
+        """
+        plt.savefig(path, dpi=dpi)
+
+    @staticmethod
+    def show():
+        """
+        This method is needed to hide plt
+        Sometimes we don't want to use additional imports
+        :return:
+        """
+        plt.show()
+
+    def save(self, path: Union[Path, str], sep: str = ';') -> None:
+        """
+        Saves VK to the table with path
+        :param path: filename should have extension
+        :param sep:
+        :return:
+        """
+        self.table.to_csv(path, sep=sep, index=False)
+
+    @staticmethod
+    def load(path, sep=';') -> 'VanKrevelen':
+        """
+        Loads VK from table, name is the filename without extension
+        :param path:
+        :param sep:
+        :return:
+        """
+        table = pd.read_csv(path, sep=sep)
+        name = ".".join(str(path).split("/")[-1].split(".")[:-1])
+
+        return VanKrevelen(table=table, name=name)
 
 
 def calculate_ppm(x: float, y: float) -> float:
