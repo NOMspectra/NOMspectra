@@ -514,7 +514,7 @@ class VanKrevelen(object):
 
     def draw_scatter(self, ax=None, s=10, alpha=0.1, color = None):
         if ax:
-            ax.scatter(self.table["O/C"], self.table["H/C"], s=s, alpha=alpha, c= c)
+            ax.scatter(self.table["O/C"], self.table["H/C"], s=s, alpha=alpha, c= color)
             ax.set_xlabel("O/C")
             ax.set_ylabel("H/C")
             ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
