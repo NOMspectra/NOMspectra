@@ -513,6 +513,8 @@ class VanKrevelen(object):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
     def draw_scatter(self, ax=None, s=10, alpha=0.1, c = None):
+        aaaa = 150/0
+        print(aaaa)
         if ax:
             ax.scatter(self.table["O/C"], self.table["H/C"], s=s, alpha=alpha, c=c)
             ax.set_xlabel("O/C")
