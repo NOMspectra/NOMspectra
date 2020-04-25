@@ -140,7 +140,7 @@ class MassSpectrum(object):
         for elem in elems:
             table[elem] = np.NaN
         table['assign'] = 0
-        
+
         if sign == '-':
             mass_shift = - 0.00054858 - 1.007825 # electron and hydrogen mass
 
@@ -149,10 +149,10 @@ class MassSpectrum(object):
 
         step = pow(10, -round_search)
         for i in range(table.shape[0]):
-            mass = table.loc[i, 'mass'] + mass_shift 
+            mass = table.loc[i, 'mass'] + mass_shift
             mass_error = mass * rel_error * 0.000001
-            
-            #formula find in brutto generator, search started with smallest error 
+
+            #formula find in brutto generator, search started with smallest error
             mass_dif = 0
             chons = []
             while mass_dif < mass_error:
@@ -164,12 +164,12 @@ class MassSpectrum(object):
                     break
                 else:
                     mass_dif += step
-        
+
             if len(chons) > 0:
                 for elem in 'CHONS':
                     table.at[i, elem] = chons[elem_order[elem]]
-                table.at[i, 'assign'] = 1    
-                    
+                table.at[i, 'assign'] = 1
+
         return MassSpectrum(table)
 
     def assignment_from_brutto(self) -> 'MassSpectrum':
