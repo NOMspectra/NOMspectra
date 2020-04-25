@@ -518,7 +518,7 @@ class VanKrevelen(object):
             ax.set_xlabel("O/C")
             ax.set_ylabel("H/C")
             ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
-            ax.xaxis.set_ticks(np.arange(0, 1.0, 0.2)) 
+            ax.xaxis.set_ticks(np.arange(0, 1.0, 0.2))
         else:
             plt.scatter(self.table["O/C"], self.table["H/C"], s=10)
             plt.xlabel("O/C")
