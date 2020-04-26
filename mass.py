@@ -181,6 +181,48 @@ class MassSpectrum(object):
                     
         return MassSpectrum(table)
 
+    def check_by_c13(
+        self, 
+        error: float = 0.001,
+        remove: bool = True
+    ) -> 'MassSpectrum':
+
+        '''
+        C13 isotope peak checking
+        :param error: allowable error when checking c13 isotope peak
+        :remove: if True peakes without C13 isotopes peak will be droped
+        :return: MassSpectra object with cleaned or checked mass-signals
+        '''
+
+        table = self.table.copy()
+        table = table.sort_values(by='mass').reset_index(drop=True)
+        
+        res = []
+        masses = table["mass"].values
+        
+        for index, row in table.iterrows():
+            mass = row["mass"] + 1.003355 # C13 - C12 mass difference
+            
+            idx = np.searchsorted(masses, mass, side='left')
+            
+            if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
+                idx -= 1
+            
+            if np.fabs(masses[idx] - mass)  <= error:
+                res.append({'mass': row['mass'], 'I': row['I'], 'numbers': row['numbers'], "c13_peak": True})
+            else:
+                res.append({"c13_peak": False})
+        
+        res = pd.DataFrame(res)
+
+        if remove:
+            res = res.loc[res['c13_peak'] == True]
+            res = res.drop(columns=['c13_peak'])
+            res = res.reset_index(drop= True)
+
+        return MassSpectrum(res)
+
+
     def assignment_from_brutto(self) -> 'MassSpectrum':
         if "brutto" not in self.table:
             raise Exception("There is no brutto in MassSpectra")
