@@ -196,7 +196,7 @@ class MassSpectrum(object):
 
         table = self.table.sort_values(by='mass').reset_index(drop=True)
         
-        flag = []
+        flags = []
         masses = table["mass"].values
         
         for index, row in table.iterrows():
@@ -208,14 +208,14 @@ class MassSpectrum(object):
                 idx -= 1
             
             if np.fabs(masses[idx] - mass)  <= error:
-                flag.append(True)
+                flags.append(True)
             else:
-                flag.append(False)
+                flags.append(False)
         
-        table['C13_peak'] = flag
+        table['C13_peak'] = flags
 
         if remove:
-            table = table.loc[flag].reset_index(drop=True)
+            table = table.loc[flags].reset_index(drop=True)
 
         return MassSpectrum(table)
 
