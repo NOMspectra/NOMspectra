@@ -181,6 +181,44 @@ class MassSpectrum(object):
                     
         return MassSpectrum(table)
 
+    def filter_by_C13(
+        self, 
+        error: float = 0.001,
+        remove: bool = False
+    ) -> 'MassSpectrum':
+
+        '''
+        C13 isotope peak checking
+        :param error: allowable error when checking c13 isotope peak
+        :param remove: if True peakes without C13 isotopes peak will be dropped
+        :return: MassSpectra object with cleaned or checked mass-signals
+        '''
+
+        table = self.table.sort_values(by='mass').reset_index(drop=True)
+        
+        flags = []
+        masses = table["mass"].values
+        
+        for index, row in table.iterrows():
+            mass = row["mass"] + 1.003355 # C13 - C12 mass difference
+            
+            idx = np.searchsorted(masses, mass, side='left')
+            
+            if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
+                idx -= 1
+            
+            if np.fabs(masses[idx] - mass)  <= error:
+                flags.append(True)
+            else:
+                flags.append(False)
+        
+        table['C13_peak'] = flags
+
+        if remove:
+            table = table.loc[flags].reset_index(drop=True)
+
+        return MassSpectrum(table)
+
     def assignment_from_brutto(self) -> 'MassSpectrum':
         if "brutto" not in self.table:
             raise Exception("There is no brutto in MassSpectra")
