@@ -57,9 +57,9 @@ def brutto_gen_dummy(
     S = 31.972071
 
     brutto_gen = {}
-    for c in range(1,51,1):
-        for h in range (0, 100,1):
-            for o in range (0, 50,1):
+    for c in range(1,120,1):
+        for h in range (0, 200,1):
+            for o in range (0, 120,1):
                 for n in range (0, 4,1):
                     for s in range (0, 2, 1):
                         
@@ -67,12 +67,6 @@ def brutto_gen_dummy(
                         if h/c > 2 or h/c < 0.25:
                             continue
                         if o/c > 1:
-                            continue
-
-                        # it is unlikely that there will be low molecular weight molecules containing sulfur or nitrogen
-                        if c < 15 and n > 0:
-                            continue
-                        if c < 25 and s > 0:
                             continue
                         
                         #check hydrogen atom parity

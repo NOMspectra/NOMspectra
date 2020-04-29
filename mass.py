@@ -183,39 +183,43 @@ class MassSpectrum(object):
 
     def filter_by_C13(
         self, 
-        error: float = 0.001,
-        remove: bool = False
+        rel_error: float = 0.5,
+        remove: bool = False,
+        max_charge: int = 1
     ) -> 'MassSpectrum':
 
         '''
         C13 isotope peak checking
-        :param error: allowable error when checking c13 isotope peak
+        :param rel_error: allowable ppm error when checking c13 isotope peak
         :param remove: if True peakes without C13 isotopes peak will be dropped
+        :param max_charge: max charge in m/z that we looking
         :return: MassSpectra object with cleaned or checked mass-signals
         '''
 
         table = self.table.sort_values(by='mass').reset_index(drop=True)
         
-        flags = []
+        flags = np.zeros(table.shape[0], dtype='int')
         masses = table["mass"].values
         
-        for index, row in table.iterrows():
-            mass = row["mass"] + 1.003355 # C13 - C12 mass difference
-            
-            idx = np.searchsorted(masses, mass, side='left')
-            
-            if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
-                idx -= 1
-            
-            if np.fabs(masses[idx] - mass)  <= error:
-                flags.append(True)
-            else:
-                flags.append(False)
+        C13_C12 = 1.003355 # C13 - C12 mass difference
+
+        for z in range(1, max_charge+1):
+            for index, row in table.iterrows():
+                mass = row["mass"] + C13_C12/z 
+                error = mass * rel_error * 0.000001
+
+                idx = np.searchsorted(masses, mass, side='left')
+                
+                if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
+                    idx -= 1
+                
+                if np.fabs(masses[idx] - mass)  <= error:
+                    flags[index] = z
         
-        table['C13_peak'] = flags
+        table['C13_peak_z'] = flags
 
         if remove:
-            table = table.loc[flags].reset_index(drop=True)
+            table = table.loc[table['C13_peak_z'] != 0].reset_index(drop=True)
 
         return MassSpectrum(table)
 
