@@ -146,7 +146,7 @@ class MassSpectrum(object):
         for elem in elems:
             table[elem] = np.NaN
         table['assign'] = 0
-        
+
         if sign == '-':
             mass_shift = - 0.00054858 + 1.007825  # electron and hydrogen mass
 
@@ -158,7 +158,7 @@ class MassSpectrum(object):
 
         step = pow(10, -round_search)
         for i in range(table.shape[0]):
-            mass = table.loc[i, 'mass'] + mass_shift 
+            mass = table.loc[i, 'mass'] + mass_shift
             mass_error = mass * rel_error * 0.000001
             
             # formula find in brutto generator, search started with smallest error
@@ -173,12 +173,12 @@ class MassSpectrum(object):
                     break
                 else:
                     mass_dif += step
-        
+
             if len(chons) > 0:
                 for elem in 'CHONS':
                     table.at[i, elem] = chons[elem_order[elem]]
-                table.at[i, 'assign'] = 1    
-                    
+                table.at[i, 'assign'] = 1
+
         return MassSpectrum(table)
 
     def filter_by_C13(
@@ -564,11 +564,16 @@ class VanKrevelen(object):
     def draw_scatter_with_marginals(self):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
-    def draw_scatter(self, ax=None, s=10, alpha=0.1):
+
+    def draw_scatter(self, ax=None, **kwargs):
         if ax:
-            ax.scatter(self.table["O/C"], self.table["H/C"], s=s, alpha=alpha)
+            ax.scatter(self.table["O/C"], self.table["H/C"], **kwargs)
             ax.set_xlabel("O/C")
             ax.set_ylabel("H/C")
+            ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
+            ax.xaxis.set_ticks(np.arange(0, 1.1, 0.2))
+            ax.set_xlim(0, 1)
+            ax.set_ylim(0, 2)
         else:
             plt.scatter(self.table["O/C"], self.table["H/C"], s=10)
             plt.xlabel("O/C")
