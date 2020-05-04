@@ -1,15 +1,8 @@
 import logging
 import os
-import time
 import unittest
 
-import numpy as np
-import pandas as pd
-
-import settings
-from brutto_generator import generate_brutto_formulas
 from mass import MassSpectrum, VanKrevelen
-from utils import calculate_mass
 
 
 class Test(unittest.TestCase):
