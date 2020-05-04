@@ -1,6 +1,7 @@
 import pandas as pd
 from typing import Sequence, Union
 import numpy as np
+import re
 import settings
 
 
@@ -19,11 +20,17 @@ def calculate_mass(
     :param elems: elements that corresponds to columns
     :return: sequence of calculated masses
     """
-    masses = pd.read_csv(settings.MONOISOTOPIC_MASSES_PATH, sep=";")
+    monoisotopic_masses = pd.read_csv(settings.MONOISOTOPIC_MASSES_PATH, sep=";")
+    isotopic_masses = pd.read_csv(settings.ISOTOPIC_MASSES_PATH, sep=";")
     elem_masses = []
     for elem in elems:
         try:
-            mass = masses[masses.element == elem]["mass"].values[0]
+            if re.match(r"[0-9]+[A-Z][a-z]*", elem):
+                mass = isotopic_masses[isotopic_masses.element == elem]["mass"].values[0]
+            elif re.match(r"[A-Z][a-z]*", elem):
+                mass = monoisotopic_masses[monoisotopic_masses.element == elem]["mass"].values[0]
+            else:
+                raise NoSuchChemicalElement(f"Element should sufisfy [0-9]*[A-Z][a-z]*, but {elem} does not")
         except Exception as e:
             raise NoSuchChemicalElement(f"There is not element: {elem},\nerror: {e}")
         elem_masses.append(mass)
@@ -33,4 +40,5 @@ def calculate_mass(
 
 
 if __name__ == '__main__':
-    calculate_mass([()])
+    print(calculate_mass([(0, 1), (1, 0)], ["C", "1H"]))
+
