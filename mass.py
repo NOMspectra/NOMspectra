@@ -568,7 +568,6 @@ class VanKrevelen(object):
     def draw_scatter_with_marginals(self):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
-
     def draw_scatter(self, ax=None, **kwargs):
         if ax:
             ax.scatter(self.table["O/C"], self.table["H/C"], **kwargs)
@@ -587,20 +586,19 @@ class VanKrevelen(object):
         # (array([0.2, 0.6, 1. , 1.4, 1.8, 2.2]), array([0.  , 0.25, 0.5 , 0.75, 1.  ]))
 
         df = self.table
-        x = np.linspace(0.2, 2.2, r + 1)  # 0.4
-        y = np.linspace(0, 1, c + 1)  # 0.25
+        y = np.linspace(0.2, 2.2, r + 1)  # 0.4
+        x = np.linspace(0, 1, c + 1)  # 0.25
 
+        print("test")
         vc = []
-        for i in range(r):
+        for i in range(c):
             vc.append([])
-            for j in range(c):
+            for j in range(r):
                 vc[-1].append(
                     df[
-                        (df["H/C"] > x[i]) &
-                        (df["H/C"] <= x[i] + 2.0 / r) &
-                        (df["O/C"] > y[j]) &
-                        (df["O/C"] <= y[j] + 1.0 / c)
-                    ])
+                        (df["H/C"] > y[j]) & (df["H/C"] <= y[j] + 2.0 / r) &
+                        (df["O/C"] > x[i]) & (df["O/C"] <= x[i] + 1.0 / c)
+                        ])
 
         return vc
 
