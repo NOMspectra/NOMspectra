@@ -479,7 +479,7 @@ class MassSpectrum(object):
 
         table = self.table.copy()
         table["I"] /= table["I"].max()
-        return MassSpectrum(table["I"])
+        return MassSpectrum(table)
 
     def head(self) -> pd.DataFrame:
         return self.table.head()
