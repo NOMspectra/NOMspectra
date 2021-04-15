@@ -589,7 +589,6 @@ class VanKrevelen(object):
         y = np.linspace(0.2, 2.2, r + 1)  # 0.4
         x = np.linspace(0, 1, c + 1)  # 0.25
 
-        print("test")
         vc = []
         for i in range(c):
             vc.append([])
