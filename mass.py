@@ -636,6 +636,41 @@ class VanKrevelen(object):
 
         return squares
 
+    def get_squares_density(self, rows: int = 5, columns: int = 4, weight: str = "count", dimensions: int = 1):
+        squares = self.get_squares(rows=rows, columns=columns)
+
+        density = []
+
+        if weight == "count":
+
+            sum_density = sum([len(squares) for square in squares])
+            for square in squares:
+                density.append(len(square) / sum_density)
+
+        elif weight == "intensity":
+            sum_density = sum([square["I"].sum() for square in squares])
+            for square in squares:
+                density.append(square["I"].sum() / sum_density)
+
+        else:
+            raise ValueError(f"weight should be count or intensity (not {weight})")
+
+        if dimensions == 1:
+            return density
+
+        elif dimensions == 2:
+            num = 0
+            density2d = np.zeros((rows, columns))
+            for column in np.arange(columns):
+                for row in np.arange(rows - 1, -1, -1):
+                    density2d[row, column] = density[num]
+                    num += 1
+
+            return density2d
+
+        else:
+            raise ValueError(f"dimensions colud be 1 or 2 (not {dimensions})")
+
     def boxed_van_krevelen(self, r=5, c=4) -> Sequence[Sequence]:
         # (array([0.2, 0.6, 1. , 1.4, 1.8, 2.2]), array([0.  , 0.25, 0.5 , 0.75, 1.  ]))
 
