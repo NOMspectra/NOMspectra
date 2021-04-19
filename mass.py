@@ -201,7 +201,7 @@ class MassSpectrum(object):
         flags = np.zeros(table.shape[0], dtype='int')
         masses = table["mass"].values
         
-        C13_C12 = 1.003355 # C13 - C12 mass difference
+        C13_C12 = 1.003355  # C13 - C12 mass difference
 
         for z in range(1, max_charge+1):
             for index, row in table.iterrows():
@@ -236,7 +236,7 @@ class MassSpectrum(object):
         for element in elems:
             table[element] = table.brutto.apply(lambda x: Brutto(x.replace("_", ""))[element])
 
-        return MassSpectrum(table, elems=elems)
+        return MassSpectrum(table, elems=list(elems))
 
     def compile_brutto(self) -> 'MassSpectrum':
         def compile_one(a: Sequence[Union[int, float]], elems: Sequence[str]) -> str:
@@ -568,7 +568,7 @@ class VanKrevelen(object):
     def draw_scatter_with_marginals(self):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
-    def draw_scatter(self, ax=None, **kwargs):
+    def draw_scatter(self, ax=None, legend=True, **kwargs):
         if ax:
             ax.scatter(self.table["O/C"], self.table["H/C"], **kwargs)
             ax.set_xlabel("O/C")
@@ -578,9 +578,63 @@ class VanKrevelen(object):
             ax.set_xlim(0, 1)
             ax.set_ylim(0, 2)
         else:
-            plt.scatter(self.table["O/C"], self.table["H/C"], s=10)
+            table = self.table
+
+            plt.title(f"{len(table)} formulas ")
+            median_intensity = table["I"].median() / 2
+
+            # CHO
+            cho = table[(table["N"] < 1) & (table["S"] < 1)]
+            s = cho["I"] / median_intensity
+            plt.scatter(cho["O/C"], cho["H/C"], s=s, color='blue', alpha=0.3, label="CHO", **kwargs)
+
+            # CHON
+            chon = table[(table["N"] > 0) & (table["S"] < 1)]
+            s = chon["I"] / median_intensity
+            plt.scatter(chon["O/C"], chon["H/C"], s=s, color='orange', alpha=0.3, label="CHON", **kwargs)
+
+            # CHOS
+            chos = table[(table["N"] < 1) & (table["S"] > 0)]
+            s = chos["I"] / median_intensity
+            plt.scatter(chos["O/C"], chos["H/C"], s=s, color='green', alpha=0.3, label="CHOS", **kwargs)
+
+            # CHONS
+            chons = table[(table["N"] > 0) & (table["S"] < 1)]
+            s = chons["I"] / median_intensity
+            plt.scatter(chons["O/C"], chons["H/C"], s=s, color='red', alpha=0.3, label="CHNOS", **kwargs)
+
+            plt.xlim(0, 1)
+            plt.ylim(0.2, 2.2)
+
+            plt.yticks(np.arange(0.2, 2.6, 0.4))
+            plt.xticks(np.arange(0, 1.25, 0.25))
+
             plt.xlabel("O/C")
             plt.ylabel("H/C")
+
+            if legend:
+                legend = plt.legend(loc=4)
+                for legend_handle in legend.legendHandles:
+                    legend_handle._sizes = [4]
+                    legend_handle.set_alpha(1)
+
+    def get_squares(self, rows: int = 5, columns: int = 4):
+
+        df = self.table
+        squares = [None for _ in range(rows * columns)]
+
+        num = 0
+        dhc = 2 / rows
+        doc = 1 / columns
+
+        for j, oc in zip(np.arange(columns), np.linspace(0, 1, (columns + 1))):
+            # for i, hc in zip(np.arange(rows - 1, -1, -1), np.linspace(2.2, 0.2, (rows + 1))):
+            for i, hc in zip(np.arange(rows), np.linspace(0.2, 2.2, rows + 1)):
+                tmp = MassSpectrum(df[(df["H/C"] >= hc) & (df["H/C"] < (hc + dhc)) & (df["O/C"] >= oc) & (df["O/C"] < (oc + doc))])
+                squares[num] = tmp
+                num += 1
+
+        return squares
 
     def boxed_van_krevelen(self, r=5, c=4) -> Sequence[Sequence]:
         # (array([0.2, 0.6, 1. , 1.4, 1.8, 2.2]), array([0.  , 0.25, 0.5 , 0.75, 1.  ]))
