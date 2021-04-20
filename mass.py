@@ -636,6 +636,7 @@ class VanKrevelen(object):
 
         return squares
 
+
     def get_squares_density(self, rows: int = 5, columns: int = 4, weight: str = "count", dimensions: int = 1):
         squares = self.get_squares(rows=rows, columns=columns)
 
@@ -670,6 +671,54 @@ class VanKrevelen(object):
 
         else:
             raise ValueError(f"dimensions colud be 1 or 2 (not {dimensions})")
+
+    def get_kellerman_zones(self):
+
+        df = self.table
+        C, H, O, N, S = df["C"], df["H"], df["O"], df["N"], df["S"]
+        df["H/C"] = H / C
+        df["O/C"] = O / C
+
+        # AImod
+        df["AI"] = (1 + C - 0.5 * O - 0.5 * H) / (C - 0.5 * O - N)
+
+        AI = df["AI"]
+        OC = df["O/C"]
+        HC = df["H/C"]
+
+        ans = {}
+
+        ans["lipids"] = MassSpectrum(df[(OC < 0.3) & (HC >= 1.5) & (N == 0)])
+        ans["N-satureted"] = MassSpectrum(df[(HC >= 1.5) & (N >= 1)])
+        ans["aliphatics"] = MassSpectrum(df[(OC >= 0.3) & (HC >= 1.5) & (N == 0)])
+
+        ans["unsat_lowOC"] = MassSpectrum(df[(HC < 1.5) & (AI < 0.5) & (OC <= 0.5)])
+        ans["unsat_highOC"] = MassSpectrum(df[(HC < 1.5) & (AI < 0.5) & (OC > 0.5)])
+
+        ans["aromatic_lowOC"] = MassSpectrum(df[(OC <= 0.5) & (0.5 < AI) & (AI <= 0.67)])
+        ans["aromatic_highOC"] = MassSpectrum(df[(OC > 0.5) & (0.5 < AI) & (AI <= 0.67)])
+
+        ans["condensed_lowOC"] = MassSpectrum(df[(OC <= 0.5) & (AI > 0.67)])
+        ans["condensed_highOC"] = MassSpectrum(df[(OC > 0.5) & (AI > 0.67)])
+
+        return ans
+
+    def get_kellerman_density(self, weight: str = "count", return_keys=False):
+        kellerman = self.get_kellerman_zones()
+        ans = {}
+
+        if weight == "count":
+            sum_density = len(self.table)
+            for key, value in kellerman.items():
+                ans[key] = len(value.table) / sum_density
+
+        elif weight == "intensity":
+            sum_density = self.table["I"].sum()
+            for key, value in kellerman.items():
+                ans[key] = value.table["I"].sum() / sum_density
+
+        else:
+            raise ValueError(f"weight should be count or intensity not {weight}")
 
     def boxed_van_krevelen(self, r=5, c=4) -> Sequence[Sequence]:
         # (array([0.2, 0.6, 1. , 1.4, 1.8, 2.2]), array([0.  , 0.25, 0.5 , 0.75, 1.  ]))
