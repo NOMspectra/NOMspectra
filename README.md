@@ -9,6 +9,19 @@ This lib supports
     <li> Working with spectra as with sets (intersection, union, etc) </li>
 </ul>
 
+<h2>Installation from source</h2>
+
+You can install **masslib** with:
+
+```sh
+git clone https://github.com/nhslab/masslib/tree/another_branch
+
+cd masslib
+
+python setup.py install
+```
+
+
 <h2>Installation</h2>
 
 For installing this lib it's only necessary to download project, and before using just add path for the lib to the path
