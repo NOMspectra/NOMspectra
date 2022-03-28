@@ -98,3 +98,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# my test script
+test.py
