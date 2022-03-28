@@ -1,0 +1,18 @@
+include README.md
+include DESIGN
+include requirements.txt
+
+# Examples
+recursive-include ./examples/ *
+
+# Tests
+recursive-include ./tests/ *
+
+# Docs
+recursive-include ./docs/ *
+recursive-exclude ./docs/build/ *
+
+# CSV data
+recursive-include ./masslib/brutto_generator/ *.csv
+recursive-include ./masslib/data/ *
+recursive-include ./masslib/masses/ *
