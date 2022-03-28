@@ -2,7 +2,7 @@ import logging
 import os
 import unittest
 
-from mass import MassSpectrum, VanKrevelen
+from masslib.mass import MassSpectrum, VanKrevelen
 
 
 class Test(unittest.TestCase):

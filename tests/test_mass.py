@@ -6,10 +6,10 @@ import unittest
 import numpy as np
 import pandas as pd
 
-import settings
-from brutto_generator import generate_brutto_formulas
-from mass import MassSpectrum
-from utils import calculate_mass
+import masslib.settings as settings
+from masslib.brutto_generator import generate_brutto_formulas
+from masslib.mass import MassSpectrum
+from masslib.utils import calculate_mass
 
 
 class Test(unittest.TestCase):

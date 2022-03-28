@@ -20,7 +20,7 @@ if lib_path == "":
 
 import sys
 sys.path.insert(1, lib_path)
-from mass import MassSpectrum
+from masslib.mass import MassSpectrum
 
 
 # ### Usage example for isotope distribution generator:
@@ -28,7 +28,7 @@ from mass import MassSpectrum
 # In[3]:
 
 
-from distribution_generation.mass_distribution import IsotopeDistribution
+from masslib.distribution_generation.mass_distribution import IsotopeDistribution
 
 # brutto formulae that we want to use
 brutto = {"Pd": 1, "Cl": 2}
@@ -54,8 +54,8 @@ d.draw()
 # imports
 import os
 
-import settings
-from mass import MassSpectrum
+import masslib.settings as settings
+from masslib.mass import MassSpectrum
 
 #
 masses = []
@@ -90,7 +90,7 @@ z -= (union > 2)
 
 import time
 import pandas as pd
-from mass import MassSpectrum
+from masslib.mass import MassSpectrum
 
 gen_brutto = pd.read_csv(f"{lib_path}/brutto_generator/C_H_O_N_S.csv", sep=";")
 
@@ -120,7 +120,7 @@ print(time.time() - T)
 
 import os
 import matplotlib.pyplot as plt
-from mass import MassSpectrum, MassSpectrumList
+from masslib.mass import MassSpectrum, MassSpectrumList
 
 # load data
 masses = []
@@ -152,7 +152,7 @@ plt.show()
 # In[7]:
 
 import time
-from brutto_generator import generate_brutto_formulas
+from masslib.brutto_generator import generate_brutto_formulas
 
 T = time.time()
 df = generate_brutto_formulas(

@@ -1,6 +1,6 @@
 import unittest
 
-from utils import calculate_mass, NoSuchChemicalElement
+from masslib.utils import calculate_mass, NoSuchChemicalElement
 
 
 class Test(unittest.TestCase):
