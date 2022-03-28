@@ -64,7 +64,7 @@ instance/
 
 # Sphinx documentation
 docs/build/*
-!docs/build/.getignore
+!docs/build/.gitignore
 
 # PyBuilder
 target/
