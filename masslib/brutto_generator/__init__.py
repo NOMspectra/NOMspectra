@@ -5,7 +5,7 @@ from typing import Sequence
 import numpy as np
 import pandas as pd
 
-from utils import calculate_mass
+from masslib.utils import calculate_mass
 
 
 def generate_brutto_formulas(

@@ -1,8 +1,8 @@
 from typing import Union, Mapping, Dict, Tuple
 from collections import Counter
-from brutto.node import build_brutto_tree
-from distribution_generation.mass_distribution import IsotopeDistribution
-from utils import calculate_mass
+from masslib.brutto.node import build_brutto_tree
+from masslib.distribution_generation.mass_distribution import IsotopeDistribution
+from masslib.utils import calculate_mass
 
 
 class Brutto(object):

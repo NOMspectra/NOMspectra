@@ -8,9 +8,9 @@ import pandas as pd
 import seaborn as sns
 from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
-from brutto import Brutto
-from brutto_generator import brutto_gen_dummy
-from utils import calculate_mass
+from masslib.brutto import Brutto
+from masslib.brutto_generator import brutto_gen_dummy
+from masslib.utils import calculate_mass
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)

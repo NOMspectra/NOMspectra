@@ -2,7 +2,7 @@ import pandas as pd
 from typing import Sequence, Union
 import numpy as np
 import re
-import settings
+import masslib.settings as settings
 
 
 class NoSuchChemicalElement(Exception):

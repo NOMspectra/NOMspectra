@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from numpy.random import multinomial
 
-import settings
+import masslib.settings as settings
 
 logger = logging.getLogger(__name__)
 
