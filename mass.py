@@ -29,7 +29,7 @@ class MassSpectrum(object):
     def __init__(
             self,
             table: Optional[pd.DataFrame] = None,
-            elems: Optional[list] = None
+            elems: Optional[list] = None,
     ):
         self.elems = elems if elems else list("CHONS")
         self.features = ["mass", "calculated_mass", "I", "abs_error", "rel_error", "numbers"]
@@ -38,7 +38,6 @@ class MassSpectrum(object):
             self.table = table
             if "numbers" not in self.table:
                 self.table["numbers"] = 1
-
         else:
             self.table = pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
 
@@ -47,18 +46,28 @@ class MassSpectrum(object):
             filename: Union[Path, str],
             mapper: Optional[Mapping[str, str]] = None,
             ignore_columns: Optional[Sequence[str]] = None,
+            take_columns: Optional[Sequence[str]] = None,
             names: Optional[Sequence[str]] = None,
-            sep: str = ";"
+            sep: str = "\t",
+            treshold: Optional[int] = None,
     ) -> "MassSpectrum":
         self.table = pd.read_csv(filename, sep=sep, names=names)
         if mapper:
             self.table = self.table.rename(columns=mapper)
+
+        if take_columns:
+            self.table = self.table.loc[:,take_columns]
 
         if ignore_columns:
             self.table = self.table.drop(columns=ignore_columns)
 
         if "numbers" not in self.table:
             self.table["numbers"] = 1
+
+        if treshold is not None:
+            self.table = self.table.loc[self.table['I']>treshold]
+
+        self.table = self.table.reset_index(drop=True)
 
         return self
 
@@ -90,7 +99,7 @@ class MassSpectrum(object):
             table = self.table.copy()
 
         masses = generated_bruttos_table["mass"].values
-
+        
         if sign == '-':
             mass_shift = - 0.00054858 + 1.007825  # electron and hydrogen mass
 
@@ -284,6 +293,8 @@ class MassSpectrum(object):
             table["abs_error"] = table["mass"] - table["calculated_mass"] + (- 0.00054858 + 1.007825) #-electron + proton
         elif sign == '+':
             table["abs_error"] = table["mass"] - table["calculated_mass"] + 0.00054858 #+electron
+        else:
+            table["abs_error"] = table["mass"] - table["calculated_mass"]
         
         table["rel_error"] = table["abs_error"] / table["mass"] * 1e6
 
@@ -506,7 +517,9 @@ class MassSpectrum(object):
     def draw(self,
              xlim: Tuple[Optional[float], Optional[float]] = (None, None),
              ylim: Tuple[Optional[float], Optional[float]] = (None, None),
-             color: str = 'black'
+             color: str = 'black',
+             ax = None,
+             name = None
     ) -> None:
 
         df = self.table.sort_values(by="mass")
@@ -533,12 +546,23 @@ class MassSpectrum(object):
         I[:, 1] = intensity
         I = I.reshape(-1)
 
-        plt.plot(M, I, color=color)
-        plt.plot([xlim[0], xlim[1]], [0, 0], color=color)
-        plt.xlim(xlim)
-        plt.ylim(ylim)
-        plt.xlabel("m/z, Da")
-        plt.ylabel("Intensity")
+        if ax is None:
+
+            plt.plot(M, I, color=color)
+            plt.plot([xlim[0], xlim[1]], [0, 0], color=color)
+            plt.xlim(xlim)
+            plt.ylim(ylim)
+            plt.xlabel("m/z, Da")
+            plt.ylabel("Intensity")
+        
+        else:
+            ax.plot(M, I, color=color, linewidth=0.2)
+            ax.plot([xlim[0], xlim[1]], [0, 0], color=color, linewidth=0.2)
+            ax.set_xlim(xlim)
+            ax.set_ylim(ylim)
+            ax.set_xlabel('m/z, Da')
+            ax.set_ylabel('Intensity')
+            ax.set_title(f'{len(self.table)} peaks\n{name}')
 
         return
 
@@ -649,7 +673,7 @@ class MassSpectrum(object):
         kde_err = pd.DataFrame(data=out, columns=['i','ppm'])
         
         #smooth data
-        kde_err['ppm'] = savgol_filter(kde_err['ppm'], 51,5)
+        kde_err['ppm'] = savgol_filter(kde_err['ppm'], 31,5)
 
         xmin = 0
         xmax = 100
@@ -694,13 +718,13 @@ class MassSpectrum(object):
         
         return data
 
-    def recallibrate_by_assign(self, show_map = True):
+    def recallibrate_by_assign(self, sign='-', show_map = True):
         '''
         recallibrate by assign
         '''
         
         self = self.calculate_mass()
-        self = self.calculate_error()
+        self = self.calculate_error(sign=sign)
         self = self.show_error()
 
         error_table = copy.deepcopy(self.table)
@@ -831,15 +855,37 @@ class VanKrevelen(object):
     def draw_scatter_with_marginals(self):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
-    def draw_scatter(self, ax=None, legend=True, **kwargs):
+    def draw_scatter(self, ax=None, legend=True, volumes=True, nitrogen=True, sulphur=True, alpha=0.3, **kwargs):
         if ax:
-            ax.scatter(self.table["O/C"], self.table["H/C"], **kwargs)
+            if volumes:
+                self.table['volume'] = self.table['I'] / self.table['I'].median()
+            else:
+                self.table['volume'] = 5
+
+            self.table['color'] = 'blue'
+
+            if nitrogen:
+                self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0) & (self.table['S'] < 1), 'color'] = 'orange'
+                ax.text(0.05, 0.1, 'CHO', c='blue', size=8)
+                ax.text(0.2, 0.1, 'CHON', c='orange', size=8)
+
+            if sulphur:
+                self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] < 1) & (self.table['S'] > 0), 'color'] = 'green'
+                self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0) & (self.table['S'] > 0), 'color'] = 'red'
+                ax.text(0.35, 0.1, 'CHOS', c='green', size=8)
+                ax.text(0.5, 0.1, 'CHONS', c='red', size=8)
+
+            ax.scatter(self.table["O/C"], self.table["H/C"], s=self.table['volume'], c=self.table['color'], alpha=alpha, **kwargs)
             ax.set_xlabel("O/C")
             ax.set_ylabel("H/C")
             ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
             ax.xaxis.set_ticks(np.arange(0, 1.1, 0.2))
             ax.set_xlim(0, 1)
             ax.set_ylim(0, 2)
+
+            num_formules = self.table['assign'].sum()
+            ax.set_title(f'{num_formules} formulas\n{self.name}', size=10)
+
         else:
             table = self.table
 
