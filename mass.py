@@ -274,16 +274,29 @@ class MassSpectrum(object):
         columns = [column for column in self.features if column in self.table]
         return self.table[columns].__str__()
 
-    def calculate_error(self) -> "MassSpectrum":
+    def calculate_error(self, sign='-') -> "MassSpectrum":
         if "calculated_mass" not in self.table:
             table = self.calculate_mass()
         else:
             table = self.table.copy()
 
-        table["abs_error"] = table["mass"] - table["calculated_mass"]
+        if sign == '-':
+            table["abs_error"] = table["mass"] - table["calculated_mass"] + (- 0.00054858 + 1.007825) #-electron + proton
+        elif sign == '+':
+            table["abs_error"] = table["mass"] - table["calculated_mass"] + 0.00054858 #+electron
+        
         table["rel_error"] = table["abs_error"] / table["mass"] * 1e6
 
         return MassSpectrum(table)
+
+    def show_error(self):
+
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+        ax.scatter(self.table['mass'], self.table['rel_error'], s=0.1)
+        ax.set_xlabel('m/z, Da')
+        ax.set_ylabel('error, ppm')
+
+        return MassSpectrum(self.table)
 
     def calculate_mass(self) -> "MassSpectrum":
         table = self.table.copy()
@@ -655,7 +668,7 @@ class MassSpectrum(object):
         kde_err['ppm'] = kde_err['ppm'] - kde_err.loc[0,'ppm']
         return kde_err
 
-    def recallibrate(self, spec, err):
+    def recallibrate(self, spec, err, sign='+'):
         '''
         recallibrate data by error-table
         income table extrapolate for all mass
@@ -663,6 +676,8 @@ class MassSpectrum(object):
 
         data = spec.reset_index(drop=True)
         wide = len(err)
+
+        data['old_mass'] = data['mass']
 
         min_mass = data['mass'].min()
         max_mass = data['mass'].max()
@@ -672,11 +687,36 @@ class MassSpectrum(object):
             for ind in data.loc[(data['mass']>a[i]) & (data['mass']<a[i+1])].index:
                 mass = data.loc[ind, 'mass']
                 e = mass * err.loc[i, 'ppm'] / 1000000
-                data.loc[ind, 'mass'] = data.loc[ind, 'mass'] + e
+                if sign == '+':
+                    data.loc[ind, 'mass'] = data.loc[ind, 'mass'] + e
+                else:
+                    data.loc[ind, 'mass'] = data.loc[ind, 'mass'] - e
         
         return data
 
-    def self_recallibrate(self, show_map = True):
+    def recallibrate_by_assign(self, show_map = True):
+        '''
+        recallibrate by assign
+        '''
+        
+        self = self.calculate_mass()
+        self = self.calculate_error()
+        self = self.show_error()
+
+        error_table = copy.deepcopy(self.table)
+        error_table = error_table.loc[:,['mass','rel_error']]
+        error_table.columns = ['mass', 'ppm']
+        error_table = error_table.dropna()
+
+        self.table = self.table.drop(columns=['C','H','N','O','S','assign','calculated_mass','abs_error','rel_error'])
+        spec = self.table
+        kde = self.kernel_density_map(df_error = error_table, show_map=True)
+        err = self.fit_kernel(f=kde, show_map=True)
+        spec = self.recallibrate(spec=spec, err=err, sign='-')
+
+        return MassSpectrum(spec)
+
+    def recallibrate_by_massdiff(self, show_map = True):
         '''
         self-recallibration of mass-spectra by mass-difference map
         take a lot of time
@@ -688,6 +728,7 @@ class MassSpectrum(object):
         '''
         spec = self.table
         mde = self.md_error_map(spec = spec, show_map=show_map)
+        
         f = self.kernel_density_map(df_error=mde, show_map=show_map)
         err = self.fit_kernel(f=f, show_map=show_map)
         spec = self.recallibrate(spec=spec, err=err)
