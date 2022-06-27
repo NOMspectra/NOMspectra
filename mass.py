@@ -13,6 +13,7 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
 from brutto import Brutto
 from brutto_generator import brutto_gen_dummy
+from brutto_generator import get_gdf
 from utils import calculate_mass
 from tqdm import tqdm
 
@@ -77,8 +78,8 @@ class MassSpectrum(object):
 
     def assign(
             self,
-            generated_bruttos_table: pd.DataFrame,
-            elems: Sequence[str],
+            elems: Sequence[str] = 'CHONS',
+            generated_bruttos_table: pd.DataFrame = None,
             rel_error: float = 0.5,
             sign='-'
     ) -> "MassSpectrum":
@@ -90,6 +91,9 @@ class MassSpectrum(object):
         :param rel_error: error in ppm
         :return: MassSpectra object with assigned signals
         """
+
+        if generated_bruttos_table is None:
+            generated_bruttos_table = get_gdf()
 
         overlap_columns = set(elems) & set(list(self.table))
         if overlap_columns:
