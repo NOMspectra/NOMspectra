@@ -49,8 +49,22 @@ def save_isotopic_masses() -> None:
 
     pd.DataFrame(res).to_csv("isotopic_masses.csv", sep=";", index=False)
 
+def func(x):
+    d = x['element'] + '_' + str(x['isotop'])
+    return d
+
+def save_with_istopes_label()-> None:
+    '''
+    
+    '''
+    df = pd.read_csv("isotope_abundance.csv", sep=';')
+    df['isotop'] = df['mass'].astype(int)
+    df['element_isotop'] = df.apply(func, axis=1)
+    df.to_csv('element_table.csv')
+
 
 if __name__ == "__main__":
     save_monoisotopic_masses()
     save_average_masses()
     save_isotopic_masses()
+    save_with_istopes_label()
