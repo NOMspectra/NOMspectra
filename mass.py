@@ -12,7 +12,6 @@ import scipy.stats as st
 from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
 from brutto import Brutto
-from brutto_generator import brutto_gen_dummy
 from brutto_generator import brutto_gen
 from utils import calculate_mass
 from tqdm import tqdm
@@ -31,6 +30,7 @@ class MassSpectrum(object):
             self,
             table: Optional[pd.DataFrame] = None,
             elems: Optional[list] = None,
+            err: Optional[pd.DataFrame] = None
     ):
         self.elems = elems if elems else list("CHONS")
         self.features = ["mass", "calculated_mass", "I", "abs_error", "rel_error", "numbers"]
@@ -41,6 +41,8 @@ class MassSpectrum(object):
                 self.table["numbers"] = 1
         else:
             self.table = pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+
+        self.err=err
 
     def load(
             self,
@@ -130,72 +132,7 @@ class MassSpectrum(object):
 
         res = pd.DataFrame(res)
 
-        return MassSpectrum(table.join(res))
-
-    def assign_dummy(
-            self,
-            elems: str = 'CHONS',
-            rel_error: float = 0.5,
-            sign='-',
-            round_search: int = 5
-    ) -> "MassSpectrum":
-
-        """Finding the nearest mass in generated_bruttos_table
-
-        :param elems: Sequence of elements corresponding to generated_bruttos_table
-        :param rel_error: error in ppm
-        :param sign: mode of spectrum '-' means subtracting the mass of the electron and hydrogen, '+' means adding electron mass
-        :param round search: error of mass calculate 10^(-round_search)
-        :return: MassSpectra object with assigned signals
-        """
-
-        overlap_columns = set(elems) & set(list(self.table))
-        if overlap_columns:
-            logger.warning(f"Following columns will be dropped: {overlap_columns}")
-            table = self.table.drop(columns=elems)
-        else:
-            table = self.table.copy()
-
-        generated_bruttos_dict = brutto_gen_dummy(elems, round_search)
-        elem_order = {'C': 0, 'H': 1, 'O': 2, 'N': 3, 'S': 4}
-
-        for elem in elems:
-            table[elem] = np.NaN
-        table['assign'] = 0
-
-        if sign == '-':
-            mass_shift = - 0.00054858 + 1.007825  # electron and hydrogen mass
-
-        elif sign == '+':
-            mass_shift = 0.00054858  # electron mass
-
-        else:
-            raise ValueError(f"sign can be only + or - rather than {sign}")
-
-        step = pow(10, -round_search)
-        for i in range(table.shape[0]):
-            mass = table.loc[i, 'mass'] + mass_shift
-            mass_error = mass * rel_error * 0.000001
-            
-            # formula find in brutto generator, search started with smallest error
-            mass_dif = 0
-            chons = []
-            while mass_dif < mass_error:
-                if round(mass + mass_dif, round_search) in generated_bruttos_dict:
-                    chons = generated_bruttos_dict[round(mass + mass_dif, round_search)]
-                    break
-                elif round(mass - mass_dif, round_search) in generated_bruttos_dict:
-                    chons = generated_bruttos_dict[round(mass - mass_dif, round_search)]
-                    break
-                else:
-                    mass_dif += step
-
-            if len(chons) > 0:
-                for elem in 'CHONS':
-                    table.at[i, elem] = chons[elem_order[elem]]
-                table.at[i, 'assign'] = 1
-
-        return MassSpectrum(table)
+        return MassSpectrum(table.join(res), elems=elems)
 
     def filter_by_C13(
         self, 
@@ -306,7 +243,7 @@ class MassSpectrum(object):
 
     def show_error(self):
 
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
         ax.scatter(self.table['mass'], self.table['rel_error'], s=0.1)
         ax.set_xlabel('m/z, Da')
         ax.set_ylabel('error, ppm')
@@ -626,7 +563,7 @@ class MassSpectrum(object):
         df_error = pd.DataFrame(data = data_error, columns=['mass', 'mass_diff_brutto', 'mass_diff_mass', 'ppm' ])
         
         if show_map:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
             ax.scatter(df_error['mass'], df_error['ppm'], s=0.01)
 
         return df_error
@@ -654,7 +591,7 @@ class MassSpectrum(object):
         f = np.rot90(f)
 
         if show_map:
-            fig = plt.figure(figsize=(4,4), dpi=150)
+            fig = plt.figure(figsize=(4,4), dpi=75)
             ax = fig.gca()
             ax.set_xlim(xmin, xmax)
             ax.set_ylim(ymin, ymax)
@@ -685,7 +622,7 @@ class MassSpectrum(object):
         ymax = 3
 
         if show_map:
-            fig = plt.figure(figsize=(4,4), dpi=150)
+            fig = plt.figure(figsize=(4,4), dpi=75)
             ax = fig.gca()
             ax.set_xlim(xmin, xmax)
             ax.set_ylim(ymin, ymax)
@@ -696,7 +633,7 @@ class MassSpectrum(object):
         kde_err['ppm'] = kde_err['ppm'] - kde_err.loc[0,'ppm']
         return kde_err
 
-    def recallibrate(self, spec, err, sign='+'):
+    def recallibrate(self, spec, err):
         '''
         recallibrate data by error-table
         income table extrapolate for all mass
@@ -715,11 +652,8 @@ class MassSpectrum(object):
             for ind in data.loc[(data['mass']>a[i]) & (data['mass']<a[i+1])].index:
                 mass = data.loc[ind, 'mass']
                 e = mass * err.loc[i, 'ppm'] / 1000000
-                if sign == '+':
-                    data.loc[ind, 'mass'] = data.loc[ind, 'mass'] + e
-                else:
-                    data.loc[ind, 'mass'] = data.loc[ind, 'mass'] - e
-        
+                data.loc[ind, 'mass'] = data.loc[ind, 'mass'] + e
+                
         return data
 
     def recallibrate_by_assign(self, sign='-', show_map = True):
@@ -740,9 +674,11 @@ class MassSpectrum(object):
         spec = self.table
         kde = self.kernel_density_map(df_error = error_table, show_map=True)
         err = self.fit_kernel(f=kde, show_map=True)
-        spec = self.recallibrate(spec=spec, err=err, sign='-')
 
-        return MassSpectrum(spec)
+        err['ppm'] = - err['ppm']
+        spec = self.recallibrate(spec=spec, err=err)
+
+        return MassSpectrum(spec,err=err)
 
     def recallibrate_by_massdiff(self, show_map = True):
         '''
@@ -756,12 +692,11 @@ class MassSpectrum(object):
         '''
         spec = self.table
         mde = self.md_error_map(spec = spec, show_map=show_map)
-        
         f = self.kernel_density_map(df_error=mde, show_map=show_map)
         err = self.fit_kernel(f=f, show_map=show_map)
         spec = self.recallibrate(spec=spec, err=err)
 
-        return MassSpectrum(spec)
+        return MassSpectrum(spec, err=err)
 
     def recallibrate_by_etalon( self,
                                 etalon, #etalon massspectr
@@ -816,7 +751,7 @@ class MassSpectrum(object):
         err['ppm'] = savgol_filter(err['ppm'], 51,5)
 
         if show_error:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=150)
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
             ax.plot(err['m/z'], err['ppm'])
             ax.set_xlabel('m/z, Da')
             ax.set_ylabel('Error, ppm')
@@ -824,7 +759,7 @@ class MassSpectrum(object):
         
         out = self.recallibrate(spec, err)
         
-        return MassSpectrum(out)
+        return MassSpectrum(out, err=err)
 
 
 class CanNotCreateVanKrevelen(Exception):
@@ -860,76 +795,40 @@ class VanKrevelen(object):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
     def draw_scatter(self, ax=None, legend=True, volumes=True, nitrogen=True, sulphur=True, alpha=0.3, **kwargs):
-        if ax:
-            if volumes:
-                self.table['volume'] = self.table['I'] / self.table['I'].median()
-            else:
-                self.table['volume'] = 5
-
-            self.table['color'] = 'blue'
-
-            if nitrogen:
-                self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0) & (self.table['S'] < 1), 'color'] = 'orange'
-                ax.text(0.05, 0.1, 'CHO', c='blue', size=8)
-                ax.text(0.2, 0.1, 'CHON', c='orange', size=8)
-
-            if sulphur:
-                self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] < 1) & (self.table['S'] > 0), 'color'] = 'green'
-                self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0) & (self.table['S'] > 0), 'color'] = 'red'
-                ax.text(0.35, 0.1, 'CHOS', c='green', size=8)
-                ax.text(0.5, 0.1, 'CHONS', c='red', size=8)
-
-            ax.scatter(self.table["O/C"], self.table["H/C"], s=self.table['volume'], c=self.table['color'], alpha=alpha, **kwargs)
-            ax.set_xlabel("O/C")
-            ax.set_ylabel("H/C")
-            ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
-            ax.xaxis.set_ticks(np.arange(0, 1.1, 0.2))
-            ax.set_xlim(0, 1)
-            ax.set_ylim(0, 2)
-
-            num_formules = self.table['assign'].sum()
-            ax.set_title(f'{num_formules} formulas\n{self.name}', size=10)
-
+        
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
         else:
-            table = self.table
+            ax=ax
+        
+        if volumes:
+            self.table['volume'] = self.table['I'] / self.table['I'].median()
+        else:
+            self.table['volume'] = 5
 
-            plt.title(f"{len(table)} formulas ")
-            median_intensity = table["I"].median() / 2
+        self.table['color'] = 'blue'
 
-            # CHO
-            cho = table[(table["N"] < 1) & (table["S"] < 1)]
-            s = cho["I"] / median_intensity
-            plt.scatter(cho["O/C"], cho["H/C"], s=s, color='blue', alpha=0.3, label="CHO", **kwargs)
+        if nitrogen and 'N' in self.table.columns:
+            self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0), 'color'] = 'orange'
+            ax.text(0.05, 0.1, 'CHO', c='blue', size=8)
+            ax.text(0.2, 0.1, 'CHON', c='orange', size=8)
 
-            # CHON
-            chon = table[(table["N"] > 0) & (table["S"] < 1)]
-            s = chon["I"] / median_intensity
-            plt.scatter(chon["O/C"], chon["H/C"], s=s, color='orange', alpha=0.3, label="CHON", **kwargs)
+        if sulphur and 'S' in self.table.columns:
+            self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] < 1) & (self.table['S'] > 0), 'color'] = 'green'
+            self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0) & (self.table['S'] > 0), 'color'] = 'red'
+            ax.text(0.35, 0.1, 'CHOS', c='green', size=8)
+            ax.text(0.5, 0.1, 'CHONS', c='red', size=8)
 
-            # CHOS
-            chos = table[(table["N"] < 1) & (table["S"] > 0)]
-            s = chos["I"] / median_intensity
-            plt.scatter(chos["O/C"], chos["H/C"], s=s, color='green', alpha=0.3, label="CHOS", **kwargs)
-
-            # CHONS
-            chons = table[(table["N"] > 0) & (table["S"] < 1)]
-            s = chons["I"] / median_intensity
-            plt.scatter(chons["O/C"], chons["H/C"], s=s, color='red', alpha=0.3, label="CHNOS", **kwargs)
-
-            plt.xlim(0, 1)
-            plt.ylim(0.2, 2.2)
-
-            plt.yticks(np.arange(0.2, 2.6, 0.4))
-            plt.xticks(np.arange(0, 1.25, 0.25))
-
-            plt.xlabel("O/C")
-            plt.ylabel("H/C")
-
-            if legend:
-                legend = plt.legend(loc=4)
-                for legend_handle in legend.legendHandles:
-                    legend_handle._sizes = [4]
-                    legend_handle.set_alpha(1)
+        ax.scatter(self.table["O/C"], self.table["H/C"], s=self.table['volume'], c=self.table['color'], alpha=alpha, **kwargs)
+        ax.set_xlabel("O/C")
+        ax.set_ylabel("H/C")
+        ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
+        ax.xaxis.set_ticks(np.arange(0, 1.1, 0.2))
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 2.2)
+        
+        num_formules = self.table['C'].count()
+        ax.set_title(f'{num_formules} formulas\n{self.name}', size=10)
 
     def get_squares(self, rows: int = 5, columns: int = 4):
 
