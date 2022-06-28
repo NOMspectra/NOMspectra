@@ -13,7 +13,7 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
 from brutto import Brutto
 from brutto_generator import brutto_gen_dummy
-from brutto_generator import get_gdf
+from brutto_generator import brutto_gen
 from utils import calculate_mass
 from tqdm import tqdm
 
@@ -93,7 +93,7 @@ class MassSpectrum(object):
         """
 
         if generated_bruttos_table is None:
-            generated_bruttos_table = get_gdf()
+            generated_bruttos_table = brutto_gen()
 
         overlap_columns = set(elems) & set(list(self.table))
         if overlap_columns:
