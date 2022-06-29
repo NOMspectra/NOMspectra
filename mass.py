@@ -560,7 +560,7 @@ class MassSpectrum(object):
 
         return df_error
 
-    def kernel_density_map(self, df_error, ppm=3, show_map=True):
+    def kernel_density_map(self, df_error, ppm=3, show_map=False):
         '''
         plot kernel density map 100*100 for data
         '''
@@ -628,7 +628,6 @@ class MassSpectrum(object):
     def recallibrate(self, error_table):
         '''
         recallibrate data by error-table
-        income table extrapolate for all mass
         '''
         err = error_table.table
         data = self.table.reset_index(drop=True)
@@ -647,114 +646,6 @@ class MassSpectrum(object):
                 data.loc[ind, 'mass'] = data.loc[ind, 'mass'] + e
                 
         return MassSpectrum(data)
-
-    def recallibrate_by_assign(self, sign='-', show_map = True):
-        '''
-        recallibrate by assign
-        '''
-        
-        self = self.calculate_mass()
-        self = self.calculate_error(sign=sign)
-        self = self.show_error()
-
-        error_table = copy.deepcopy(self.table)
-        error_table = error_table.loc[:,['mass','rel_error']]
-        error_table.columns = ['mass', 'ppm']
-        error_table = error_table.dropna()
-
-        spec = self.table
-        kde = self.kernel_density_map(df_error = error_table, show_map=True)
-        err = self.fit_kernel(f=kde, show_map=True)
-
-        err['ppm'] = - err['ppm']
-        err['mass'] = np.linspace(error_table['mass'].min(), error_table['mass'].max(),len(err))
-        
-        spec = self.recallibrate(error_table=ErrorTable(err))
-
-        return MassSpectrum(spec.table), ErrorTable(err)
-
-    def recallibrate_by_massdiff(self, show_map = True):
-        '''
-        self-recallibration of mass-spectra by mass-difference map
-        take a lot of time
-        based on work:
-        Smirnov, K. S., Forcisi, S., Moritz, F., Lucio, M., & Schmitt-Kopplin, P. 
-        (2019). Mass difference maps and their application for the 
-        recalibration of mass spectrometric data in nontargeted metabolomics. 
-        Analytical chemistry, 91(5), 3350-3358. 
-        '''
-        spec = self.table
-        mde = self.md_error_map(spec = spec, show_map=show_map)
-        f = self.kernel_density_map(df_error=mde, show_map=show_map)
-        err = self.fit_kernel(f=f, show_map=show_map)
-        err['mass'] = np.linspace(self.table['mass'].min(), self.table['mass'].max(),len(err))
-        spec = self.recallibrate(error_table=ErrorTable(err))
-
-        return MassSpectrum(spec.table), ErrorTable(err)
-
-    def recallibrate_by_etalon( self,
-                                etalon, #etalon massspectr
-                                quart=0.9, #treshold by quartile
-                                ppm=3,#treshold by ppm
-                                show_error=True
-                                ): 
-        '''
-        recallibrate by etalon
-        '''
-        spec = self.table
-
-        et = copy.deepcopy(etalon.table)['mass'].to_list()
-        df = copy.deepcopy(spec)
-
-        min_mass = df['mass'].min()
-        max_mass = df['mass'].max()
-        a = np.linspace(min_mass,max_mass,101)
-
-        treshold = df['I'].quantile(quart)
-        df = df.loc[df['I'] > treshold].reset_index(drop = True)
-        df['cal'] = 0 #column for check
-
-        #fill data massiv with correct mass
-        for i in range(0,len(df)):
-            min_mass = df.loc[i, 'mass']*(1 - ppm/1000000)
-            max_mass = df.loc[i, 'mass']*(1 + ppm/1000000)
-            for mass in et:
-                try:
-                    if mass > min_mass and mass < max_mass:
-                        df.loc[i, 'cal'] = mass
-                except:
-                    pass
-        
-        # take just assigned peaks
-        df = df.loc[df['cal']>0]
-        #calc error and mean error
-        df['dif'] = df['cal'] - df['mass']
-        mean_e = df['dif'].mean()
-
-        #make error table
-        cor = []
-        for i in range(0,100):
-            correct = df.loc[(df['mass'] > a[i]) & (df['mass'] < a[i+1])]['dif'].mean()
-            cor.append((a[i], correct))
-
-        #out table
-        err = pd.DataFrame(data=cor, columns=['m/z', 'err'])
-        err['err'] = err['err'].fillna(mean_e)
-        err['ppm']=err['err']/err['m/z']*1000000
-
-        err['ppm'] = savgol_filter(err['ppm'], 51,5)
-        err['mass'] = np.linspace(df['mass'].min(), df['mass'].max(),len(err))
-
-        if show_error:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
-            ax.plot(err['m/z'], err['ppm'])
-            ax.set_xlabel('m/z, Da')
-            ax.set_ylabel('Error, ppm')
-            fig.tight_layout()
-        
-        out = self.recallibrate(error_table=ErrorTable(err))
-        
-        return MassSpectrum(out.table), ErrorTable(err)
 
 
 class CanNotCreateVanKrevelen(Exception):
@@ -1014,6 +905,229 @@ class ErrorTable(object):
             table: Optional[pd.DataFrame] = None,
     ):
         self.table = table
+
+    def dif_mass(self):
+        '''
+        most common mass difference
+        return dict
+        '''
+        H = 1.007825
+        C = 12.000000
+        N = 14.003074
+        O = 15.994915
+        S = 31.972071
+
+        dif = {}
+        dif['CH2'] = C + H*2
+        dif['CH2O'] = C + O + H*2
+        dif['C2H2O'] = C*2 + O + H*2
+        dif['CO2'] = C + O*2
+        dif['H2O'] = O + H*2
+
+        return dif
+
+    def md_error_map (self, spec, ppm=3, show_map=True):
+        '''
+        calculate mass differnce map
+        '''
+
+        dif = self.dif_mass()
+        data = spec
+        data_error = [] #array for new data
+
+        for i in range(len(data)): #take every mass in list
+            mass = data.loc[i, 'mass'] #take mass from list
+            for k in range(1,6): #generation of brutto series change
+                for i in dif: #take most common mass diff
+                    mz = mass + dif[i]*k #calc mass plus ion
+                    mz_p = mz + mz * ppm/1000000 #search from min
+                    mz_m = mz - mz * ppm/1000000 # to max
+                    ress = data.loc[(data['mass'] > mz_m) & (data['mass'] < mz_p)]
+                    if len(ress) > 0:
+                        res = copy.deepcopy(ress)
+                        res['ppm'] = (((res['mass'] - mz) / mz)*1000000).abs()
+                        min_ppm = res['ppm'].min()
+                        min_mz = res.loc[res['ppm']==min_ppm, 'mass'].values[0]
+                        data_error.append([mass, f'{k}*{i}', min_mz, (min_mz-mz)/mz*1000000])
+        
+        df_error = pd.DataFrame(data = data_error, columns=['mass', 'mass_diff_brutto', 'mass_diff_mass', 'ppm' ])
+        
+        if show_map:
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
+            ax.scatter(df_error['mass'], df_error['ppm'], s=0.01)
+
+        return df_error
+    
+    def fit_kernel(self, f, show_map=True):
+        '''
+        fit max intesity of kernel density map
+        return error table for 100 values
+        '''
+        df = pd.DataFrame(f, index=np.linspace(3,-3,100))
+        
+        out = []
+        for i in df.columns:
+            max_kernel = df[i].quantile(q=0.95)
+            ppm = df.loc[df[i] > max_kernel].index.values
+            out.append([i, np.mean(ppm)])
+        kde_err = pd.DataFrame(data=out, columns=['i','ppm'])
+        
+        #smooth data
+        kde_err['ppm'] = savgol_filter(kde_err['ppm'], 31,5)
+
+        xmin = 0
+        xmax = 100
+        ymin = -3
+        ymax = 3
+
+        if show_map:
+            fig = plt.figure(figsize=(4,4), dpi=75)
+            ax = fig.gca()
+            ax.set_xlim(xmin, xmax)
+            ax.set_ylim(ymin, ymax)
+            ax.imshow(df, extent=[xmin, xmax, ymin, ymax], aspect='auto')
+            ax.plot(kde_err['i'], kde_err['ppm'], c='r')
+
+        #lock start at zero
+        kde_err['ppm'] = kde_err['ppm'] - kde_err.loc[0,'ppm']
+        return kde_err
+
+    def kernel_density_map(self, df_error, ppm=3, show_map=False):
+        '''
+        plot kernel density map 100*100 for data
+        '''
+        
+        x = np.array(df_error['mass'])
+        y = np.array(df_error['ppm'])
+
+        xmin = min(x) 
+        xmax = max(x) 
+
+        ymin = -ppm 
+        ymax = ppm 
+
+        xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
+
+        positions = np.vstack([xx.ravel(), yy.ravel()])
+        values = np.vstack([x, y])
+        kernel = st.gaussian_kde(values)
+        f = np.reshape(kernel(positions).T, xx.shape)
+        f = np.rot90(f)
+
+        if show_map:
+            fig = plt.figure(figsize=(4,4), dpi=75)
+            ax = fig.gca()
+            ax.set_xlim(xmin, xmax)
+            ax.set_ylim(ymin, ymax)
+            ax.imshow(f, extent=[xmin, xmax, ymin, ymax], aspect='auto')
+        
+        return f
+
+    def assign_error(self, spec:MassSpectrum,
+                               sign:str='-', 
+                               show_map:bool = True):
+        '''
+        recallibrate by assign
+        '''
+        
+        spec = spec.calculate_mass()
+        spec = spec.calculate_error(sign=sign)
+        spec = spec.show_error()
+
+        error_table = copy.deepcopy(spec.table)
+        error_table = error_table.loc[:,['mass','rel_error']]
+        error_table.columns = ['mass', 'ppm']
+        error_table = error_table.dropna()
+
+        kde = self.kernel_density_map(df_error = error_table)
+        err = self.fit_kernel(f=kde, show_map=True)
+
+        err['ppm'] = - err['ppm']
+        err['mass'] = np.linspace(error_table['mass'].min(), error_table['mass'].max(),len(err))
+
+        return ErrorTable(err)  
+
+    def massdiff_error(self,
+                                spec:MassSpectrum,
+                                show_map = True):
+        '''
+        self-recallibration of mass-spectra by mass-difference map
+        take a lot of time
+        based on work:
+        Smirnov, K. S., Forcisi, S., Moritz, F., Lucio, M., & Schmitt-Kopplin, P. 
+        (2019). Mass difference maps and their application for the 
+        recalibration of mass spectrometric data in nontargeted metabolomics. 
+        Analytical chemistry, 91(5), 3350-3358. 
+        '''
+        spec_table = copy.deepcopy(spec.table)
+        mde = self.md_error_map(spec = spec_table, show_map=show_map)
+        f = self.kernel_density_map(df_error=mde)
+        err = self.fit_kernel(f=f, show_map=show_map)
+        err['mass'] = np.linspace(spec.table['mass'].min(), spec.table['mass'].max(),len(err))
+
+        return ErrorTable(err)
+
+    def etalon_error( self,
+                    spec, #initial masspectr
+                    etalon, #etalon massspectr
+                    quart=0.9, #treshold by quartile
+                    ppm=3,#treshold by ppm
+                    show_error=True
+                    ): 
+        '''
+        recallibrate by etalon
+        '''
+
+        et = copy.deepcopy(etalon.table)['mass'].to_list()
+        df = copy.deepcopy(spec.table)
+
+        min_mass = df['mass'].min()
+        max_mass = df['mass'].max()
+        a = np.linspace(min_mass,max_mass,101)
+
+        treshold = df['I'].quantile(quart)
+        df = df.loc[df['I'] > treshold].reset_index(drop = True)
+        df['cal'] = 0 #column for check
+
+        #fill data massiv with correct mass
+        for i in range(0,len(df)):
+            min_mass = df.loc[i, 'mass']*(1 - ppm/1000000)
+            max_mass = df.loc[i, 'mass']*(1 + ppm/1000000)
+            for mass in et:
+                try:
+                    if mass > min_mass and mass < max_mass:
+                        df.loc[i, 'cal'] = mass
+                except:
+                    pass
+        
+        # take just assigned peaks
+        df = df.loc[df['cal']>0]
+        #calc error and mean error
+        df['dif'] = df['cal'] - df['mass']
+        mean_e = df['dif'].mean()
+
+        #make error table
+        cor = []
+        for i in range(0,100):
+            correct = df.loc[(df['mass'] > a[i]) & (df['mass'] < a[i+1])]['dif'].mean()
+            cor.append((a[i], correct))
+
+        #out table
+        err = pd.DataFrame(data=cor, columns=['m/z', 'err'])
+        err['err'] = err['err'].fillna(mean_e)
+        err['ppm']=err['err']/err['m/z']*1000000
+
+        err['ppm'] = savgol_filter(err['ppm'], 51,5)
+        err['mass'] = np.linspace(df['mass'].min(), df['mass'].max(),len(err))
+
+        if show_error:
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
+            ax.plot(err['m/z'], err['ppm'])
+            ax.set_xlabel('m/z, Da')
+            ax.set_ylabel('Error, ppm')
+            fig.tight_layout()
+        
+        return ErrorTable(err)
 
 class MassSpectrumList(object):
     def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]] = None):
