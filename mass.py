@@ -633,19 +633,19 @@ class MassSpectrum(object):
         kde_err['ppm'] = kde_err['ppm'] - kde_err.loc[0,'ppm']
         return kde_err
 
-    def recallibrate(self, spec, err):
+    def recallibrate(self, err):
         '''
         recallibrate data by error-table
         income table extrapolate for all mass
         '''
 
-        data = spec.reset_index(drop=True)
+        data = self.table.reset_index(drop=True)
         wide = len(err)
 
         data['old_mass'] = data['mass']
 
-        min_mass = data['mass'].min()
-        max_mass = data['mass'].max()
+        min_mass = err['mass'].min()
+        max_mass = err['mass'].max()
         a = np.linspace(min_mass, max_mass, wide+1)
 
         for i in range(wide):
@@ -676,7 +676,9 @@ class MassSpectrum(object):
         err = self.fit_kernel(f=kde, show_map=True)
 
         err['ppm'] = - err['ppm']
-        spec = self.recallibrate(spec=spec, err=err)
+        err['mass'] = np.linspace(error_table['mass'].min(), error_table['mass'].max(),len(err))
+        
+        spec = self.recallibrate(err=err)
 
         return MassSpectrum(spec,err=err)
 
@@ -694,7 +696,8 @@ class MassSpectrum(object):
         mde = self.md_error_map(spec = spec, show_map=show_map)
         f = self.kernel_density_map(df_error=mde, show_map=show_map)
         err = self.fit_kernel(f=f, show_map=show_map)
-        spec = self.recallibrate(spec=spec, err=err)
+        err['mass'] = np.linspace(self.table['mass'].min(), self.table['mass'].max(),len(err))
+        spec = self.recallibrate(serr=err)
 
         return MassSpectrum(spec, err=err)
 
@@ -749,6 +752,7 @@ class MassSpectrum(object):
         err['ppm']=err['err']/err['m/z']*1000000
 
         err['ppm'] = savgol_filter(err['ppm'], 51,5)
+        err['mass'] = np.linspace(df['mass'].min(), df['mass'].max(),len(err))
 
         if show_error:
             fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
@@ -757,7 +761,7 @@ class MassSpectrum(object):
             ax.set_ylabel('Error, ppm')
             fig.tight_layout()
         
-        out = self.recallibrate(spec, err)
+        out = self.recallibrate(err)
         
         return MassSpectrum(out, err=err)
 
