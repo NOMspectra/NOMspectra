@@ -30,7 +30,6 @@ class MassSpectrum(object):
             self,
             table: Optional[pd.DataFrame] = None,
             elems: Optional[list] = None,
-            err: Optional[pd.DataFrame] = None
     ):
         self.elems = elems if elems else list("CHONS")
         self.features = ["mass", "calculated_mass", "I", "abs_error", "rel_error", "numbers"]
@@ -41,8 +40,6 @@ class MassSpectrum(object):
                 self.table["numbers"] = 1
         else:
             self.table = pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
-
-        self.err=err
 
     def load(
             self,
@@ -97,12 +94,7 @@ class MassSpectrum(object):
         if generated_bruttos_table is None:
             generated_bruttos_table = brutto_gen()
 
-        overlap_columns = set(elems) & set(list(self.table))
-        if overlap_columns:
-            logger.warning(f"Following columns will be dropped: {overlap_columns}")
-            table = self.table.drop(columns=elems)
-        else:
-            table = self.table.copy()
+        table = self.table.loc[:,['mass', 'I']].copy()
 
         masses = generated_bruttos_table["mass"].values
         
@@ -633,12 +625,12 @@ class MassSpectrum(object):
         kde_err['ppm'] = kde_err['ppm'] - kde_err.loc[0,'ppm']
         return kde_err
 
-    def recallibrate(self, err):
+    def recallibrate(self, error_table):
         '''
         recallibrate data by error-table
         income table extrapolate for all mass
         '''
-
+        err = error_table.table
         data = self.table.reset_index(drop=True)
         wide = len(err)
 
@@ -654,7 +646,7 @@ class MassSpectrum(object):
                 e = mass * err.loc[i, 'ppm'] / 1000000
                 data.loc[ind, 'mass'] = data.loc[ind, 'mass'] + e
                 
-        return data
+        return MassSpectrum(data)
 
     def recallibrate_by_assign(self, sign='-', show_map = True):
         '''
@@ -670,7 +662,6 @@ class MassSpectrum(object):
         error_table.columns = ['mass', 'ppm']
         error_table = error_table.dropna()
 
-        self.table = self.table.drop(columns=['C','H','N','O','S','assign','calculated_mass','abs_error','rel_error'])
         spec = self.table
         kde = self.kernel_density_map(df_error = error_table, show_map=True)
         err = self.fit_kernel(f=kde, show_map=True)
@@ -678,9 +669,9 @@ class MassSpectrum(object):
         err['ppm'] = - err['ppm']
         err['mass'] = np.linspace(error_table['mass'].min(), error_table['mass'].max(),len(err))
         
-        spec = self.recallibrate(err=err)
+        spec = self.recallibrate(error_table=ErrorTable(err))
 
-        return MassSpectrum(spec,err=err)
+        return MassSpectrum(spec.table), ErrorTable(err)
 
     def recallibrate_by_massdiff(self, show_map = True):
         '''
@@ -697,9 +688,9 @@ class MassSpectrum(object):
         f = self.kernel_density_map(df_error=mde, show_map=show_map)
         err = self.fit_kernel(f=f, show_map=show_map)
         err['mass'] = np.linspace(self.table['mass'].min(), self.table['mass'].max(),len(err))
-        spec = self.recallibrate(serr=err)
+        spec = self.recallibrate(error_table=ErrorTable(err))
 
-        return MassSpectrum(spec, err=err)
+        return MassSpectrum(spec.table), ErrorTable(err)
 
     def recallibrate_by_etalon( self,
                                 etalon, #etalon massspectr
@@ -761,9 +752,9 @@ class MassSpectrum(object):
             ax.set_ylabel('Error, ppm')
             fig.tight_layout()
         
-        out = self.recallibrate(err)
+        out = self.recallibrate(error_table=ErrorTable(err))
         
-        return MassSpectrum(out, err=err)
+        return MassSpectrum(out.table), ErrorTable(err)
 
 
 class CanNotCreateVanKrevelen(Exception):
@@ -1014,6 +1005,15 @@ class VanKrevelen(object):
 def calculate_ppm(x: float, y: float) -> float:
     return np.fabs((x - y) / y * 1e6)
 
+
+class ErrorTable(object):
+    # should be columns: mass, ppm
+
+    def __init__(
+            self,
+            table: Optional[pd.DataFrame] = None,
+    ):
+        self.table = table
 
 class MassSpectrumList(object):
     def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]] = None):
