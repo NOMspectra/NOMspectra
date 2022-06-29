@@ -507,129 +507,14 @@ class MassSpectrum(object):
             tmp['index'] /= len(tmp)
 
         return tmp["mass"].values, tmp["index"].values
-    
-    def dif_mass(self):
-        '''
-        most common mass difference
-        return dict
-        '''
-        H = 1.007825
-        C = 12.000000
-        N = 14.003074
-        O = 15.994915
-        S = 31.972071
 
-        dif = {}
-        dif['CH2'] = C + H*2
-        dif['CH2O'] = C + O + H*2
-        dif['C2H2O'] = C*2 + O + H*2
-        dif['CO2'] = C + O*2
-        dif['H2O'] = O + H*2
-
-        return dif
-
-    def md_error_map (self, spec, ppm=3, show_map=True):
-        '''
-        calculate mass differnce map
-        '''
-
-        dif = self.dif_mass()
-        data = spec
-        data_error = [] #array for new data
-
-        for i in range(len(data)): #take every mass in list
-            mass = data.loc[i, 'mass'] #take mass from list
-            for k in range(1,6): #generation of brutto series change
-                for i in dif: #take most common mass diff
-                    mz = mass + dif[i]*k #calc mass plus ion
-                    mz_p = mz + mz * ppm/1000000 #search from min
-                    mz_m = mz - mz * ppm/1000000 # to max
-                    ress = data.loc[(data['mass'] > mz_m) & (data['mass'] < mz_p)]
-                    if len(ress) > 0:
-                        res = copy.deepcopy(ress)
-                        res['ppm'] = (((res['mass'] - mz) / mz)*1000000).abs()
-                        min_ppm = res['ppm'].min()
-                        min_mz = res.loc[res['ppm']==min_ppm, 'mass'].values[0]
-                        data_error.append([mass, f'{k}*{i}', min_mz, (min_mz-mz)/mz*1000000])
-        
-        df_error = pd.DataFrame(data = data_error, columns=['mass', 'mass_diff_brutto', 'mass_diff_mass', 'ppm' ])
-        
-        if show_map:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
-            ax.scatter(df_error['mass'], df_error['ppm'], s=0.01)
-
-        return df_error
-
-    def kernel_density_map(self, df_error, ppm=3, show_map=False):
-        '''
-        plot kernel density map 100*100 for data
-        '''
-        
-        x = np.array(df_error['mass'])
-        y = np.array(df_error['ppm'])
-
-        xmin = min(x) 
-        xmax = max(x) 
-
-        ymin = -ppm 
-        ymax = ppm 
-
-        xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
-
-        positions = np.vstack([xx.ravel(), yy.ravel()])
-        values = np.vstack([x, y])
-        kernel = st.gaussian_kde(values)
-        f = np.reshape(kernel(positions).T, xx.shape)
-        f = np.rot90(f)
-
-        if show_map:
-            fig = plt.figure(figsize=(4,4), dpi=75)
-            ax = fig.gca()
-            ax.set_xlim(xmin, xmax)
-            ax.set_ylim(ymin, ymax)
-            ax.imshow(f, extent=[xmin, xmax, ymin, ymax], aspect='auto')
-        
-        return f
-
-    def fit_kernel(self, f, show_map=True):
-        '''
-        fit max intesity of kernel density map
-        return error table for 100 values
-        '''
-        df = pd.DataFrame(f, index=np.linspace(3,-3,100))
-        
-        out = []
-        for i in df.columns:
-            max_kernel = df[i].quantile(q=0.95)
-            ppm = df.loc[df[i] > max_kernel].index.values
-            out.append([i, np.mean(ppm)])
-        kde_err = pd.DataFrame(data=out, columns=['i','ppm'])
-        
-        #smooth data
-        kde_err['ppm'] = savgol_filter(kde_err['ppm'], 31,5)
-
-        xmin = 0
-        xmax = 100
-        ymin = -3
-        ymax = 3
-
-        if show_map:
-            fig = plt.figure(figsize=(4,4), dpi=75)
-            ax = fig.gca()
-            ax.set_xlim(xmin, xmax)
-            ax.set_ylim(ymin, ymax)
-            ax.imshow(df, extent=[xmin, xmax, ymin, ymax], aspect='auto')
-            ax.plot(kde_err['i'], kde_err['ppm'], c='r')
-
-        #lock start at zero
-        kde_err['ppm'] = kde_err['ppm'] - kde_err.loc[0,'ppm']
-        return kde_err
-
-    def recallibrate(self, error_table):
+    def recallibrate(self, error_table, cal_range = None):
         '''
         recallibrate data by error-table
         '''
-        err = error_table.table
+        err = copy.deepcopy(error_table.table)
+        if cal_range is not None:
+            err = err.loc[(err['mass']>cal_range[0]) & (err['mass']<cal_range[1])]
         data = self.table.reset_index(drop=True)
         wide = len(err)
 
