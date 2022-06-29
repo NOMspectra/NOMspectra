@@ -8,6 +8,7 @@ import pandas as pd
 import seaborn as sns
 import copy
 from scipy.signal import savgol_filter
+from scipy.interpolate import interp1d
 import scipy.stats as st
 from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
@@ -50,6 +51,8 @@ class MassSpectrum(object):
             names: Optional[Sequence[str]] = None,
             sep: str = "\t",
             treshold: Optional[int] = None,
+            intensity_range: Optional[tuple] = None,
+            mass_range: Optional[tuple] = None
     ) -> "MassSpectrum":
         self.table = pd.read_csv(filename, sep=sep, names=names)
         if mapper:
@@ -66,6 +69,12 @@ class MassSpectrum(object):
 
         if treshold is not None:
             self.table = self.table.loc[self.table['I']>treshold]
+
+        if intensity_range is not None:
+            self.table = self.table.loc[(self.table['I'] > intensity_range[0]) & (self.table['I'] < intensity_range[1])]
+
+        if mass_range is not None:
+            self.table = self.table.loc[(self.table['mass'] > mass_range[0]) & (self.table['mass'] < mass_range[1])]
 
         self.table = self.table.reset_index(drop=True)
 
@@ -909,17 +918,19 @@ class ErrorTable(object):
         return f
 
     def assign_error(self, spec:MassSpectrum,
-                               sign:str='-', 
-                               show_map:bool = True):
+                    sign:str='-',
+                    ppm = 3,
+                   show_map:bool = True):
         '''
         recallibrate by assign
         '''
-        
-        spec = spec.calculate_mass()
-        spec = spec.calculate_error(sign=sign)
-        spec = spec.show_error()
+        spectr = copy.deepcopy(spec)
+        spectr = spectr.assign(rel_error=ppm) 
+        spectr = spectr.calculate_mass()
+        spectr = spectr.calculate_error(sign=sign)
+        spectr = spectr.show_error()
 
-        error_table = copy.deepcopy(spec.table)
+        error_table = spectr.table
         error_table = error_table.loc[:,['mass','rel_error']]
         error_table.columns = ['mass', 'ppm']
         error_table = error_table.dropna()
@@ -1013,6 +1024,29 @@ class ErrorTable(object):
             fig.tight_layout()
         
         return ErrorTable(err)
+
+    def extrapolate(self, ranges=(200,900)):
+        """
+        extrapolate exsist error data for disire diapason, make 100 points
+        param:ranges - tuple, take diapason for extrapolate. Default 200-900
+        """
+        
+        interpolation_range = np.linspace(ranges[0], ranges[1], 100)
+        linear_interp = interp1d(self.table['mass'], self.table['ppm'],  bounds_error=False, fill_value='extrapolate')
+        linear_results = linear_interp(interpolation_range)
+        err = pd.DataFrame()
+        err ['mass'] = interpolation_range
+        err ['ppm'] = linear_results
+
+        return ErrorTable(err)
+
+    def show_error(self):
+        
+        fig, ax = plt.subplots(figsize=(4,4), dpi=75)
+        ax.plot(self.table['mass'], self.table['ppm'])
+        ax.set_xlabel('m/z, Da')
+        ax.set_ylabel('error, ppm')
+
 
 class MassSpectrumList(object):
     def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]] = None):
