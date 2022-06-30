@@ -1,0 +1,874 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>818</width>
+    <height>622</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>801</width>
+      <height>361</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="main">
+        <attribute name="title">
+         <string>Main</string>
+        </attribute>
+        <widget class="QLineEdit" name="assign_isotope">
+         <property name="geometry">
+          <rect>
+           <x>310</x>
+           <y>70</y>
+           <width>61</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="calc_self_recal_by_assign">
+         <property name="geometry">
+          <rect>
+           <x>390</x>
+           <y>120</y>
+           <width>181</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Calc Self-Recal by Assign</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_6">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>190</y>
+           <width>60</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>min m/z</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_5">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>160</y>
+           <width>71</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>max Intens</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_3">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>100</y>
+           <width>60</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Intensity</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="recal_range_max">
+         <property name="geometry">
+          <rect>
+           <x>520</x>
+           <y>250</y>
+           <width>51</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QComboBox" name="arifm_box">
+         <property name="geometry">
+          <rect>
+           <x>590</x>
+           <y>250</y>
+           <width>71</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <item>
+          <property name="text">
+           <string>and</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>+</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>-</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>xor</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>or</string>
+          </property>
+         </item>
+        </widget>
+        <widget class="QLineEdit" name="load_min_mz">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>190</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="save_spectrum">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>250</y>
+           <width>191</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Save Spectrum</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="recal_range_min">
+         <property name="geometry">
+          <rect>
+           <x>460</x>
+           <y>250</y>
+           <width>51</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="vk_N_box">
+         <property name="geometry">
+          <rect>
+           <x>690</x>
+           <y>100</y>
+           <width>51</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>N</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="show_error">
+         <property name="geometry">
+          <rect>
+           <x>390</x>
+           <y>220</y>
+           <width>91</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Show Error</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="load_spectrum">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>131</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Load Spectrum</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="load_sep">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>40</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="show_assign_error">
+         <property name="geometry">
+          <rect>
+           <x>390</x>
+           <y>280</y>
+           <width>171</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Show Assign Error</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="save_error">
+         <property name="geometry">
+          <rect>
+           <x>480</x>
+           <y>190</y>
+           <width>101</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Save Error</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_14">
+         <property name="geometry">
+          <rect>
+           <x>640</x>
+           <y>220</y>
+           <width>60</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_7">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>220</y>
+           <width>60</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>max m/z</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_11">
+         <property name="geometry">
+          <rect>
+           <x>590</x>
+           <y>70</y>
+           <width>91</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Mark Element</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="load_mz">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>70</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="load_second_spec">
+         <property name="geometry">
+          <rect>
+           <x>590</x>
+           <y>220</y>
+           <width>181</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Load second spectrum</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_12">
+         <property name="geometry">
+          <rect>
+           <x>220</x>
+           <y>100</y>
+           <width>60</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Range</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_2">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>70</y>
+           <width>81</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>m/z</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="operate">
+         <property name="geometry">
+          <rect>
+           <x>680</x>
+           <y>250</y>
+           <width>91</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Operate</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="remove_background">
+         <property name="geometry">
+          <rect>
+           <x>210</x>
+           <y>260</y>
+           <width>171</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Remove Backgound</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_10">
+         <property name="geometry">
+          <rect>
+           <x>220</x>
+           <y>170</y>
+           <width>60</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Error ppm</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="load_min_intens">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>130</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="load_intensity">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>100</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="print_spec">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>280</y>
+           <width>191</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Print spectrum</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="reset_element">
+         <property name="geometry">
+          <rect>
+           <x>300</x>
+           <y>130</y>
+           <width>81</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Reset</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="vk_S_box">
+         <property name="geometry">
+          <rect>
+           <x>600</x>
+           <y>100</y>
+           <width>41</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>S</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="assign">
+         <property name="geometry">
+          <rect>
+           <x>210</x>
+           <y>10</y>
+           <width>171</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Assign</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="assign_range_max">
+         <property name="geometry">
+          <rect>
+           <x>330</x>
+           <y>100</y>
+           <width>41</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="recallibrate">
+         <property name="geometry">
+          <rect>
+           <x>390</x>
+           <y>10</y>
+           <width>181</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Recallibrate</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="assign_error_ppm">
+         <property name="geometry">
+          <rect>
+           <x>300</x>
+           <y>170</y>
+           <width>71</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="load_background">
+         <property name="geometry">
+          <rect>
+           <x>210</x>
+           <y>230</y>
+           <width>171</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Load Background</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="load_etalon">
+         <property name="geometry">
+          <rect>
+           <x>390</x>
+           <y>50</y>
+           <width>181</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Load Etalon</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="plot_vk">
+         <property name="geometry">
+          <rect>
+           <x>580</x>
+           <y>40</y>
+           <width>191</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Plot Van Krevelin</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="plot_spectrum">
+         <property name="geometry">
+          <rect>
+           <x>580</x>
+           <y>10</y>
+           <width>191</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Plot Spectrum</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="calc_self_recal_by_mdiff">
+         <property name="geometry">
+          <rect>
+           <x>390</x>
+           <y>150</y>
+           <width>181</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Calc Self-Recal by MDiff</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_4">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>130</y>
+           <width>71</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>min Intens</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_9">
+         <property name="geometry">
+          <rect>
+           <x>310</x>
+           <y>50</y>
+           <width>60</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Isotope</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="load_max_mz">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>220</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="load_error">
+         <property name="geometry">
+          <rect>
+           <x>390</x>
+           <y>190</y>
+           <width>91</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Load Error</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="range">
+         <property name="geometry">
+          <rect>
+           <x>390</x>
+           <y>250</y>
+           <width>71</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Range</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="assign_range_min">
+         <property name="geometry">
+          <rect>
+           <x>270</x>
+           <y>100</y>
+           <width>41</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="vk_mark_element">
+         <property name="geometry">
+          <rect>
+           <x>680</x>
+           <y>70</y>
+           <width>81</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="save_square">
+         <property name="geometry">
+          <rect>
+           <x>590</x>
+           <y>180</y>
+           <width>181</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Save Square</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="load_max_intens">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>160</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="assign_element">
+         <property name="geometry">
+          <rect>
+           <x>220</x>
+           <y>70</y>
+           <width>61</width>
+           <height>21</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="calc_recal_by_etalon">
+         <property name="geometry">
+          <rect>
+           <x>390</x>
+           <y>80</y>
+           <width>181</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Calc Recal by Etalon</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="add_element">
+         <property name="geometry">
+          <rect>
+           <x>210</x>
+           <y>130</y>
+           <width>81</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Add</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_8">
+         <property name="geometry">
+          <rect>
+           <x>220</x>
+           <y>50</y>
+           <width>60</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Element</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>40</y>
+           <width>60</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Separator</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="density_plot">
+         <property name="geometry">
+          <rect>
+           <x>590</x>
+           <y>120</y>
+           <width>181</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Density Plot</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="square_density_plot">
+         <property name="geometry">
+          <rect>
+           <x>590</x>
+           <y>150</y>
+           <width>181</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Square Density Plot</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="load_new">
+         <property name="geometry">
+          <rect>
+           <x>140</x>
+           <y>10</y>
+           <width>87</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>New</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="assign_neg">
+         <property name="geometry">
+          <rect>
+           <x>210</x>
+           <y>200</y>
+           <width>87</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Negative</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="generate_gdf">
+         <property name="geometry">
+          <rect>
+           <x>290</x>
+           <y>200</y>
+           <width>91</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Generate</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="err_extra">
+         <property name="geometry">
+          <rect>
+           <x>480</x>
+           <y>220</y>
+           <width>101</width>
+           <height>32</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Extrapolate</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="reserv">
+        <attribute name="title">
+         <string>Reserve</string>
+        </attribute>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>380</y>
+      <width>801</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <widget class="QTextBrowser" name="textBrowser"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <tabstops>
+  <tabstop>load_spectrum</tabstop>
+  <tabstop>load_new</tabstop>
+  <tabstop>load_sep</tabstop>
+  <tabstop>load_mz</tabstop>
+  <tabstop>load_intensity</tabstop>
+  <tabstop>load_min_intens</tabstop>
+  <tabstop>load_max_intens</tabstop>
+  <tabstop>load_min_mz</tabstop>
+  <tabstop>load_max_mz</tabstop>
+  <tabstop>save_spectrum</tabstop>
+  <tabstop>print_spec</tabstop>
+  <tabstop>assign</tabstop>
+  <tabstop>assign_element</tabstop>
+  <tabstop>assign_isotope</tabstop>
+  <tabstop>assign_range_min</tabstop>
+  <tabstop>assign_range_max</tabstop>
+  <tabstop>add_element</tabstop>
+  <tabstop>reset_element</tabstop>
+  <tabstop>assign_error_ppm</tabstop>
+  <tabstop>assign_neg</tabstop>
+  <tabstop>generate_gdf</tabstop>
+  <tabstop>load_background</tabstop>
+  <tabstop>remove_background</tabstop>
+  <tabstop>recallibrate</tabstop>
+  <tabstop>load_etalon</tabstop>
+  <tabstop>calc_recal_by_etalon</tabstop>
+  <tabstop>calc_self_recal_by_assign</tabstop>
+  <tabstop>calc_self_recal_by_mdiff</tabstop>
+  <tabstop>load_error</tabstop>
+  <tabstop>save_error</tabstop>
+  <tabstop>show_error</tabstop>
+  <tabstop>err_extra</tabstop>
+  <tabstop>range</tabstop>
+  <tabstop>recal_range_min</tabstop>
+  <tabstop>recal_range_max</tabstop>
+  <tabstop>show_assign_error</tabstop>
+  <tabstop>plot_spectrum</tabstop>
+  <tabstop>plot_vk</tabstop>
+  <tabstop>vk_mark_element</tabstop>
+  <tabstop>vk_S_box</tabstop>
+  <tabstop>vk_N_box</tabstop>
+  <tabstop>density_plot</tabstop>
+  <tabstop>square_density_plot</tabstop>
+  <tabstop>save_square</tabstop>
+  <tabstop>load_second_spec</tabstop>
+  <tabstop>arifm_box</tabstop>
+  <tabstop>operate</tabstop>
+  <tabstop>textBrowser</tabstop>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

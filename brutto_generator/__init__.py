@@ -5,7 +5,7 @@ from typing import Sequence
 import numpy as np
 import pandas as pd
 
-def brutto_gen(elems = {'C':(1, 60),'H':(0,100),'O':(0,60), 'N':(0,3), 'S':(0,2)},
+def brutto_gen(elems = {'C':(1, 60),'H':(0,100),'O':(0,60), 'N':(0,3), 'S':(0,2)}, 
                masses_path='masses/element_table.csv'):
     """Generete brutto formulas
     :param elems: dictonary contains element:his_range. 

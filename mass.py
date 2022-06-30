@@ -48,13 +48,14 @@ class MassSpectrum(object):
             mapper: Optional[Mapping[str, str]] = None,
             ignore_columns: Optional[Sequence[str]] = None,
             take_columns: Optional[Sequence[str]] = None,
-            names: Optional[Sequence[str]] = None,
-            sep: str = "\t",
-            treshold: Optional[int] = None,
-            intensity_range: Optional[tuple] = None,
-            mass_range: Optional[tuple] = None
+            take_only_mz: Optional[Sequence[str]] = False,
+            sep: str = ",",
+            intens_min: Optional[tuple] = None,
+            intens_max: Optional[tuple] = None,
+            mass_min: Optional[tuple] = None,
+            mass_max: Optional[tuple] = None
     ) -> "MassSpectrum":
-        self.table = pd.read_csv(filename, sep=sep, names=names)
+        self.table = pd.read_csv(filename, sep=sep)
         if mapper:
             self.table = self.table.rename(columns=mapper)
 
@@ -64,23 +65,29 @@ class MassSpectrum(object):
         if ignore_columns:
             self.table = self.table.drop(columns=ignore_columns)
 
+        if take_only_mz:
+            self.table = self.table.loc[:,['mass','I']]
+
         if "numbers" not in self.table:
             self.table["numbers"] = 1
 
-        if treshold is not None:
-            self.table = self.table.loc[self.table['I']>treshold]
+        if intens_min is not None:
+            self.table = self.table.loc[self.table['I']>intens_min]
 
-        if intensity_range is not None:
-            self.table = self.table.loc[(self.table['I'] > intensity_range[0]) & (self.table['I'] < intensity_range[1])]
+        if intens_max is not None:
+            self.table = self.table.loc[self.table['I']<intens_max]
 
-        if mass_range is not None:
-            self.table = self.table.loc[(self.table['mass'] > mass_range[0]) & (self.table['mass'] < mass_range[1])]
+        if mass_min is not None:
+            self.table = self.table.loc[self.table['mass']>mass_min]
+
+        if mass_max is not None:
+            self.table = self.table.loc[self.table['mass']<mass_max]
 
         self.table = self.table.reset_index(drop=True)
 
         return self
 
-    def save(self, filename: Union[Path, str], sep: str = ";") -> None:
+    def save(self, filename: Union[Path, str], sep: str = ",") -> None:
         """Saves to csv MassSpectrum"""
         self.table.to_csv(filename, sep=sep, index=False)
 
@@ -574,7 +581,7 @@ class VanKrevelen(object):
     def draw_scatter_with_marginals(self):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
-    def draw_scatter(self, ax=None, legend=True, volumes=True, nitrogen=True, sulphur=True, alpha=0.3, **kwargs):
+    def draw_scatter(self, ax=None, legend=True, volumes=True, nitrogen=False, sulphur=False, alpha=0.3, **kwargs):
         
         if ax is None:
             fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
@@ -590,14 +597,10 @@ class VanKrevelen(object):
 
         if nitrogen and 'N' in self.table.columns:
             self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0), 'color'] = 'orange'
-            ax.text(0.05, 0.1, 'CHO', c='blue', size=8)
-            ax.text(0.2, 0.1, 'CHON', c='orange', size=8)
 
         if sulphur and 'S' in self.table.columns:
             self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] < 1) & (self.table['S'] > 0), 'color'] = 'green'
             self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0) & (self.table['S'] > 0), 'color'] = 'red'
-            ax.text(0.35, 0.1, 'CHOS', c='green', size=8)
-            ax.text(0.5, 0.1, 'CHONS', c='red', size=8)
 
         ax.scatter(self.table["O/C"], self.table["H/C"], s=self.table['volume'], c=self.table['color'], alpha=alpha, **kwargs)
         ax.set_xlabel("O/C")
@@ -743,6 +746,49 @@ class VanKrevelen(object):
         res /= np.sum(res)
 
         return res
+
+    def plot_heatmap(self, squares):
+
+
+
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=200)
+        sns.heatmap(df.round(4),cmap='coolwarm',annot=True, linewidths=.5, ax=ax)
+        bottom, top = ax.get_ylim()
+        plt.yticks(rotation=0)
+        plt.xticks(rotation=90) 
+        ax.set_ylim(bottom + 0.5, top - 0.5)
+
+        ax.set_xlabel('O/C')
+        ax.set_ylabel('H/C')
+
+    def plot_heatmap(self, df):
+
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
+        sns.heatmap(df.round(4),cmap='coolwarm',annot=True, linewidths=.5, ax=ax)
+        bottom, top = ax.get_ylim()
+        plt.yticks(rotation=0)
+        plt.xticks(rotation=90) 
+        ax.set_ylim(bottom + 0.5, top - 0.5)
+
+        ax.set_xlabel('O/C')
+        ax.set_ylabel('H/C')
+        fig.tight_layout()
+
+    def squares(self):
+        d_table = []
+        total_i = self.table['I'].sum()
+        for y in [ (1.8, 2.2), (1.4, 1.8), (1, 1.4), (0.6, 1), (0, 0.6)]:
+            hc = []
+            for x in  [(0, 0.25), (0.25, 0.5), (0.5, 0.75), (0.75, 1)]:
+                temp = copy.deepcopy(self)
+                temp.table = temp.table.loc[(temp.table['O/C'] > x[0]) & (temp.table['O/C'] < x[1]) & (temp.table['H/C'] > y[0]) & (temp.table['H/C'] < y[1])]
+                temp_i = temp.table['I'].sum()
+                hc.append(temp_i/total_i)
+            d_table.append(hc)
+        out = pd.DataFrame(data = d_table, columns=['0-0.25', '0,25-0.5','0.5-0.75','0.75-1'], index=['1.8-2.2', '1.4-1.8', '1-1.4', '0.6-1', '0-0.6'])
+        self.plot_heatmap(out)
+        
+        return out
 
     @staticmethod
     def save_fig(path, dpi=300) -> None:
