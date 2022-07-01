@@ -26,6 +26,26 @@ sys.path.insert(1, lib_path)
 from mass import MassSpectrum
 ```
 
+<h2>GUI</h2>
+
+Simple gui version covers main task for data processing:
+
+- load treated spectrum from raw with desirable parametres
+- save spectrum
+- generate brutto formaulas for range elements
+- assigne m/z with brutto formulas
+- self-recallibrate by mass-dif map, assign error or by external etalon spectrum
+- load and save error table for recallibration, use segment and extrapolate error table for all spectrum masses
+- plot spectrum
+- plot van krevelin diagramm with marked elements
+- plot density vank krevelin
+- calculate and plot 20-square density van krevelin diagram
+- logic operation with second spectrum: and, +, -, xor
+
+![gui](https://github.com/nhslab/masslib/blob/master/asserts/gui.png)
+
+gui version require pyQT5
+
 <h2>Usage Examples</h2>
 
 Usage example for <b>isotope distribution generator</b>:

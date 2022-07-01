@@ -794,19 +794,23 @@ class VanKrevelen(object):
 
     def squares(self):
         d_table = []
-        total_i = self.table['intensity'].sum()
+        sq = []
+        total_i = self.table['assign'].count()
         for y in [ (1.8, 2.2), (1.4, 1.8), (1, 1.4), (0.6, 1), (0, 0.6)]:
             hc = []
             for x in  [(0, 0.25), (0.25, 0.5), (0.5, 0.75), (0.75, 1)]:
                 temp = copy.deepcopy(self)
                 temp.table = temp.table.loc[(temp.table['O/C'] > x[0]) & (temp.table['O/C'] < x[1]) & (temp.table['H/C'] > y[0]) & (temp.table['H/C'] < y[1])]
-                temp_i = temp.table['intensity'].sum()
+                temp_i = temp.table['assign'].count()
                 hc.append(temp_i/total_i)
+                sq.append(temp_i/total_i)
             d_table.append(hc)
         out = pd.DataFrame(data = d_table, columns=['0-0.25', '0,25-0.5','0.5-0.75','0.75-1'], index=['1.8-2.2', '1.4-1.8', '1-1.4', '0.6-1', '0-0.6'])
         self.plot_heatmap(out)
-        
-        return out
+
+        square = pd.DataFrame(data=sq, columns=['value'], index=[5,10,15,20,   4,9,14,19,   3,8,13,18,    2,7,12,17,   1,6,11,16])
+
+        return square.sort_index()
 
     @staticmethod
     def save_fig(path, dpi=300) -> None:
