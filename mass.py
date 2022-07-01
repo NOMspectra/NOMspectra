@@ -14,11 +14,11 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
 from brutto import Brutto
 from brutto_generator import brutto_gen
-from utils import calculate_mass
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
+masses_path='masses/element_table.csv'
 
 class SpectrumIsNotAssigned(Exception):
     pass
@@ -32,15 +32,34 @@ class MassSpectrum(object):
             table: Optional[pd.DataFrame] = None,
             elems: Optional[list] = None,
     ):
-        self.elems = elems if elems else list("CHONS")
-        self.features = ["mass", "calculated_mass", "I", "abs_error", "rel_error", "numbers"]
+        self.features = ["mass", "calculated_mass", 'intensity', "abs_error", "rel_error", "numbers"]
 
         if table is not None:
             self.table = table
             if "numbers" not in self.table:
                 self.table["numbers"] = 1
         else:
-            self.table = pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+            self.table = pd.DataFrame(columns=['intensity', "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+
+        if elems:
+            self.elems = elems
+        else:
+            self.elems = self.find_elems()
+
+    def find_elems(self):
+
+        elems_mass_table = pd.read_csv(masses_path)
+        main_elems = elems_mass_table['element'].values
+        all_elems = elems_mass_table['element_isotop'].values
+
+        elems = []
+        for col in self.table.columns:
+            if col in main_elems:
+                elems.append(col)
+            elif col in all_elems:
+                elems.append(col)
+
+        return elems
 
     def load(
             self,
@@ -53,7 +72,8 @@ class MassSpectrum(object):
             intens_min: Optional[tuple] = None,
             intens_max: Optional[tuple] = None,
             mass_min: Optional[tuple] = None,
-            mass_max: Optional[tuple] = None
+            mass_max: Optional[tuple] = None,
+            elems: Optional[list] = None,
     ) -> "MassSpectrum":
         self.table = pd.read_csv(filename, sep=sep)
         if mapper:
@@ -66,22 +86,27 @@ class MassSpectrum(object):
             self.table = self.table.drop(columns=ignore_columns)
 
         if take_only_mz:
-            self.table = self.table.loc[:,['mass','I']]
+            self.table = self.table.loc[:,['mass','intensity']]
 
         if "numbers" not in self.table:
             self.table["numbers"] = 1
 
         if intens_min is not None:
-            self.table = self.table.loc[self.table['I']>intens_min]
+            self.table = self.table.loc[self.table['intensity']>intens_min]
 
         if intens_max is not None:
-            self.table = self.table.loc[self.table['I']<intens_max]
+            self.table = self.table.loc[self.table['intensity']<intens_max]
 
         if mass_min is not None:
             self.table = self.table.loc[self.table['mass']>mass_min]
 
         if mass_max is not None:
             self.table = self.table.loc[self.table['mass']<mass_max]
+
+        if elems:
+            self.elems = elems
+        else:
+            self.elems = self.find_elems()
 
         self.table = self.table.reset_index(drop=True)
 
@@ -110,7 +135,7 @@ class MassSpectrum(object):
         if generated_bruttos_table is None:
             generated_bruttos_table = brutto_gen()
 
-        table = self.table.loc[:,['mass', 'I']].copy()
+        table = self.table.loc[:,['mass', 'intensity']].copy()
 
         masses = generated_bruttos_table["mass"].values
         
@@ -119,7 +144,7 @@ class MassSpectrum(object):
 
         elif sign == '+':
             mass_shift = 0.00054858  # electron mass
-
+        
         else:
             raise ValueError(f"sign can be only + or - rather than {sign}")
 
@@ -224,7 +249,7 @@ class MassSpectrum(object):
     def __repr__(self):
         # repr only useful columns
         columns = [column for column in
-                   ["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"] if column in self.table]
+                   ['intensity', "mass", "brutto", "calculated_mass", "abs_error", "rel_error"] if column in self.table]
 
         return self.table[columns].__repr__()
 
@@ -259,9 +284,27 @@ class MassSpectrum(object):
         return MassSpectrum(self.table)
 
     def calculate_mass(self) -> "MassSpectrum":
+        
         table = self.table.copy()
-        table["calculated_mass"] = calculate_mass(self.table[self.elems].values, self.elems)
-        return MassSpectrum(table)
+        table = table.loc[:,self.elems]
+
+        #load elements table. Generatete in mass folder
+        elems_mass_table = pd.read_csv(masses_path)
+        
+        elems_masses = []
+        for el in self.elems:
+            if '_' not in el:
+                temp = elems_mass_table.loc[elems_mass_table['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
+                elems_masses.append(temp.loc[0,'mass'])
+            else:
+                temp = elems_mass_table.loc[elems_mass_table['element_isotop']==el].reset_index(drop=True)
+                elems_masses.append(temp.loc[0,'mass'])
+
+        masses = np.array(elems_masses)
+        self.table["calculated_mass"] = table.multiply(masses).sum(axis=1)
+        self.table.loc[self.table["calculated_mass"] == 0] = np.NaN
+
+        return MassSpectrum(self.table)
 
     def get_brutto_list(self) -> Sequence[Tuple[float]]:
         return self.table[self.elems].values
@@ -293,79 +336,57 @@ class MassSpectrum(object):
         return res
 
     def __or__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
-        a = self.get_brutto_dict()
-        b = other.get_brutto_dict()
+        
+        if "calculated_mass" not in self.table:
+            e = copy.deepcopy(self.calculate_mass())
+        else:
+            e = copy.deepcopy(self)
+        if "calculated_mass" not in other.table:
+            s = copy.deepcopy(other.calculate_mass())
+        else:
+            s = copy.deepcopy(other)
 
-        bruttos = set(a.keys()) | set(b.keys())
+        a = e.table.dropna()
+        b = s.table.dropna()
+        
+        a = a.append(b, ignore_index=True)
+        a = a.drop_duplicates(subset=['calculated_mass'])
 
-        # FIXME probably bad solution, hardcoded columns
-        # res = pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
-        res = []
-        for brutto in bruttos:
-            if (brutto in a) and (brutto in b):
-                # number is sum of a['numbers'] and b['numbers']
-                c = a[brutto].copy()
-                c["numbers"] += b[brutto]["numbers"]
-
-                res.append(c)
-
-            elif brutto in a:
-                res.append(a[brutto])
-            else:
-                res.append(b[brutto])
-
-        # FIXME probably bad solution, hardcoded columns
-        res = pd.DataFrame(res) if len(res) > 0 else \
-            pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
-        bruttos = np.zeros((0, len(self.elems))) if len(bruttos) == 0 else list(bruttos)
-        bruttos = pd.DataFrame(bruttos, columns=self.elems)
-
-        res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
-
-        return MassSpectrum(res)
+        return MassSpectrum(a)
 
     def __xor__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
-        a = self.get_brutto_dict()
-        b = other.get_brutto_dict()
 
-        bruttos = set(a.keys()) ^ set(b.keys())
-
-        res = []
-        for brutto in bruttos:
-            if brutto in a:
-                res.append(a[brutto])
-            else:
-                res.append(b[brutto])
-
-        # FIXME probably bad solution, hardcoded columns
-        res = pd.DataFrame(res) if len(res) > 0 else \
-            pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
-        bruttos = np.zeros((0, len(self.elems))) if len(bruttos) == 0 else list(bruttos)
-        bruttos = pd.DataFrame(bruttos, columns=self.elems)
-
-        res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
-
-        return MassSpectrum(res)
+        other2 = copy.deepcopy(self)
+        sub1 = self.__sub__(other)
+        sub2 = other.__sub__(other2)
+        
+        return sub1.__or__(sub2)
 
     def __and__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
-        a = self.get_brutto_dict()
-        b = other.get_brutto_dict()
 
-        bruttos = set(a.keys()) & set(b.keys())
+        if "calculated_mass" not in self.table:
+            e = copy.deepcopy(self.calculate_mass())
+        else:
+            e = copy.deepcopy(self)
+        if "calculated_mass" not in other.table:
+            s = copy.deepcopy(other.calculate_mass())
+        else:
+            s = copy.deepcopy(other)
 
-        res = []
-        for brutto in bruttos:
-            c = a[brutto].copy()
-            c["numbers"] += b[brutto]["numbers"]
-            res.append(c)
+        a = e.table['calculated_mass'].dropna().values
+        b = s.table['calculated_mass'].dropna().values
+        
+        operate = set(a) & set(b)
 
-        # FIXME probably bad solution, hardcoded columns
-        res = pd.DataFrame(res) if len(res) > 0 else \
-            pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
-        bruttos = np.zeros((0, len(self.elems))) if len(bruttos) == 0 else list(bruttos)
-        bruttos = pd.DataFrame(bruttos, columns=self.elems)
-
-        res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
+        mark = []
+        res = copy.deepcopy(self.table)
+        for i, row in res.iterrows():
+            if row['calculated_mass'] in operate:
+                mark.append(row['calculated_mass'])
+            else:
+                mark.append(np.NaN)
+        res['calculated_mass'] = mark
+        res = res.dropna()
 
         return MassSpectrum(res)
 
@@ -373,22 +394,30 @@ class MassSpectrum(object):
         return self.__or__(other)
 
     def __sub__(self, other):
-        a = self.get_brutto_dict()
-        b = other.get_brutto_dict()
+        
+        if "calculated_mass" not in self.table:
+            e = copy.deepcopy(self.calculate_mass())
+        else:
+            e = copy.deepcopy(self)
+        if "calculated_mass" not in other.table:
+            s = copy.deepcopy(other.calculate_mass())
+        else:
+            s = copy.deepcopy(other)
 
-        bruttos = set(a.keys()) - set(b.keys())
+        a = e.table['calculated_mass'].dropna().values
+        b = s.table['calculated_mass'].dropna().values
+        
+        operate = set(a) - set(b)
 
-        res = []
-        for brutto in bruttos:
-            res.append(a[brutto])
-
-        # FIXME probably bad solution, hardcoded columns
-        res = pd.DataFrame(res) if len(res) > 0 else \
-            pd.DataFrame(columns=["I", "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
-        bruttos = np.zeros((0, len(self.elems))) if len(bruttos) == 0 else list(bruttos)
-        bruttos = pd.DataFrame(bruttos, columns=self.elems)
-
-        res = pd.concat([res, bruttos], axis=1, sort=False).sort_values(by="mass")
+        mark = []
+        res = copy.deepcopy(self.table)
+        for i, row in res.iterrows():
+            if row['calculated_mass'] in operate:
+                mark.append(row['calculated_mass'])
+            else:
+                mark.append(np.NaN)
+        res['calculated_mass'] = mark
+        res = res.dropna()
 
         return MassSpectrum(res)
 
@@ -454,7 +483,7 @@ class MassSpectrum(object):
         """This function return intensity normalized MassSpectrum instance"""
 
         table = self.table.copy()
-        table["I"] /= table["I"].max()
+        table['intensity'] /= table['intensity'].max()
         return MassSpectrum(table)
 
     def head(self) -> pd.DataFrame:
@@ -479,7 +508,7 @@ class MassSpectrum(object):
         if xlim[1] is None:
             xlim = (xlim[0], mass.max())
 
-        intensity = df.I.values
+        intensity = df['intensity'].values
         # filter first intensity and only after mass (because we will lose the information)
         intensity = intensity[(xlim[0] <= mass) & (mass <= xlim[1])]
         mass = mass[(xlim[0] <= mass) & (mass <= xlim[1])]
@@ -581,7 +610,7 @@ class VanKrevelen(object):
     def draw_scatter_with_marginals(self):
         sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
-    def draw_scatter(self, ax=None, legend=True, volumes=True, nitrogen=False, sulphur=False, alpha=0.3, **kwargs):
+    def draw_scatter(self, ax=None, legend=True, volumes=True, nitrogen=False, sulphur=False, alpha=0.3, mark_elem=None, **kwargs):
         
         if ax is None:
             fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
@@ -589,11 +618,14 @@ class VanKrevelen(object):
             ax=ax
         
         if volumes:
-            self.table['volume'] = self.table['I'] / self.table['I'].median()
+            self.table['volume'] = self.table['intensity'] / self.table['intensity'].median()
         else:
             self.table['volume'] = 5
 
         self.table['color'] = 'blue'
+
+        if mark_elem is not None:
+            self.table.loc[self.table[mark_elem] > 0, 'color'] = 'purple'
 
         if nitrogen and 'N' in self.table.columns:
             self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0), 'color'] = 'orange'
@@ -644,9 +676,9 @@ class VanKrevelen(object):
                 density.append(len(square) / sum_density)
 
         elif weight == "intensity":
-            sum_density = sum([square["I"].sum() for square in squares])
+            sum_density = sum([square['intensity'].sum() for square in squares])
             for square in squares:
-                density.append(square["I"].sum() / sum_density)
+                density.append(square['intensity'].sum() / sum_density)
 
         else:
             raise ValueError(f"weight should be count or intensity (not {weight})")
@@ -708,9 +740,9 @@ class VanKrevelen(object):
                 ans[key] = len(value.table) / sum_density
 
         elif weight == "intensity":
-            sum_density = self.table["I"].sum()
+            sum_density = self.table['intensity'].sum()
             for key, value in kellerman.items():
-                ans[key] = value.table["I"].sum() / sum_density
+                ans[key] = value.table['intensity'].sum() / sum_density
 
         else:
             raise ValueError(f"weight should be count or intensity not {weight}")
@@ -747,20 +779,6 @@ class VanKrevelen(object):
 
         return res
 
-    def plot_heatmap(self, squares):
-
-
-
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=200)
-        sns.heatmap(df.round(4),cmap='coolwarm',annot=True, linewidths=.5, ax=ax)
-        bottom, top = ax.get_ylim()
-        plt.yticks(rotation=0)
-        plt.xticks(rotation=90) 
-        ax.set_ylim(bottom + 0.5, top - 0.5)
-
-        ax.set_xlabel('O/C')
-        ax.set_ylabel('H/C')
-
     def plot_heatmap(self, df):
 
         fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
@@ -776,13 +794,13 @@ class VanKrevelen(object):
 
     def squares(self):
         d_table = []
-        total_i = self.table['I'].sum()
+        total_i = self.table['intensity'].sum()
         for y in [ (1.8, 2.2), (1.4, 1.8), (1, 1.4), (0.6, 1), (0, 0.6)]:
             hc = []
             for x in  [(0, 0.25), (0.25, 0.5), (0.5, 0.75), (0.75, 1)]:
                 temp = copy.deepcopy(self)
                 temp.table = temp.table.loc[(temp.table['O/C'] > x[0]) & (temp.table['O/C'] < x[1]) & (temp.table['H/C'] > y[0]) & (temp.table['H/C'] < y[1])]
-                temp_i = temp.table['I'].sum()
+                temp_i = temp.table['intensity'].sum()
                 hc.append(temp_i/total_i)
             d_table.append(hc)
         out = pd.DataFrame(data = d_table, columns=['0-0.25', '0,25-0.5','0.5-0.75','0.75-1'], index=['1.8-2.2', '1.4-1.8', '1-1.4', '0.6-1', '0-0.6'])
@@ -872,7 +890,11 @@ class ErrorTable(object):
         '''
 
         dif = self.dif_mass()
-        data = spec
+        data = copy.deepcopy(spec)
+        data = data.sort_values(by='intensity', ascending=False).reset_index(drop=True)
+        data = data[:1000]
+        data = data.sort_values(by='mass').reset_index(drop=True)
+
         data_error = [] #array for new data
 
         for i in range(len(data)): #take every mass in list
@@ -964,8 +986,8 @@ class ErrorTable(object):
         return f
 
     def assign_error(self, spec:MassSpectrum,
-                    sign:str='-',
                     ppm = 3,
+                    sign = '-',
                    show_map:bool = True):
         '''
         recallibrate by assign
@@ -1027,8 +1049,8 @@ class ErrorTable(object):
         max_mass = df['mass'].max()
         a = np.linspace(min_mass,max_mass,101)
 
-        treshold = df['I'].quantile(quart)
-        df = df.loc[df['I'] > treshold].reset_index(drop = True)
+        treshold = df['intensity'].quantile(quart)
+        df = df.loc[df['intensity'] > treshold].reset_index(drop = True)
         df['cal'] = 0 #column for check
 
         #fill data massiv with correct mass
@@ -1141,7 +1163,7 @@ class MassSpectrumList(object):
                     idx -= 1
 
                 if calculate_ppm(masses[idx], float(mass)) < delta_ppm:
-                    table[-1].append(spectrum["I"].values[idx])
+                    table[-1].append(spectrum['intensity'].values[idx])
                 else:
                     table[-1].append(0)
 
@@ -1181,7 +1203,7 @@ class MassSpectrumList(object):
         for brutto in bruttos:
             vector = []
             for spectrum in spectra:
-                vector.append(spectrum[brutto]["I"] if brutto in spectrum else 0)
+                vector.append(spectrum[brutto]['intensity'] if brutto in spectrum else 0)
 
             pivot.append(vector)
 

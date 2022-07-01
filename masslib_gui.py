@@ -106,7 +106,7 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
         intens_head = self.load_intensity.text()
         if intens_head == '':
-            intens_head = 'I'
+            intens_head = 'intensity'
 
         intens_min = self.load_min_intens.text()
         if intens_min != '':
@@ -139,7 +139,7 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
         try:
             self.spec = MassSpectrum().load(filename=file,
-                                mapper={mz_head:'mass', intens_head:'I'},
+                                mapper={mz_head:'mass', intens_head:'intensity'},
                                 take_only_mz=new,
                                 sep=sep,
                                 intens_min=intens_min,
@@ -210,7 +210,7 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def reset_element_(self):
         
         try:
-            self.elems = {'C':(1, 41),'H':(0,81),'O':(0,41), 'N':(0,3)}
+            self.elems = {'C':(1, 60),'H':(0,100),'O':(0,60), 'N':(0,3), 'S':(0,2)}
             t = ''
             for i in self.elems:
                 t = t + f'{i}:{self.elems[i][0]}-{self.elems[i][1]-1}\n'
@@ -226,7 +226,7 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
                 self.addText(file)
 
             self.back = MassSpectrum().load(filename=file,
-                                mapper={'mass':'mass', 'I':'I'},
+                                mapper={'mass':'mass', 'intensity':'intensity'},
                                 take_only_mz=False,
                                 sep=','
                                 )
@@ -245,8 +245,12 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def show_assign_error_(self):
         
         try:
+            if self.assign_neg.isChecked():
+                sign = '-'
+            else:
+                sign = '+'
             self.spec = self.spec.calculate_mass()
-            self.spec = self.spec.calculate_error()
+            self.spec = self.spec.calculate_error(sign=sign)
             self.spec.show_error()
             plt.show(block=False)
             self.addText('show assign error')
@@ -269,7 +273,7 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
         try:
             self.etalon = MassSpectrum().load(filename=file,
-                                mapper={'mass':'mass', 'I':'I'},
+                                mapper={'mass':'mass', 'intensity':'intensity'},
                                 take_only_mz=False,
                                 sep=','
                                 )
@@ -289,7 +293,11 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def calc_self_recal_by_assign_(self):
 
         try:
-            self.err = ErrorTable().assign_error(self.spec)
+            if self.assign_neg.isChecked():
+                sign = '-'
+            else:
+                sign = '+'
+            self.err = ErrorTable().assign_error(self.spec, sign=sign)
             self.addText('calc_self_recal_by_assign')
             plt.show(block=False)
         except Exception:
@@ -380,8 +388,12 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
             else:
                 nit = False
 
+            mark_elemnt = self.vk_mark_element.text()
+            if mark_elemnt == '':
+                mark_elemnt = None
+
             fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
-            vk = VanKrevelen(self.spec.table).draw_scatter(ax=ax, sulphur=sul, nitrogen=nit)
+            vk = VanKrevelen(self.spec.table).draw_scatter(ax=ax, sulphur=sul, nitrogen=nit, mark_elem=mark_elemnt)
             plt.show(block=False)
             self.addText('plot_vk')
         except Exception:
@@ -422,7 +434,7 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
                 self.addText(file)
 
             self.spec2 = MassSpectrum().load(filename=file,
-                                mapper={'mass':'mass', 'I':'I'},
+                                mapper={'mass':'mass', 'intensity':'intensity'},
                                 take_only_mz=False,
                                 sep=','
                                 )
