@@ -457,9 +457,10 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
             elif op == 'xor':
                 self.spec = self.spec ^ self.spec2
                 self.addText('operate')
-            elif op == 'or':
-                self.spec = self.spec | self.spec2
-                self.addText('operate')
+            elif op == 'metric':
+                jaccard = len(self.spec & self.spec2)/len(self.spec + self.spec2)
+                tonimoto = len(self.spec & self.spec2)/(len(self.spec - self.spec2) + len(self.spec2 - self.spec) + len(self.spec & self.spec2))
+                self.addText(f'Jaccard, {jaccard}\nTanimoto, {tonimoto}')
 
         except Exception:
             self.addText(traceback.format_exc())

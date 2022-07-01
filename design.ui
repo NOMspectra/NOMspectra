@@ -136,7 +136,7 @@
          </item>
          <item>
           <property name="text">
-           <string>or</string>
+           <string>metric</string>
           </property>
          </item>
         </widget>

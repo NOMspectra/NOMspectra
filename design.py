@@ -295,7 +295,7 @@ class Ui_MainWindow(object):
         self.arifm_box.setItemText(1, _translate("MainWindow", "+"))
         self.arifm_box.setItemText(2, _translate("MainWindow", "-"))
         self.arifm_box.setItemText(3, _translate("MainWindow", "xor"))
-        self.arifm_box.setItemText(4, _translate("MainWindow", "or"))
+        self.arifm_box.setItemText(4, _translate("MainWindow", "metric"))
         self.save_spectrum.setText(_translate("MainWindow", "Save Spectrum"))
         self.vk_N_box.setText(_translate("MainWindow", "N"))
         self.show_error.setText(_translate("MainWindow", "Show Error"))
