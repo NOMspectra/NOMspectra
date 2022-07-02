@@ -594,6 +594,7 @@ class VanKrevelen(object):
         if not (("C" in table and "H" in table and "O" in table) or ("O/C" in table or "H/C" in table)):
             raise CanNotCreateVanKrevelen()
 
+        table = table[table["assign"].astype(bool)]
         self.table = table
         if "O/C" not in self.table:
             self.table["O/C"] = self.table["O"] / self.table["C"]
@@ -795,13 +796,14 @@ class VanKrevelen(object):
     def squares(self):
         d_table = []
         sq = []
-        total_i = self.table['assign'].count()
+        table = copy.deepcopy(self.table)
+        total_i = len(table)
         for y in [ (1.8, 2.2), (1.4, 1.8), (1, 1.4), (0.6, 1), (0, 0.6)]:
             hc = []
             for x in  [(0, 0.25), (0.25, 0.5), (0.5, 0.75), (0.75, 1)]:
                 temp = copy.deepcopy(self)
-                temp.table = temp.table.loc[(temp.table['O/C'] > x[0]) & (temp.table['O/C'] < x[1]) & (temp.table['H/C'] > y[0]) & (temp.table['H/C'] < y[1])]
-                temp_i = temp.table['assign'].count()
+                temp.table = temp.table.loc[(temp.table['O/C'] >= x[0]) & (temp.table['O/C'] < x[1]) & (temp.table['H/C'] >= y[0]) & (temp.table['H/C'] < y[1])]
+                temp_i = len(temp.table)
                 hc.append(temp_i/total_i)
                 sq.append(temp_i/total_i)
             d_table.append(hc)
