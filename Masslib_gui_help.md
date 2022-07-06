@@ -1,10 +1,5 @@
 # Masslib GUI
 
-Property of natural humic substances laboratory. Chemistry Department of Lomonosov Moscow State University. 
-It is forbidden to distribute this script without permission of the head of the laboratory.
-Authors: Rukhovich Gleb, Volikov Alexander
-
-
 ## Установка и запуск
 
 Для работы с программой необходимо установить python и необходимые пакеты. Можно скачать python с официального сайта и далее через pip установить нужные компоненты. Для этого в командной строчке вбить:

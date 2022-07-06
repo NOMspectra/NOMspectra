@@ -1395,13 +1395,9 @@ class Tmds(object):
 
         spec = copy.deepcopy(mass_spec)
         
-        if 'assign' not in spec.table.columns:
-            spec = spec.assign()
-
-        if 'C13_peak_z' not in spec.table.columns:
-            spec = spec.filter_by_C13()
-
+        spec = spec.filter_by_C13()
         spec.table = spec.table.loc[spec.table['C13_peak_z']==1]
+        
         masses = spec.table['mass'].values
         mass_num = len(masses)
         mdiff = np.zeros((mass_num, mass_num), dtype=float)
@@ -1519,6 +1515,58 @@ class Tmds(object):
         self.table.loc[self.table["calculated_mass"] == 0] = np.NaN
 
         return Tmds(self.table, elems=self.elems)
+
+    def draw(self,
+             xlim: Tuple[Optional[float], Optional[float]] = (None, None),
+             ylim: Tuple[Optional[float], Optional[float]] = (None, None),
+             color: str = 'black',
+             ax = None,
+             name = None
+    ) -> None:
+
+        df = self.table.sort_values(by="mass_diff")
+
+        mass = df['mass_diff'].values
+        if xlim[0] is None:
+            xlim = (mass.min(), xlim[1])
+        if xlim[1] is None:
+            xlim = (xlim[0], mass.max())
+
+        intensity = df['probability'].values
+        # filter first intensity and only after mass (because we will lose the information)
+        intensity = intensity[(xlim[0] <= mass) & (mass <= xlim[1])]
+        mass = mass[(xlim[0] <= mass) & (mass <= xlim[1])]
+
+        # bas solution, probably it's needed to rewrite this piece
+        M = np.zeros((len(mass), 3))
+        M[:, 0] = mass
+        M[:, 1] = mass
+        M[:, 2] = mass
+        M = M.reshape(-1)
+
+        I = np.zeros((len(intensity), 3))
+        I[:, 1] = intensity
+        I = I.reshape(-1)
+
+        if ax is None:
+
+            plt.plot(M, I, color=color)
+            plt.plot([xlim[0], xlim[1]], [0, 0], color=color)
+            plt.xlim(xlim)
+            plt.ylim(ylim)
+            plt.xlabel("mass difference, Da")
+            plt.ylabel("P")
+        
+        else:
+            ax.plot(M, I, color=color, linewidth=0.2)
+            ax.plot([xlim[0], xlim[1]], [0, 0], color=color, linewidth=0.2)
+            ax.set_xlim(xlim)
+            ax.set_ylim(ylim)
+            ax.set_xlabel('mass difference, Da')
+            ax.set_ylabel('P')
+            ax.set_title(f'{len(self.table)} peaks\n{name}')
+
+        return
 
 
 if __name__ == '__main__':

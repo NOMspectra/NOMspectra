@@ -215,12 +215,17 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
                 p = 0.2
             else:
                 p = float(p)
+                
             self.tmds = Tmds().calc(self.spec, p=p) #by varifiy p-value we can choose how much mass-diff we will take
             if len(self.gdf) > 0:
                 self.tmds = self.tmds.assign(self.gdf)
             else:
                 self.tmds = self.tmds.assign()
             self.tmds = self.tmds.calculate_mass()
+
+            self.tmds.draw()
+            plt.show(block=False)
+
             self.addText(str(self.tmds.table))
         
         except Exception:
