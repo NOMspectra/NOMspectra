@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 
 def brutto_gen(elems = {'C':(1, 60),'H':(0,100),'O':(0,60), 'N':(0,3), 'S':(0,2)}, 
-               masses_path='masses/element_table.csv'):
+               masses_path='masses/element_table.csv',
+               rules = True):
     """Generete brutto formulas
     :param elems: dictonary contains element:his_range. 
     Not main isotopes mark as El_x, where El - element, x - its mass
@@ -33,13 +34,13 @@ def brutto_gen(elems = {'C':(1, 60),'H':(0,100),'O':(0,60), 'N':(0,3), 'S':(0,2)
     gdf = pd.DataFrame(t,columns=list(elems_dict.keys()))
 
     #do rules H/C, O/C, and parity
-    if 'H' in gdf.columns and 'C' in gdf.columns:
+    if 'H' in gdf.columns and 'C' in gdf.columns and rules:
         gdf['H/C'] = gdf['H']/gdf['C']
         gdf['O/C'] = gdf['O']/gdf['C']
         gdf = gdf.loc[(gdf['H/C'] < 2.2) & (gdf['H/C'] > 0.25) & (gdf['O/C'] < 1)]
         gdf = gdf.drop(columns=['H/C','O/C'])
     
-    if 'N' in gdf.columns and 'H' in gdf.columns:
+    if 'N' in gdf.columns and 'H' in gdf.columns and rules:
         gdf['parity'] = (gdf['H'] + gdf['N'])%2
         gdf = gdf.loc[gdf['parity']==0]
         gdf = gdf.drop(columns=['parity'])

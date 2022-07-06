@@ -9,6 +9,7 @@ import seaborn as sns
 import copy
 from scipy.signal import savgol_filter
 from scipy.interpolate import interp1d
+from scipy.signal import find_peaks
 import scipy.stats as st
 from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
@@ -577,6 +578,55 @@ class MassSpectrum(object):
                 
         return MassSpectrum(data)
 
+    def assign_by_tmds (self, tmds_spec, abs_error=0.001, show_process=True):
+        '''
+        assigne brutto formulas by tmds
+
+        param: tmds_spec - Tmds object, include table with most probability mass difference
+        param: abs_error = 0.001 error for assign peaks by massdif
+        '''
+        tmds = tmds_spec.table.sort_values(by='probability', ascending=False).reset_index(drop=True)
+        elem = tmds_spec.elems
+
+        spec = copy.deepcopy(self)
+        
+        assign_false = copy.deepcopy(spec.table.loc[spec.table['assign'] == False]).reset_index(drop=True)
+        assign_true = copy.deepcopy(spec.table.loc[spec.table['assign'] == True]).reset_index(drop=True)
+        masses = assign_true['mass'].values
+        mass_dif_num = len(tmds)
+
+        for i, row_tmds in tmds.iterrows():
+            if show_process:
+                print(f'{round(i*100/mass_dif_num, 1)} %')
+
+            mass_shift = - row_tmds['calculated_mass']
+            
+            for index, row in assign_false.iterrows():
+                if row['assign'] == True:
+                    continue
+                     
+                mass = row["mass"] + mass_shift
+                idx = np.searchsorted(masses, mass, side='left')
+                if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
+                    idx -= 1
+
+                #if np.fabs(masses[idx] - mass) / mass * 1e6 <= rel_error:
+                if np.fabs(masses[idx] - mass) <= abs_error:
+                    assign_false.loc[index,'assign'] = True
+                    for el in elem:
+                        assign_false.loc[index,el] = row_tmds[el] + assign_true.loc[idx,el]
+
+        assign_true = assign_true.append(assign_false, ignore_index=True).sort_values(by='mass').reset_index(drop=True)
+        
+        out = MassSpectrum(assign_true)
+        try:
+            out = out.calculate_error()
+        except:
+            pass
+        out = out.calculate_error()
+        out.table = out.table.drop_duplicates(subset="calculated_mass")
+        
+        return out
 
 class CanNotCreateVanKrevelen(Exception):
     pass
@@ -1320,8 +1370,159 @@ class MassSpectrumList(object):
         plt.tight_layout()
 
 
+class Tmds(object):
+    # should be columns: mass_diff, probability
+
+    def __init__(
+            self,
+            table: Optional[pd.DataFrame] = None,
+            elems: Optional[list] = None
+    ):
+        self.table = table
+        self.elems = elems
+
+    def calc(self,
+            mass_spec:MassSpectrum,
+            p = 0.2,
+            wide = 10):
+
+        """
+        Total mass difference statistic calculation based on article Anal. Chem. 2009, 81, 10106–10115
+        params: mass_spec - MassSpectrum for tmds calculation
+        p - minimum probability for taking mass-difference
+        wide - interval for look paks in tmds spectrum    
+        """
+
+        spec = copy.deepcopy(mass_spec)
+        
+        if 'assign' not in spec.table.columns:
+            spec = spec.assign()
+
+        if 'C13_peak_z' not in spec.table.columns:
+            spec = spec.filter_by_C13()
+
+        spec.table = spec.table.loc[spec.table['C13_peak_z']==1]
+        masses = spec.table['mass'].values
+        mass_num = len(masses)
+        mdiff = np.zeros((mass_num, mass_num), dtype=float)
+
+        for x in range(mass_num):
+            for y in range(x, mass_num):
+                dif = np.fabs(masses[x]-masses[y])
+                if dif < 300:
+                    mdiff[x,y] = dif
+
+        mdiff = np.round(mdiff, 3)
+        unique, counts = np.unique(mdiff, return_counts=True)
+        counts[0] = 0
+
+        tmds_spec = pd.DataFrame()
+        tmds_spec['mass_dif'] = unique
+        tmds_spec['count'] = counts
+        tmds_spec['probability'] = tmds_spec['count']/mass_num
+        tmds_spec = tmds_spec.sort_values(by='mass_dif').reset_index(drop=True)
+
+        value_zero = set([i/1000 for i in range (0, 300000)]) - set (unique)
+        unique = np.append(unique, np.array(list(value_zero)))
+        counts = np.append(counts, np.zeros(len(value_zero), dtype=float))
+
+        peaks, properties = find_peaks(tmds_spec['probability'], distance=wide, prominence=p/2)
+        prob = []
+        for peak in peaks:
+            prob.append(tmds_spec.loc[peak-5:peak+5,'probability'].sum())
+        tmds_spec = tmds_spec.loc[peaks].reset_index(drop=True)
+        tmds_spec['probability'] = prob
+        tmds_spec = tmds_spec.loc[tmds_spec['probability'] > p]
+
+        return Tmds(tmds_spec)
+
+    def assign(
+            self,
+            generated_bruttos_table: pd.DataFrame = None,
+            error: float = 0.001,
+            gdf={'C':(-1,20),'H':(-4,40), 'O':(-1,20),'N':(-1,2)}
+    ) -> "Tmds":
+
+        """Finding the nearest mass in generated_bruttos_table
+
+        :param generated_bruttos_table: pandas DataFrame with column 'mass' and elements, should be sorted by 'mass'
+        :param elems: Sequence of elements corresponding to generated_bruttos_table
+        :param rel_error: error in ppm
+        :return: MassSpectra object with assigned signals
+        """
+
+        if generated_bruttos_table is None:
+            generated_bruttos_table = brutto_gen(gdf, rules=False)
+            generated_bruttos_table = generated_bruttos_table.loc[generated_bruttos_table['mass'] > 0]
+
+        table = self.table.loc[:,['mass_dif', 'probability']].copy()
+
+        masses = generated_bruttos_table["mass"].values
+        
+        elems = list(generated_bruttos_table.drop(columns=["mass"]))
+        bruttos = generated_bruttos_table[elems].values.tolist()
+
+        res = []
+        for index, row in table.iterrows():
+            mass = row["mass_dif"]
+            idx = np.searchsorted(masses, mass, side='left')
+            if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
+                idx -= 1
+
+            if np.fabs(masses[idx] - mass)  <= error:
+                res.append({**dict(zip(elems, bruttos[idx])), "assign": True, "mass_diff":mass, "probability":row["probability"]})
+
+        res = pd.DataFrame(res)
+        
+        return Tmds(table=res, elems=elems)
+
+    def find_elems(self):
+        """
+        Finf elements in brutto table
+        """
+
+        elems_mass_table = pd.read_csv(masses_path)
+        main_elems = elems_mass_table['element'].values
+        all_elems = elems_mass_table['element_isotop'].values
+
+        elems = []
+        for col in self.table.columns:
+            if col in main_elems:
+                elems.append(col)
+            elif col in all_elems:
+                elems.append(col)
+
+        return elems
+
+    def calculate_mass(self) -> "Tmds":
+        """
+        Calculate mass from brutto formulas in tmds table
+        """
+        
+        table = self.table.copy()
+        table = table.loc[:,self.elems]
+
+        #load elements table. Generatete in mass folder
+        elems_mass_table = pd.read_csv(masses_path)
+        
+        elems_masses = []
+        for el in self.elems:
+            if '_' not in el:
+                temp = elems_mass_table.loc[elems_mass_table['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
+                elems_masses.append(temp.loc[0,'mass'])
+            else:
+                temp = elems_mass_table.loc[elems_mass_table['element_isotop']==el].reset_index(drop=True)
+                elems_masses.append(temp.loc[0,'mass'])
+
+        masses = np.array(elems_masses)
+        self.table["calculated_mass"] = table.multiply(masses).sum(axis=1)
+        self.table.loc[self.table["calculated_mass"] == 0] = np.NaN
+
+        return Tmds(self.table, elems=self.elems)
+
+
 if __name__ == '__main__':
-    ms = MassSpectrum().load('tests/test.csv').drop_unassigned()
+    ms = MassSpectrum().load('data/test.txt').drop_unassigned()
 
     vk = VanKrevelen(ms.table, name="Test VK")
     # vk.draw_density()
