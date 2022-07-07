@@ -1,7 +1,6 @@
-from fileinput import filename
 import sys
 sys.path.append('..')
-import os.path
+
 import design
 from PyQt5 import uic, QtWidgets, QtPrintSupport, QtCore, sip
 from PyQt5.QtCore import QSizeF, QDateTime
@@ -12,11 +11,11 @@ import traceback
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from mass import MassSpectrum
-from mass import VanKrevelen
-from mass import ErrorTable
-from mass import Tmds
-from brutto_generator import brutto_gen
+from masslib.mass import MassSpectrum
+from masslib.mass import VanKrevelen
+from masslib.mass import ErrorTable
+from masslib.mass import Tmds
+from masslib.brutto_generator import brutto_gen
 from matplotlib_venn import venn2
 import copy
 
@@ -31,7 +30,7 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
         self.err = ErrorTable()
         self.squares = pd.DataFrame()
         self.tmds = Tmds()
-        self.elems = {'C':(1, 60),'H':(0,100),'O':(0,60), 'N':(0,3), 'S':(0,2)}
+        self.elems = {'C':(0, 41),'H':(0,81),'O':(0,41), 'N':(0,3)}
         self.gdf = pd.DataFrame()
 
         self.load_sep.setText('')
@@ -180,7 +179,7 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
             self.addText(traceback.format_exc())
 
     def add_element_(self):
-        if self.elems == {'C':(1, 60),'H':(0,100),'O':(0,60), 'N':(0,3), 'S':(0,2)}:
+        if self.elems == {'C':(0, 41),'H':(0,81),'O':(0,41), 'N':(0,3)}:
             self.elems = {}
 
         ele = self.assign_element.text()
@@ -244,7 +243,7 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
     def reset_element_(self):
         
         try:
-            self.elems = {'C':(1, 60),'H':(0,100),'O':(0,60), 'N':(0,3), 'S':(0,2)}
+            self.elems = {'C':(0, 41),'H':(0,81),'O':(0,41), 'N':(0,3)}
             t = ''
             self.gdf = pd.DataFrame()
             for i in self.elems:
@@ -489,8 +488,8 @@ class App(QtWidgets.QMainWindow, design.Ui_MainWindow):
                 self.spec = self.spec ^ self.spec2
                 self.addText('operate')
             elif op == 'metric':
-                jaccard = len(self.spec & self.spec2)/len(self.spec + self.spec2)
-                tonimoto = len(self.spec & self.spec2)/(len(self.spec - self.spec2) + len(self.spec2 - self.spec) + len(self.spec & self.spec2))
+                jaccard = round(len(self.spec & self.spec2)/len(self.spec + self.spec2), 3)
+                tonimoto = round(len(self.spec & self.spec2)/(len(self.spec - self.spec2) + len(self.spec2 - self.spec) + len(self.spec & self.spec2)), 3)
                 self.addText(f'Jaccard, {jaccard}\nTanimoto, {tonimoto}')
 
         except Exception:

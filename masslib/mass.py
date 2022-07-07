@@ -1,5 +1,3 @@
-import logging
-import numbers
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
 from unicodedata import numeric
@@ -15,74 +13,10 @@ from scipy.signal import find_peaks
 import scipy.stats as st
 from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
-from brutto import Brutto
 from tqdm import tqdm
 
-logger = logging.getLogger(__name__)
-
-masses_path = 'masses/element_table.csv'
-
-def brutto_gen(elems:dict = {'C':(1, 41),'H':(0,81),'O':(0,41), 'N':(0,3)},
-               masses_path = 'masses/element_table.csv',
-               rules:bool = True) -> pd.DataFrame:
-    """Generete brutto formulas
-
-    Parameters:
-    ----------
-    elems: dict
-        Dictonary, consisted elements and their range for generate
-        Examples
-        'C':(1,60) - content of carbon (main isotope) from 1 to 59 (60-1)
-        'O_18':(0,3) - conent of isotope 18 oxygen from 0 to 2
-    masses_path: str
-        Path for table with exact masses of elements
-    rules: bool
-        Rules: 0.25<H/C<2.2, O/C < 1, nitogen parity
-        By default it is on, but for tmds should be off
-
-    Returns:
-    -------
-    pandas Dataframe
-        consist all possible brutto formalas restricted by elems dict
-        with exast masses
-    """
-
-    #load elements table. Generatete in mass folder
-    elems_mass_table = pd.read_csv(masses_path)
-    elems_arr = []
-    elems_dict = {}
-    for el in elems:
-        elems_arr.append(np.array(range(elems[el][0],elems[el][1])))
-        if '_' not in el:
-            temp = elems_mass_table.loc[elems_mass_table['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
-            elems_dict[el] = temp.loc[0,'mass']
-        else:
-            temp = elems_mass_table.loc[elems_mass_table['element_isotop']==el].reset_index(drop=True)
-            elems_dict[el] = temp.loc[0,'mass']
-
-    #generate grid with all possible combination of elements in their ranges
-    t = np.array(np.meshgrid(*elems_arr)).T.reshape(-1,len(elems_arr))
-    gdf = pd.DataFrame(t,columns=list(elems_dict.keys()))
-
-    #do rules H/C, O/C, and parity
-    if 'H' in gdf.columns and 'C' in gdf.columns and rules:
-        gdf['H/C'] = gdf['H']/gdf['C']
-        gdf['O/C'] = gdf['O']/gdf['C']
-        gdf = gdf.loc[(gdf['H/C'] < 2.2) & (gdf['H/C'] > 0.25) & (gdf['O/C'] < 1)]
-        gdf = gdf.drop(columns=['H/C','O/C'])
-    
-    if 'N' in gdf.columns and 'H' in gdf.columns and rules:
-        gdf['parity'] = (gdf['H'] + gdf['N'])%2
-        gdf = gdf.loc[gdf['parity']==0]
-        gdf = gdf.drop(columns=['parity'])
-
-    #calculate mass
-    masses = np.array(list(elems_dict.values()))
-    gdf['mass'] = gdf.multiply(masses).sum(axis=1)
-
-    gdf = gdf.sort_values("mass").reset_index(drop=True)
-
-    return gdf
+from .brutto_generator import brutto_gen
+from .brutto_generator import elements_table
 
 class SpectrumIsNotAssigned(Exception):
     pass
@@ -142,9 +76,8 @@ class MassSpectrum(object):
             a list of found elemets. For example: ['C','H','O','N']
         """
 
-        elems_mass_table = pd.read_csv(masses_path)
-        main_elems = elems_mass_table['element'].values
-        all_elems = elems_mass_table['element_isotop'].values
+        main_elems = elements_table()['element'].values
+        all_elems = elements_table()['element_isotop'].values
 
         elems = []
         for col in self.table.columns:
@@ -371,21 +304,6 @@ class MassSpectrum(object):
 
         return MassSpectrum(table)
 
-    def assignment_from_brutto(self) -> 'MassSpectrum':
-        if "brutto" not in self.table:
-            raise Exception("There is no brutto in MassSpectra")
-
-        # before new assignment it's necessary to drop old assignment
-        table = self.table.drop(columns=self.elems)
-
-        elems = set.union(*[set(list(x)) for x in self.table.brutto.apply(lambda x: x.replace("_", "")).apply(
-            lambda x: Brutto(x).get_elements()).tolist()])
-
-        for element in elems:
-            table[element] = table.brutto.apply(lambda x: Brutto(x.replace("_", ""))[element])
-
-        return MassSpectrum(table, elems=list(elems))
-
     def compile_brutto(self) -> 'MassSpectrum':
         def compile_one(a: Sequence[Union[int, float]], elems: Sequence[str]) -> str:
             s = ''
@@ -469,17 +387,15 @@ class MassSpectrum(object):
         
         table = self.table.copy()
         table = table.loc[:,self.elems]
-
-        #load elements table. Generatete in mass folder
-        elems_mass_table = pd.read_csv(masses_path)
+        elements = elements_table()
         
         elems_masses = []
         for el in self.elems:
             if '_' not in el:
-                temp = elems_mass_table.loc[elems_mass_table['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
+                temp = elements.loc[elements['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
                 elems_masses.append(temp.loc[0,'mass'])
             else:
-                temp = elems_mass_table.loc[elems_mass_table['element_isotop']==el].reset_index(drop=True)
+                temp = elements.loc[elements['element_isotop']==el].reset_index(drop=True)
                 elems_masses.append(temp.loc[0,'mass'])
 
         masses = np.array(elems_masses)
@@ -906,7 +822,8 @@ class VanKrevelen(object):
         if not (("C" in table and "H" in table and "O" in table) or ("O/C" in table or "H/C" in table)):
             raise CanNotCreateVanKrevelen()
 
-        table = table[table["assign"].astype(bool)]
+        table = table.loc[table["C"] > 0]
+
         self.table = table
         if "O/C" not in self.table:
             self.table["O/C"] = self.table["O"] / self.table["C"]
@@ -1352,7 +1269,7 @@ class ErrorTable(object):
         spectr = spectr.assign(rel_error=ppm) 
         spectr = spectr.calculate_mass()
         spectr = spectr.calculate_error(sign=sign)
-        spectr = spectr.show_error()
+        spectr.show_error()
 
         error_table = spectr.table
         error_table = error_table.loc[:,['mass','rel_error']]
@@ -1491,6 +1408,9 @@ class ErrorTable(object):
         ErrorTable object with extrapolated data
         """
         
+        if ranges is None:
+            ranges = [self.table['mass'].min(), self.table['mass'].max()]
+
         interpolation_range = np.linspace(ranges[0], ranges[1], 100)
         linear_interp = interp1d(self.table['mass'], self.table['ppm'],  bounds_error=False, fill_value='extrapolate')
         linear_results = linear_interp(interpolation_range)
@@ -1854,9 +1774,8 @@ class Tmds(object):
             a list of found elemets. For example: ['C','H','O','N']
         """
 
-        elems_mass_table = pd.read_csv(masses_path)
-        main_elems = elems_mass_table['element'].values
-        all_elems = elems_mass_table['element_isotop'].values
+        main_elems = elements_table()['element'].values
+        all_elems = elements_table()['element_isotop'].values
 
         elems = []
         for col in self.table.columns:
@@ -1877,17 +1796,15 @@ class Tmds(object):
         
         table = self.table.copy()
         table = table.loc[:,self.elems]
-
-        #load elements table. Generatete in mass folder
-        elems_mass_table = pd.read_csv(masses_path)
+        elements = elements_table()
         
         elems_masses = []
         for el in self.elems:
             if '_' not in el:
-                temp = elems_mass_table.loc[elems_mass_table['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
+                temp = elements.loc[elements['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
                 elems_masses.append(temp.loc[0,'mass'])
             else:
-                temp = elems_mass_table.loc[elems_mass_table['element_isotop']==el].reset_index(drop=True)
+                temp = elements.loc[elements['element_isotop']==el].reset_index(drop=True)
                 elems_masses.append(temp.loc[0,'mass'])
 
         masses = np.array(elems_masses)

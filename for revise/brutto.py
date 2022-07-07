@@ -1,8 +1,7 @@
 from typing import Union, Mapping, Dict, Tuple
 from collections import Counter
-from brutto.node import build_brutto_tree
-from distribution_generation.mass_distribution import IsotopeDistribution
-from utils import calculate_mass
+from .node import build_brutto_tree
+from .mass_distribution import IsotopeDistribution
 
 
 class Brutto(object):
@@ -57,8 +56,8 @@ class Brutto(object):
 
     def exact_mass(self) -> float:
         """Calculates exact monoisotopic mass for brutto"""
-
-        return float(calculate_mass([self.to_tuple()], elems=self.elemets())[0])
+        #FIXME
+        return None # float(calculate_mass([self.to_tuple()], elems=self.elemets())[0])
 
     def build_distribution(self, n: int = 100000) -> None:
         IsotopeDistribution(self.dict).generate_iterations(n).draw()
