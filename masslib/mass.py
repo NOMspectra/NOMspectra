@@ -327,7 +327,7 @@ class MassSpectrum(object):
 
         """
         if "calculated_mass" not in self.table:
-            table = self.calculate_mass()
+            table = self.calculate_mass().table
         else:
             table = self.table.copy()
 
@@ -358,7 +358,9 @@ class MassSpectrum(object):
         MassSpectrum object with calculated mass
         """
         
-        table = self.table.copy()
+        table = copy.deepcopy(self.table)
+        self.elems = self.find_elems()
+        
         table = table.loc[:,self.elems]
         elements = elements_table()
         
@@ -372,8 +374,9 @@ class MassSpectrum(object):
                 elems_masses.append(temp.loc[0,'mass'])
 
         masses = np.array(elems_masses)
+
         self.table["calculated_mass"] = table.multiply(masses).sum(axis=1)
-        self.table.loc[self.table["calculated_mass"] == 0] = np.NaN
+        self.table.loc[self.table["calculated_mass"] == 0, "calculated_mass"] = np.NaN
 
         return MassSpectrum(self.table)
     
@@ -760,7 +763,7 @@ class MassSpectrum(object):
         self, 
         tmds_spec: "Tmds", 
         abs_error: float = 0.001, 
-        show_process: bool = True
+        max_num: int = None
         ) -> "MassSpectrum":
         '''Assigne brutto formulas by TMDS
 
@@ -770,6 +773,8 @@ class MassSpectrum(object):
             Tmds object, include table with most probability mass difference
         abs_error: float
             error for assign peaks by massdif
+        max_num: int
+            max mass diff numbers
 
         Return:
         -------
@@ -777,6 +782,9 @@ class MassSpectrum(object):
         '''
         tmds = tmds_spec.table.sort_values(by='probability', ascending=False).reset_index(drop=True)
         elem = tmds_spec.elems
+
+        if max_num is not None and max_num < len(tmds.table):
+            tmds.table = tmds.table[:max_num]
 
         spec = copy.deepcopy(self)
         
@@ -1522,7 +1530,8 @@ class Tmds(object):
         self,
         mass_spec:"MassSpectrum",
         p: float = 0.2,
-        wide: int = 10
+        wide: int = 10,
+        C13_filter = True
         ) -> "Tmds":
 
         """ Total mass difference statistic calculation 
@@ -1537,17 +1546,17 @@ class Tmds(object):
             minimum relative probability for taking mass-difference
         wide: int
             interval for look paks in tmds spectrum
+        C13_filter: bool
+            use only peaks that have C13 isotope peak
         """
 
         spec = copy.deepcopy(mass_spec)
-        
-        spec = spec.filter_by_C13()
-        spec.table = spec.table.loc[spec.table['C13_peak_z']==1]
-        
+        if C13_filter:
+            spec = spec.filter_by_C13(remove=True)
+
         masses = spec.table['mass'].values
         mass_num = len(masses)
         mdiff = np.zeros((mass_num, mass_num), dtype=float)
-
         for x in range(mass_num):
             for y in range(x, mass_num):
                 dif = np.fabs(masses[x]-masses[y])
@@ -1658,7 +1667,9 @@ class Tmds(object):
         Tmds object with calculated mass for assigned brutto formulas
         """
         
-        table = self.table.copy()
+        table = copy.deepcopy(self.table)
+        self.elems = self.find_elems()
+        
         table = table.loc[:,self.elems]
         elements = elements_table()
         
@@ -1673,7 +1684,7 @@ class Tmds(object):
 
         masses = np.array(elems_masses)
         self.table["calculated_mass"] = table.multiply(masses).sum(axis=1)
-        self.table.loc[self.table["calculated_mass"] == 0] = np.NaN
+        self.table.loc[self.table["calculated_mass"] == 0, "calculated_mass"] = np.NaN
 
         return Tmds(self.table, elems=self.elems)
 
