@@ -783,8 +783,8 @@ class MassSpectrum(object):
         tmds = tmds_spec.table.sort_values(by='probability', ascending=False).reset_index(drop=True)
         elem = tmds_spec.elems
 
-        if max_num is not None and max_num < len(tmds.table):
-            tmds.table = tmds.table[:max_num]
+        if max_num is not None and max_num < len(tmds):
+            tmds = tmds[:max_num]
 
         spec = copy.deepcopy(self)
         
@@ -815,16 +815,14 @@ class MassSpectrum(object):
                         assign_false.loc[index,el] = row_tmds[el] + assign_true.loc[idx,el]
 
         assign_true = assign_true.append(assign_false, ignore_index=True).sort_values(by='mass').reset_index(drop=True)
-        
+
         out = MassSpectrum(assign_true)
-        try:
-            out = out.calculate_error()
-        except:
-            pass
         out = out.calculate_error()
-        out.table = out.table.drop_duplicates(subset="calculated_mass")
         
-        return out
+        out_false = out.table.loc[out.table['assign'] == False]
+        out_true = out.table.loc[out.table['assign'] == True].drop_duplicates(subset="calculated_mass")
+        
+        return MassSpectrum(pd.merge(out_true, out_false, how='outer').reset_index(drop=True))
 
 class CanNotCreateVanKrevelen(Exception):
     pass
