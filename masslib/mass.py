@@ -1,30 +1,30 @@
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
-from unicodedata import numeric
+import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import copy
+
 from scipy.signal import savgol_filter
 from scipy.interpolate import interp1d
 from scipy.signal import find_peaks
 import scipy.stats as st
-from mpl_toolkits.axes_grid.inset_locator import inset_axes as inset_axes_func
 
 from tqdm import tqdm
 
 from .brutto_generator import brutto_gen
-from .brutto_generator import elements_table
+from .brutto_generator import elements_table, get_elements_masses
 
 class SpectrumIsNotAssigned(Exception):
     pass
 
 class MassSpectrum(object):
-    """ A class used to represent mass spectrum
+    """ 
+    A class used to represent mass spectrum
 
-    Attributes:
+    Attributes
     ----------
     table : pandas Datarame
         consist spectrum (mass and intensity of peaks) and all calculated parameters
@@ -40,7 +40,7 @@ class MassSpectrum(object):
                 elems: Sequence[str] = None,
                 ) -> pd.DataFrame:
         """
-        Parameters:
+        Parameters
         ----------
         table : pandas Datarame
             Optional. Consist spectrum (mass and intensity of peaks) and all calculated 
@@ -58,13 +58,14 @@ class MassSpectrum(object):
         else:
             self.table = pd.DataFrame(columns=['intensity', "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
 
-        if elems:
+        if elems is not None:
             self.elems = elems
         else:
             self.elems = self.find_elems()
 
     def find_elems(self) -> Sequence[str]:
-        """ Find elems from mass spectrum table.
+        """ 
+        Find elems from mass spectrum table.
 
         Find elements in table columns. Used elems_mass_table with all elements and isotopes.
         For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
@@ -85,6 +86,9 @@ class MassSpectrum(object):
             elif col in all_elems:
                 elems.append(col)
 
+        if len(elems) == 0:
+            elems = None
+
         return elems
 
     def load(
@@ -95,16 +99,16 @@ class MassSpectrum(object):
         take_columns: Sequence[str] = None,
         take_only_mz: Sequence[str] = False,
         sep: str = ",",
-        intens_min: numeric = None,
-        intens_max: numeric = None,
-        mass_min: numeric = None,
-        mass_max: numeric = None,
-        elems: Sequence[str] = None,
+        intens_min: float =  None,
+        intens_max: float = None,
+        mass_min: float =  None,
+        mass_max: float = None,
     ) -> "MassSpectrum":
-        """Load mass pectrum table to MassSpectrum object
+        """
+        Load mass pectrum table to MassSpectrum object
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         filename: str
             path to mass spectrum table, absoulute or relative
         mapper: dict
@@ -132,12 +136,9 @@ class MassSpectrum(object):
         mass_max: numeric
             upper limit for m/z.
             by default None and don't restrict by this
-        elems: Sequence of str
-            elems containing in mass spectrum table
-            by default it is None, and elems will by finded by find_element() method
 
-        Return:
-        -------
+        Return
+        ------
         MassSpectrum object
         """
 
@@ -166,20 +167,38 @@ class MassSpectrum(object):
         if mass_max is not None:
             self.table = self.table.loc[self.table['mass']<mass_max]
 
-        if elems:
-            self.elems = elems
-        else:
-            self.elems = self.find_elems()
+        self.elems = self.find_elems()
+
+        if self.elems is not None:
+            self._mark_assigned_by_brutto()
 
         self.table = self.table.reset_index(drop=True)
 
         return self
 
+    def _mark_assigned_by_brutto(self) -> None:
+        """Mark paeks in loaded mass list if they have brutto
+
+        Return
+        ------
+        MassSpectrum object with assigned mark
+        """
+
+        assign = []
+        for i, row in self.table.iterrows():
+            flag = False
+            for el in self.elems:
+                if row[el] > 0:
+                    flag = True
+            assign.append(flag) 
+        self.table['assign'] = assign
+
     def save(self, filename: Union[Path, str], sep: str = ",") -> None:
-        """Saves to csv MassSpectrum
+        """
+        Saves to csv MassSpectrum
         
-        Parameters:
-        -----------
+        Parameters
+        ----------
         filename: str
             Path for saving mass spectrum table with calculation to csv file
         sep: str
@@ -194,13 +213,14 @@ class MassSpectrum(object):
             sign: str ='-'
     ) -> "MassSpectrum":
 
-        """Finding the nearest mass in generated_bruttos_table
+        """
+        Finding the nearest mass in generated_bruttos_table
         
-        Parameters:
+        Parameters
         -----------
         generated_bruttos_table: pandas DataFrame 
             Contain column 'mass' and elements, should be sorted by 'mass'.
-            Can be generated by function brutto_gen() 
+            Can be generated by function brutto_generator.brutto_gen() 
             if 'None' generate table with default elemnets and ranges
             C: 0-40, H 0-80, O 0-40, N 0-2
         rel_error: float
@@ -211,8 +231,8 @@ class MassSpectrum(object):
             '+' for positive mode
             None for neutral
 
-        Return:
-        -------
+        Return
+        ------
         MassSpectra object with assigned signals
         """
 
@@ -225,7 +245,6 @@ class MassSpectrum(object):
         
         if sign == '-':
             mass_shift = - 0.00054858 + 1.007825  # electron and hydrogen mass
-
         elif sign == '+':
             mass_shift = 0.00054858  # electron mass
         else:
@@ -254,49 +273,47 @@ class MassSpectrum(object):
         self, 
         rel_error: float = 0.5,
         remove: bool = False,
-        max_charge: int = 1
     ) -> 'MassSpectrum':
 
-        """ C13 isotope peak checking
+        """ 
+        C13 isotope peak checking
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         rel_error: float
             allowable ppm error when checking c13 isotope peak
         remove: bool 
             if True peakes without C13 isotopes peak will be dropped
-        max_charge: int
-            max charge in m/z that we looking
         
-        Return: 
-        -------
+        Return
+        ------
         MassSpectra object with cleaned or checked mass-signals
         """
 
         table = self.table.sort_values(by='mass').reset_index(drop=True)
         
-        flags = np.zeros(table.shape[0], dtype='int')
+        flags = np.zeros(table.shape[0], dtype=bool)
         masses = table["mass"].values
         
         C13_C12 = 1.003355  # C13 - C12 mass difference
 
-        for z in range(1, max_charge+1):
-            for index, row in table.iterrows():
-                mass = row["mass"] + C13_C12/z 
-                error = mass * rel_error * 0.000001
-
-                idx = np.searchsorted(masses, mass, side='left')
-                
-                if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
-                    idx -= 1
-                
-                if np.fabs(masses[idx] - mass)  <= error:
-                    flags[index] = z
         
-        table['C13_peak_z'] = flags
+        for index, row in table.iterrows():
+            mass = row["mass"] + C13_C12
+            error = mass * rel_error * 0.000001
+
+            idx = np.searchsorted(masses, mass, side='left')
+            
+            if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
+                idx -= 1
+            
+            if np.fabs(masses[idx] - mass)  <= error:
+                flags[index] = True
+        
+        table['C13_peak'] = flags
 
         if remove:
-            table = table.loc[table['C13_peak_z'] != 0].reset_index(drop=True)
+            table = table.loc[table['C13_peak'] == True].reset_index(drop=True)
 
         return MassSpectrum(table)
 
@@ -311,25 +328,26 @@ class MassSpectrum(object):
         return copy.deepcopy(MassSpectrum(self.table))
 
     def calculate_error(self, sign: str ='-') -> "MassSpectrum":
-        """Calculate relative and absolute error of assigned peaks
+        """
+        Calculate relative and absolute error of assigned peaks
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         sign: str
             Mode in which mass spectrum was gotten. 
             '-' for negative mode
             '+' for positive mode
             None for neutral
         
-        Return:
-        -------
+        Return
+        ------
         MassSpectrum object wit calculated error
 
         """
         if "calculated_mass" not in self.table:
             table = self.calculate_mass().table
         else:
-            table = self.table.copy()
+            table = copy.deepcopy(self.table)
 
         if sign == '-':
             table["abs_error"] = table["mass"] - table["calculated_mass"] + (- 0.00054858 + 1.007825) #-electron + proton
@@ -345,6 +363,9 @@ class MassSpectrum(object):
     def show_error(self) -> None:
         """Plot relative error of assigned brutto formulas vs mass"""
 
+        if "rel_error" not in self.table:
+            self = self.calculate_error()      
+
         fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
         ax.scatter(self.table['mass'], self.table['rel_error'], s=0.1)
         ax.set_xlabel('m/z, Da')
@@ -357,23 +378,16 @@ class MassSpectrum(object):
         -------
         MassSpectrum object with calculated mass
         """
+
+        if "assign" not in self.table:
+            raise SpectrumIsNotAssigned()
         
         table = copy.deepcopy(self.table)
         self.elems = self.find_elems()
         
         table = table.loc[:,self.elems]
-        elements = elements_table()
         
-        elems_masses = []
-        for el in self.elems:
-            if '_' not in el:
-                temp = elements.loc[elements['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
-                elems_masses.append(temp.loc[0,'mass'])
-            else:
-                temp = elements.loc[elements['element_isotop']==el].reset_index(drop=True)
-                elems_masses.append(temp.loc[0,'mass'])
-
-        masses = np.array(elems_masses)
+        masses = get_elements_masses(self.elems)
 
         self.table["calculated_mass"] = table.multiply(masses).sum(axis=1)
         self.table.loc[self.table["calculated_mass"] == 0, "calculated_mass"] = np.NaN
@@ -607,8 +621,11 @@ class MassSpectrum(object):
         ------
         MassSpectrum object with calculated CAI
         """
+        
+        if "assign" not in self.table:
+            raise SpectrumIsNotAssigned()
 
-        table = self.table.copy()
+        table = copy.deepcopy(self.table)
 
         # very careful
         # anyway it's necessary to have at least column with C?
@@ -628,7 +645,15 @@ class MassSpectrum(object):
         ------
         MassSpectrum object with calculated DBE
         """
-        table = self.table.copy()
+        if "assign" not in self.table:
+            raise SpectrumIsNotAssigned()
+
+        table = copy.deepcopy(self.table)
+
+        for element in "COSH":
+            if element not in table:
+                table[element] = 0
+
         table['DBE'] = 1.0 + table["C"] - table["O"] - table["S"] - 0.5 * table["H"]
 
         return MassSpectrum(table)
@@ -728,18 +753,35 @@ class MassSpectrum(object):
 
         return
 
-    def recallibrate(self, error_table: "ErrorTable") -> "MassSpectrum":
+    def recallibrate(self, error_table: "ErrorTable" = None, how = 'assign') -> "MassSpectrum":
         '''Recallibrate data by error-table
 
         Parameters:
         -----------
         error_table: ErrorTable object
             ErrorTable object contain table error in ppm for mass, default 100 string
-        
+            If None - calculate for self
+
+        how: str
+            If error_table is None we can choose how to recalculate
+            'assign' - by assign error, default
+            'mdm' - by calculation mass-difference map
+            filename - path to etalon spectrum, saved by masslib
+
         Returns:
         --------
         MassSpectrum object with recallibrated mass
         '''
+        if error_table is None:
+            if how == 'assign':
+                if "assign" not in self.table:
+                    raise SpectrumIsNotAssigned()
+                error_table = ErrorTable().assign_error(self)
+            elif how == 'mdm':
+                error_table = ErrorTable().massdiff_error(self)
+            else:
+                etalon = MassSpectrum().load(filename=how)
+                error_table = ErrorTable().etalon_error(spec=self, etalon=etalon)
 
         err = copy.deepcopy(error_table.table)
         data = self.table.reset_index(drop=True)
@@ -761,8 +803,9 @@ class MassSpectrum(object):
 
     def assign_by_tmds (
         self, 
-        tmds_spec: "Tmds", 
-        abs_error: float = 0.001, 
+        tmds_spec: "Tmds" = None, 
+        abs_error: float = 0.001,
+        p = 0.2,
         max_num: int = None
         ) -> "MassSpectrum":
         '''Assigne brutto formulas by TMDS
@@ -771,8 +814,11 @@ class MassSpectrum(object):
         -----------
         tmds_spec: Tmds object
             Tmds object, include table with most probability mass difference
+            if None generate tmds spectr with default parameters
         abs_error: float
             error for assign peaks by massdif
+        p: float
+            relative probability coefficient for treshold tmds spectrum
         max_num: int
             max mass diff numbers
 
@@ -780,7 +826,16 @@ class MassSpectrum(object):
         -------
         MassSpectrum object new assign brutto formulas
         '''
+        if "assign" not in self.table:
+            raise SpectrumIsNotAssigned()
+
+        if tmds_spec is None:
+            tmds_spec = Tmds().calc(self, p=p) #by varifiy p-value we can choose how much mass-diff we will take
+            tmds_spec = tmds_spec.assign()
+            tmds_spec = tmds_spec.calculate_mass()
+
         tmds = tmds_spec.table.sort_values(by='probability', ascending=False).reset_index(drop=True)
+        tmds = tmds.loc[tmds['probability'] > p]
         elem = tmds_spec.elems
 
         if max_num is not None and max_num < len(tmds):
@@ -794,8 +849,6 @@ class MassSpectrum(object):
         mass_dif_num = len(tmds)
 
         for i, row_tmds in tqdm(tmds.iterrows(), total=mass_dif_num):
-            #if show_process:
-            #    print(f'{round(i*100/mass_dif_num, 1)} %')
 
             mass_shift = - row_tmds['calculated_mass']
             
@@ -808,7 +861,6 @@ class MassSpectrum(object):
                 if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
                     idx -= 1
 
-                #if np.fabs(masses[idx] - mass) / mass * 1e6 <= rel_error:
                 if np.fabs(masses[idx] - mass) <= abs_error:
                     assign_false.loc[index,'assign'] = True
                     for el in elem:
@@ -821,8 +873,11 @@ class MassSpectrum(object):
         
         out_false = out.table.loc[out.table['assign'] == False]
         out_true = out.table.loc[out.table['assign'] == True].drop_duplicates(subset="calculated_mass")
+
+        out2 = pd.merge(out_true, out_false, how='outer').reset_index(drop=True).sort_values(by='mass').reset_index(drop=True)
         
-        return MassSpectrum(pd.merge(out_true, out_false, how='outer').reset_index(drop=True))
+        return MassSpectrum(out2)
+
 
 class CanNotCreateVanKrevelen(Exception):
     pass
@@ -1239,23 +1294,24 @@ class ErrorTable(object):
         spec:MassSpectrum,
         show_map:bool = True):
         '''Self-recallibration of mass-spectra by mass-difference map
-        
-        based on work:
-        Smirnov, K. S., Forcisi, S., Moritz, F., Lucio, M., & Schmitt-Kopplin, P. 
-        (2019). Mass difference maps and their application for the 
-        recalibration of mass spectrometric data in nontargeted metabolomics. 
-        Analytical chemistry, 91(5), 3350-3358. 
 
-        Parameters:
+        Parameters
         -----------
         spec: MassSpectrum object
             Initial mass spectrum for recallibrate
         show_error: bool
             show process 
 
-        Return:
+        Return
         -------
         ErrorTable object that contain recallabrate error ppm for mass diaposone
+
+        Reference
+        ---------
+        Smirnov, K. S., Forcisi, S., Moritz, F., Lucio, M., & Schmitt-Kopplin, P. 
+        (2019). Mass difference maps and their application for the 
+        recalibration of mass spectrometric data in nontargeted metabolomics. 
+        Analytical chemistry, 91(5), 3350-3358. 
         '''
         spec_table = copy.deepcopy(spec.table)
         mde = self.md_error_map(spec = spec_table, show_map=show_map)
@@ -1272,10 +1328,11 @@ class ErrorTable(object):
                     ppm: float = 3,#treshold by ppm
                     show_error: bool = True
                     ): 
-        '''Recallibrate by etalon
+        '''
+        Recallibrate by etalon
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         spec: MassSpectrum object
             Initial mass spectrum for recallibrate
         etalon: MassSpectrum object
@@ -1288,8 +1345,8 @@ class ErrorTable(object):
         show_error: bool
             show process 
 
-        Return:
-        -------
+        Return
+        ------
         ErrorTable object that contain recallabrate error ppm for mass diaposone
 
         '''
@@ -1346,15 +1403,16 @@ class ErrorTable(object):
         return ErrorTable(err)
 
     def extrapolate(self, ranges:Tuple[float, float] = None) -> "ErrorTable":
-        """Extrapolate error data
+        """
+        Extrapolate error data
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         ranges: Tuple(numeric, numeric)
             for which diaposone of mass extrapolate existin data
 
-        Return:
-        -------
+        Return
+        ------
         ErrorTable object with extrapolated data
         """
         
@@ -1382,7 +1440,7 @@ class MassSpectrumList(object):
     """
     Class for work list of MassSpectrums objects
     
-    Attributes:
+    Attributes
     ----------
     spectra: Sequence[MassSpectrum]
         list of MassSpectrum objects
@@ -1461,16 +1519,18 @@ class MassSpectrumList(object):
         for i in self.spectra:
             values.append([])
             for j in self.spectra:
+                if 'calculated_mass' not in i.table.columns or 'calculated_mass' not in j.table.columns:
+                    raise SpectrumIsNotAssigned()
                 values[-1].append(similarity_func(i['calculated_mass'].dropna(), j['calculated_mass'].dropna()))
 
         if draw:
-            self.draw(values)
+            self.draw_similarity(values)
 
         return np.array(values)
 
-    def draw(
+    def draw_similarity(
         self,
-        values: np.ndarray,
+        values: np.ndarray = None,
         title: str = ""
         ) -> None:
         """
@@ -1483,6 +1543,9 @@ class MassSpectrumList(object):
         title: str
             title for plot
         """
+        if values is None:
+            self.calculate_similarity()
+            return None
 
         sns.heatmap(np.array(values), vmin=0, vmax=1, annot=True)
 
@@ -1497,9 +1560,10 @@ class MassSpectrumList(object):
 
 
 class Tmds(object):
-    """ A class for calculate TMDS spectrum
+    """
+    A class for calculate TMDS spectrum
 
-    Attributes:
+    Attributes
     ----------
     table: pandas Datarame
         tmds spectrum - mass_diff, probability and caclulatedd parameters
@@ -1512,8 +1576,7 @@ class Tmds(object):
         table: pd.DataFrame = None,
         elems: Sequence[str] = None,
         ) -> None:
-        """init TMDS spectrum object
-
+        """
         Parameters:
         ----------
         table: pandas Datarame
@@ -1532,9 +1595,8 @@ class Tmds(object):
         C13_filter = True
         ) -> "Tmds":
 
-        """ Total mass difference statistic calculation 
-        
-        based on article Anal. Chem. 2009, 81, 10106
+        """
+        Total mass difference statistic calculation 
 
         Parameters:
         -----------
@@ -1546,14 +1608,23 @@ class Tmds(object):
             interval for look paks in tmds spectrum
         C13_filter: bool
             use only peaks that have C13 isotope peak
+
+        Reference
+        ---------
+        Anal. Chem. 2009, 81, 10106
         """
 
         spec = copy.deepcopy(mass_spec)
         if C13_filter:
             spec = spec.filter_by_C13(remove=True)
+        else:
+            spec = spec.drop_unassigned()
 
         masses = spec.table['mass'].values
         mass_num = len(masses)
+        if mass_num < 2:
+            raise Exception(f"Too low amount of assigned peaks")
+
         mdiff = np.zeros((mass_num, mass_num), dtype=float)
         for x in range(mass_num):
             for y in range(x, mass_num):
@@ -1592,10 +1663,11 @@ class Tmds(object):
         gdf:dict = {'C':(-1,20),'H':(-4,40), 'O':(-1,20),'N':(-1,2)}
         ) -> "Tmds":
 
-        """Finding the nearest mass in generated_bruttos_table
+        """
+        Finding the nearest mass in generated_bruttos_table
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         generated_bruttos_table: pandas DataFrame 
             with column 'mass' and elements, should be sorted by 'mass'
         error: float
@@ -1603,8 +1675,8 @@ class Tmds(object):
         gdf: dict
             elements and their range for generate brutto table
         
-        Return:
-        -------
+        Return
+        ------
         Tmds object with assigned signals and elements
         """
 
@@ -1634,7 +1706,8 @@ class Tmds(object):
         return Tmds(table=res, elems=elems)
 
     def find_elems(self):
-        """ Find elems from mass spectrum table.
+        """
+        Find elems from mass spectrum table.
 
         Find elements in table columns. Used elems_mass_table with all elements and isotopes.
         For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
@@ -1658,10 +1731,11 @@ class Tmds(object):
         return elems
 
     def calculate_mass(self) -> "Tmds":
-        """Calculate mass from brutto formulas in tmds table
+        """
+        Calculate mass from brutto formulas in tmds table
 
-        Return:
-        -------
+        Return
+        ------
         Tmds object with calculated mass for assigned brutto formulas
         """
         
@@ -1669,18 +1743,9 @@ class Tmds(object):
         self.elems = self.find_elems()
         
         table = table.loc[:,self.elems]
-        elements = elements_table()
-        
-        elems_masses = []
-        for el in self.elems:
-            if '_' not in el:
-                temp = elements.loc[elements['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
-                elems_masses.append(temp.loc[0,'mass'])
-            else:
-                temp = elements.loc[elements['element_isotop']==el].reset_index(drop=True)
-                elems_masses.append(temp.loc[0,'mass'])
 
-        masses = np.array(elems_masses)
+        masses = get_elements_masses(self.elems)
+
         self.table["calculated_mass"] = table.multiply(masses).sum(axis=1)
         self.table.loc[self.table["calculated_mass"] == 0, "calculated_mass"] = np.NaN
 
@@ -1693,10 +1758,11 @@ class Tmds(object):
         color: str = 'black',
         ax = None,
         ) -> None:
-        """Draw TMDS spectrum
+        """
+        Draw TMDS spectrum
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         xlim: Tuple (float, float)
             restrict for mass
         ylim: Tuple (float, float)

@@ -1,3 +1,4 @@
+from typing import Sequence
 import numpy as np
 import pandas as pd
 
@@ -60,6 +61,33 @@ def brutto_gen(elems = {'C':(0, 41),'H':(0, 81),'O':(0,41), 'N':(0,3)},
     gdf = gdf.sort_values("mass").reset_index(drop=True)
 
     return gdf
+
+def get_elements_masses(elems:Sequence[str]) -> np.array :
+    """
+    Get elenments masses from list
+
+    Parameters
+    ----------
+    elems: Sequence[str]
+        Elements in list like ['C', 'H', 'N', 'C_13', 'O']
+
+    Return
+    ------
+    numpy array with elements masses
+    """
+    
+    elements = elements_table()    
+    elems_masses = []
+
+    for el in elems:
+        if '_' not in el:
+            temp = elements.loc[elements['element']==el].sort_values(by='abundance',ascending=False).reset_index(drop=True)
+            elems_masses.append(temp.loc[0,'mass'])
+        else:
+            temp = elements.loc[elements['element_isotop']==el].reset_index(drop=True)
+            elems_masses.append(temp.loc[0,'mass'])
+
+    return np.array(elems_masses)
 
 def elements_table() -> pd.DataFrame: 
     """
