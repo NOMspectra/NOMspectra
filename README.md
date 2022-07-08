@@ -28,7 +28,9 @@ There are few jupyter notebook that explain how to use masslib. It is lockated i
 
 ## Graphical interface
 
-There is small script for graphical interface lockated in folder "gui/masslib_gui.py"
+There is small script for graphical interface lockateыd in 
+
+https://github.com/nhslab/masslib_gui
 
 It is support all main operation under spectrum
 

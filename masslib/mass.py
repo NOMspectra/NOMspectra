@@ -50,12 +50,11 @@ class MassSpectrum(object):
             can be finded by class method find_elems()
         """
 
-        self.features = ["mass", "calculated_mass", 'intensity', "abs_error", "rel_error", "numbers"]
+        self.features = ["mass", "calculated_mass", 'intensity', "abs_error", "rel_error"]
 
         if table is not None:
             self.table = table
-            if "numbers" not in self.table:
-                self.table["numbers"] = 1
+
         else:
             self.table = pd.DataFrame(columns=['intensity', "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
 
@@ -154,9 +153,6 @@ class MassSpectrum(object):
 
         if take_only_mz:
             self.table = self.table.loc[:,['mass','intensity']]
-
-        if "numbers" not in self.table:
-            self.table["numbers"] = 1
 
         if intens_min is not None:
             self.table = self.table.loc[self.table['intensity']>intens_min]
@@ -304,38 +300,15 @@ class MassSpectrum(object):
 
         return MassSpectrum(table)
 
-    def compile_brutto(self) -> 'MassSpectrum':
-        def compile_one(a: Sequence[Union[int, float]], elems: Sequence[str]) -> str:
-            s = ''
-            for c, e in zip(a, elems):
-                if not np.isnan(c):
-                    s += e + ('' if c == 1 else str(int(c)))
-                else:
-                    # if coefficients is Not a Number (is nan)
-                    # formula is unknown
-                    return ''
-            return s
-
-        table = self.table.copy()
-
-        # iterations by rows, so axis=1
-        table["brutto"] = self.table[self.elems].apply(lambda x: compile_one(x.values, self.elems), axis=1)
-
-        return MassSpectrum(table)
-
     def copy(self) -> 'MassSpectrum':
-        return MassSpectrum(self.table)
+        """
+        Deepcopy of self MassSpectrum object
 
-    def __repr__(self):
-        # repr only useful columns
-        columns = [column for column in
-                   ['intensity', "mass", "brutto", "calculated_mass", "abs_error", "rel_error"] if column in self.table]
-
-        return self.table[columns].__repr__()
-
-    def __str__(self) -> str:
-        columns = [column for column in self.features if column in self.table]
-        return self.table[columns].__str__()
+        Return
+        ------
+        Deepcopy of self MassSpectrum object
+        """
+        return copy.deepcopy(MassSpectrum(self.table))
 
     def calculate_error(self, sign: str ='-') -> "MassSpectrum":
         """Calculate relative and absolute error of assigned peaks
@@ -403,35 +376,29 @@ class MassSpectrum(object):
         self.table.loc[self.table["calculated_mass"] == 0] = np.NaN
 
         return MassSpectrum(self.table)
+    
+    def __repr__(self) -> str:
+        """
+        Representation of MassSpectrum object.
 
-    def get_brutto_list(self) -> Sequence[Tuple[float]]:
-        return self.table[self.elems].values
+        Return
+        ------
+        the string representation of MassSpectrum object
+        """
 
-    def get_brutto_dict(self, elems: Optional[Sequence[str]] = None) -> Mapping[Tuple, Dict[str, float]]:
+        columns = [column for column in self.features if column in self.table]
+        return self.table[columns].__repr__()
 
-        if len(self.table) == 0:
-            return {}
+    def __str__(self) -> str:
+        """
+        Representation of MassSpectrum object.
 
-        res = {}
-
-        # TODO very careful
-        if elems:
-            for elem in elems:
-                # careful change the object
-                if elem not in self.table:
-                    self.table[elem] = 0
-
-            bruttos = self.table[elems].values.tolist()
-        else:
-            bruttos = self.table[self.elems].values.tolist()
-
-        bruttos = [tuple(brutto) for brutto in bruttos]
-
-        columns = list(self.table.drop(columns=self.elems))
-        for values, brutto in zip(self.table[columns].values, bruttos):
-            res[brutto] = dict(zip(columns, values.tolist()))
-
-        return res
+        Return
+        ------
+        the string representation of MassSpectrum object
+        """
+        columns = [column for column in self.features if column in self.table]
+        return self.table[columns].__str__()
 
     def __or__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
         """Logic function or for two MassSpectrum object
@@ -555,42 +522,89 @@ class MassSpectrum(object):
         return MassSpectrum(res)
 
     def __len__(self) -> int:
+        """
+        Length of Mass-Spectrum table
+
+        Return
+        ------
+        int - length of Mass-Spectrum table
+        """
         return len(self.table)
+    
+    def __getitem__(self, item: Union[str, Sequence[str]]) -> pd.DataFrame:
+        """
+        Get items or slice from spec
 
-    def __lt__(self, n: int) -> "MassSpectrum":
-        return MassSpectrum(self.table[self.table["numbers"] < n])
+        Return
+        ------
+        Pandass Dataframe or Series slices
+        """
 
-    def __le__(self, n: int) -> "MassSpectrum":
-        return MassSpectrum(self.table[self.table["numbers"] <= n])
-
-    def __gt__(self, n: int) -> "MassSpectrum":
-        return MassSpectrum(self.table[self.table["numbers"] > n])
-
-    def __ge__(self, n: int) -> "MassSpectrum":
-        return MassSpectrum(self.table[self.table["numbers"] >= n])
+        return self.table[item]
 
     def drop_unassigned(self) -> "MassSpectrum":
+        """
+        Drop unassigned mass from Mass Spectrum table
+
+        Return
+        ------
+        MassSpectrum object that contain only assigned by brutto formulas peaks
+
+        Caution
+        -------
+        Danger of lose data - with these operation we exclude data that can be usefull
+        """
+
         if "assign" not in self.table:
             raise SpectrumIsNotAssigned()
 
         return MassSpectrum(self.table[self.table["assign"].astype(bool)])
 
-    def reset_to_one(self) -> "MassSpectrum":
-        table = self.table.copy()
-        table["numbers"] = 1
+    def calculate_jaccard_index(self, other) -> float:
+        """
+        Calculate Jaccard index
 
-        return MassSpectrum(table)
-
-    def calculate_jaccard_needham_score(self, other) -> float:
+        Return
+        ------
+        float Jaccard index
+        """
         return len(self & other) / len(self | other)
 
+    def calculate_tanimoto_distance(self, other) -> float:
+        """
+        Calculate Tanimoto distance
+
+        Return
+        ------
+        float Tanimoto distance
+        """
+        common = len(self & other)
+        sub1 = len(self - other)
+        sub2 = len(other-self)
+        return common/(sub1 + sub2 + common)
+
     def calculate_ai(self) -> 'MassSpectrum':
+        """
+        Calculate AI
+
+        Return
+        ------
+        MassSpectrum object with calculated AI
+        """
         table = self.calculate_cai().calculate_dbe().table
         table["AI"] = table["DBE"] / table["CAI"]
 
         return MassSpectrum(table)
 
     def calculate_cai(self) -> 'MassSpectrum':
+        """
+        Calculate CAI
+
+        Return
+        ------
+        MassSpectrum object with calculated CAI
+        """
+
         table = self.table.copy()
 
         # very careful
@@ -604,25 +618,47 @@ class MassSpectrum(object):
         return MassSpectrum(table)
 
     def calculate_dbe(self) -> 'MassSpectrum':
+        """
+        Calculate DBE
+
+        Return
+        ------
+        MassSpectrum object with calculated DBE
+        """
         table = self.table.copy()
         table['DBE'] = 1.0 + table["C"] - table["O"] - table["S"] - 0.5 * table["H"]
 
         return MassSpectrum(table)
 
-    def __getitem__(self, item: Union[str, Sequence[str]]) -> pd.Series:
-        return self.table[item]
-
     def normalize(self) -> 'MassSpectrum':
-        """This function return intensity normalized MassSpectrum instance"""
-
+        """Intensity normalize by max intensity
+        
+        Return
+        ------
+        Intensity normalized by max intensity MassSpectrum instance
+        """
         table = self.table.copy()
         table['intensity'] /= table['intensity'].max()
         return MassSpectrum(table)
 
     def head(self) -> pd.DataFrame:
+        """
+        Show head of mass spec table
+
+        Return
+        ------
+        Pandas Dataframe head of MassSpec table
+        """
         return self.table.head()
 
     def tail(self) -> pd.DataFrame:
+        """
+        Show head of mass spec table
+
+        Return
+        ------
+        Pandas Dataframe head of MassSpec table
+        """
         return self.table.tail()
 
     def draw(self,
@@ -630,7 +666,7 @@ class MassSpectrum(object):
         ylim: Tuple[Optional[float], Optional[float]] = (None, None),
         color: str = 'black',
         ax: plt.axes = None,
-    ) -> None:
+        ) -> None:
         """Draw mass spectrum
 
         Parameters:
@@ -688,15 +724,6 @@ class MassSpectrum(object):
             ax.set_title(f'{len(self.table)} peaks')
 
         return
-
-    def intergrate(self, normalize=False) -> Tuple[np.ndarray, np.ndarray]:
-        tmp = self.table[["mass"]]
-        tmp = tmp.append({"mass": 0}, ignore_index=True).sort_values("mass")
-        tmp["index"] = pd.RangeIndex(start=0, stop=len(tmp), step=1)
-        if normalize:
-            tmp['index'] /= len(tmp)
-
-        return tmp["mass"].values, tmp["index"].values
 
     def recallibrate(self, error_table: "ErrorTable") -> "MassSpectrum":
         '''Recallibrate data by error-table
@@ -758,9 +785,9 @@ class MassSpectrum(object):
         masses = assign_true['mass'].values
         mass_dif_num = len(tmds)
 
-        for i, row_tmds in tmds.iterrows():
-            if show_process:
-                print(f'{round(i*100/mass_dif_num, 1)} %')
+        for i, row_tmds in tqdm(tmds.iterrows(), total=mass_dif_num):
+            #if show_process:
+            #    print(f'{round(i*100/mass_dif_num, 1)} %')
 
             mass_shift = - row_tmds['calculated_mass']
             
@@ -831,14 +858,25 @@ class VanKrevelen(object):
         if "H/C" not in self.table:
             self.table["H/C"] = self.table["H"] / self.table["C"]
 
-    def draw_density(self, cmap="Blues", ax=None, shade=True):
+    def draw_density(
+        self, 
+        cmap:str ="Blues", 
+        ax: plt.axes = None, 
+        shade: bool = True
+        ) -> None:
+        """
+        Draw Van-Krevelen density
+
+        Parameters
+        ----------
+        cmap: str
+            color map
+        ax: matplotlib ax
+            external ax
+        shade: bool
+            show shade
+        """
         sns.kdeplot(self.table["O/C"], self.table["H/C"], ax=ax, cmap=cmap, shade=shade)
-
-    def draw_density_with_marginals(self, color=None, ax=None):
-        sns.jointplot(x="O/C", y="H/C", data=self.table, kind="kde", color=color, ax=ax)
-
-    def draw_scatter_with_marginals(self):
-        sns.jointplot(x="O/C", y="H/C", data=self.table, kind="scatter")
 
     def draw_scatter(
         self, 
@@ -903,54 +941,6 @@ class VanKrevelen(object):
         num_formules = self.table['C'].count()
         ax.set_title(f'{num_formules} formulas', size=10)
 
-    def get_kellerman_zones(self):
-
-        df = self.table
-        C, H, O, N, S = df["C"], df["H"], df["O"], df["N"], df["S"]
-        df["H/C"] = H / C
-        df["O/C"] = O / C
-
-        # AImod
-        df["AI"] = (1 + C - 0.5 * O - 0.5 * H) / (C - 0.5 * O - N)
-
-        AI = df["AI"]
-        OC = df["O/C"]
-        HC = df["H/C"]
-
-        ans = {}
-
-        ans["lipids"] = MassSpectrum(df[(OC < 0.3) & (HC >= 1.5) & (N == 0)])
-        ans["N-satureted"] = MassSpectrum(df[(HC >= 1.5) & (N >= 1)])
-        ans["aliphatics"] = MassSpectrum(df[(OC >= 0.3) & (HC >= 1.5) & (N == 0)])
-
-        ans["unsat_lowOC"] = MassSpectrum(df[(HC < 1.5) & (AI < 0.5) & (OC <= 0.5)])
-        ans["unsat_highOC"] = MassSpectrum(df[(HC < 1.5) & (AI < 0.5) & (OC > 0.5)])
-
-        ans["aromatic_lowOC"] = MassSpectrum(df[(OC <= 0.5) & (0.5 < AI) & (AI <= 0.67)])
-        ans["aromatic_highOC"] = MassSpectrum(df[(OC > 0.5) & (0.5 < AI) & (AI <= 0.67)])
-
-        ans["condensed_lowOC"] = MassSpectrum(df[(OC <= 0.5) & (AI > 0.67)])
-        ans["condensed_highOC"] = MassSpectrum(df[(OC > 0.5) & (AI > 0.67)])
-
-        return ans
-
-    def get_kellerman_density(self, weight: str = "count", return_keys=False):
-        kellerman = self.get_kellerman_zones()
-        ans = {}
-
-        if weight == "count":
-            sum_density = len(self.table)
-            for key, value in kellerman.items():
-                ans[key] = len(value.table) / sum_density
-
-        elif weight == "intensity":
-            sum_density = self.table['intensity'].sum()
-            for key, value in kellerman.items():
-                ans[key] = value.table['intensity'].sum() / sum_density
-
-        else:
-            raise ValueError(f"weight should be count or intensity not {weight}")
-
     def plot_heatmap(self, df:pd.DataFrame) -> None:
         """Plot density map for VK
 
@@ -999,52 +989,6 @@ class VanKrevelen(object):
         square = pd.DataFrame(data=sq, columns=['value'], index=[5,10,15,20,   4,9,14,19,   3,8,13,18,    2,7,12,17,   1,6,11,16])
 
         return square.sort_index()
-
-    @staticmethod
-    def save_fig(path, dpi=300) -> None:
-        """
-        Save picture
-        Be careful! If axes are used, it can work incorrect!
-
-        :param path:
-        :return:
-        """
-        plt.savefig(path, dpi=dpi)
-
-    @staticmethod
-    def show():
-        """
-        This method is needed to hide plt
-        Sometimes we don't want to use additional imports
-        :return:
-        """
-        plt.show()
-
-    def save(self, path: Union[Path, str], sep: str = ';') -> None:
-        """
-        Saves VK to the table with path
-        :param path: filename should have extension
-        :param sep:
-        :return:
-        """
-        self.table.to_csv(path, sep=sep, index=False)
-
-    @staticmethod
-    def load(path, sep=';') -> 'VanKrevelen':
-        """
-        Loads VK from table, name is the filename without extension
-        :param path:
-        :param sep:
-        :return:
-        """
-        table = pd.read_csv(path, sep=sep)
-        name = ".".join(str(path).split("/")[-1].split(".")[:-1])
-
-        return VanKrevelen(table=table, name=name)
-
-
-def calculate_ppm(x: float, y: float) -> float:
-    return np.fabs((x - y) / y * 1e6)
 
 
 class ErrorTable(object):
@@ -1122,7 +1066,7 @@ class ErrorTable(object):
 
         data_error = [] #array for new data
 
-        for i in range(len(data)): #take every mass in list
+        for i in tqdm(range(len(data)), total=len(data)): #take every mass in list
             mass = data.loc[i, 'mass'] #take mass from list
             for k in range(1,6): #generation of brutto series change
                 for i in dif: #take most common mass diff
@@ -1429,109 +1373,49 @@ class ErrorTable(object):
 
 
 class MassSpectrumList(object):
+    """
+    Class for work list of MassSpectrums objects
+    
+    Attributes:
+    ----------
+    spectra: Sequence[MassSpectrum]
+        list of MassSpectrum objects
+    names: Optional[Sequence[str]]
+        list of names for spectra
+    """
+
     def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]] = None):
+        """
+        init MassSpectrumList Class
+        
+        Parameters
+        ----------
+        spectra: Sequence[MassSpectrum]
+            list of MassSpectrum objects
+        names: Optional[Sequence[str]]
+            list of names for spectra
+        """
         self.spectra = spectra
         if names:
             self.names = names
         else:
             self.names = list(range(len(spectra)))
 
-        self.elems = self.find_elems()
-        self.pivot = self.calculate_pivot()
+    def calculate_similarity(self, mode: str = "tanimoto", draw=True) -> np.ndarray:
+        """
+        Calculate similarity matrix for all spectra in MassSpectrumList
 
-    def calculate_pivot_without_brutto(self, delta_ppm: float = 1) -> pd.DataFrame:
-        masses = []
-        for spectrum in self.spectra:
-            masses.append(spectrum["mass"].values)
+        Parameters
+        ----------
+        mode: str
+            one of the similarity functions
+            Mode can be: "tanimoto", "jaccard", "correlation", "common_correlation"
+        draw: bool
+            Draw matrix
 
-        masses = np.concatenate(masses)
-        masses = np.sort(masses)
-        clusters = []
-        print("SORTED")
-        for mass in masses:
-            if len(clusters) == 0:
-                clusters.append([mass])
-
-            else:
-                if calculate_ppm(clusters[-1][-1], mass) < delta_ppm:
-                    clusters[-1].append(mass)
-
-                else:
-                    clusters.append([mass])
-
-        print(f"Median Calculating, len(clusters) = {len(clusters)}")
-        median_masses = []
-        for cluster in clusters:
-            median_masses.append(np.median(cluster))
-
-        table = []
-        print("Search begins")
-        for mass in tqdm(median_masses):
-            table.append([])
-            for spectrum in self.spectra:
-                masses = spectrum["mass"].values
-                idx = np.searchsorted(masses, mass, side='left')
-                if idx > 0 and (idx == len(masses) or (np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx]))):
-                    idx -= 1
-
-                if calculate_ppm(masses[idx], float(mass)) < delta_ppm:
-                    table[-1].append(spectrum['intensity'].values[idx])
-                else:
-                    table[-1].append(0)
-
-        df = pd.DataFrame(table, columns=self.names)
-        df['mass'] = median_masses
-        return df[['mass'] + self.names]
-
-    def load_from_table(
-            self,
-            pivot: pd.DataFrame,
-            names: Sequence[str],
-            elems: Optional[Sequence[str]] = None
-    ) -> None:
-        self.names = names
-        self.pivot = pivot
-        if None:
-            self.elems = elems
-
-    def find_elems(self):
-        elems = set([])
-        for spectra in self.spectra:
-            elems.update(set(spectra.elems))
-
-        return list(elems)
-
-    def calculate_pivot(self) -> pd.DataFrame:
-        spectra = []
-
-        for spectrum in self.spectra:
-            spectra.append(spectrum.get_brutto_dict(elems=self.elems))
-
-        bruttos = set()
-        for spectrum in spectra:
-            bruttos.update(set(spectrum.keys()))
-
-        pivot = []
-        for brutto in bruttos:
-            vector = []
-            for spectrum in spectra:
-                vector.append(spectrum[brutto]['intensity'] if brutto in spectrum else 0)
-
-            pivot.append(vector)
-
-        pivot = pd.DataFrame(pivot, columns=self.names)
-        for i, elem in enumerate(self.elems):
-            pivot[elem] = [brutto[i] for brutto in bruttos]
-
-        return pivot
-
-    def calculate_similarity(self, mode: str = "taminoto") -> np.ndarray:
-        """Calculate similarity matrix for all spectra in MassSpectrumList
-
-        :param mode: one of the similarity functions.
-        Mode can be: "tanimoto", "jaccard", "correlation", "common_correlation"
-
-        :return: similarity matrix, 2d np.ndarray with size [len(names), len(names)]"""
+        Return
+        ------
+        similarity matrix, 2d np.ndarray with size [len(names), len(names)]"""
 
         def jaccard(a, b):
             a = a.astype(bool)
@@ -1567,28 +1451,32 @@ class MassSpectrumList(object):
         else:
             raise Exception(f"There is no such mode: {mode}")
 
-        df = self.pivot
         values = []
-        for i in self.names:
+        for i in self.spectra:
             values.append([])
-            for j in self.names:
-                values[-1].append(similarity_func(df[i], df[j]))
+            for j in self.spectra:
+                values[-1].append(similarity_func(i['calculated_mass'].dropna(), j['calculated_mass'].dropna()))
+
+        if draw:
+            self.draw(values)
 
         return np.array(values)
 
-    def calculate_dissimilarity(self, mode: str = "tanimoto"):
-        return 1 - self.calculate_dissimilarity(mode=mode)
-
     def draw(
-            self,
-            values: np.ndarray,
-            title: str = ""
-    ) -> None:
-        """Draw similarity matrix by using seaborn
+        self,
+        values: np.ndarray,
+        title: str = ""
+        ) -> None:
+        """
+        Draw similarity matrix by using seaborn
 
-        :param values: similarity matix
-        :param title: title for plot
-        :return: None"""
+        Parameters
+        ----------
+        values: np.ndarray
+            similarity matix
+        title: str
+            title for plot
+        """
 
         sns.heatmap(np.array(values), vmin=0, vmax=1, annot=True)
 
@@ -1600,30 +1488,6 @@ class MassSpectrumList(object):
         t -= 0.5  # Subtract 0.5 from the top
         plt.ylim(b, t)  # update the ylim(bottom, top) values
         plt.xlim(b, t)
-
-    def draw_mass_spectrum(self, fig=None):
-        """
-        TODO NEED TO BE TESTED
-
-        :param fig:
-        :return:
-        """
-        spectra = self.spectra
-        if fig is None:
-            fig = plt.figure(figsize=(15, 8))
-        for i, spectrum in enumerate(spectra):
-            ax = fig.add_subplot(len(spectra) // 4 + int((len(spectra) % 4) > 0), 4, i + 1)
-
-            # plt.title(spectrum) - I'm a little bit unsure here
-            spectrum.normalize().draw(xlim=(200, 1000))
-            inset_axes = inset_axes_func(ax,
-                                         width="40%",  # width = 30% of parent_bbox
-                                         height="40%",  # height : 1 inch
-                                         )
-            spectrum.draw(xlim=(385, 385.225))
-            plt.xticks([385., 385.1, 385.2])
-
-        plt.tight_layout()
 
 
 class Tmds(object):
