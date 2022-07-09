@@ -36,7 +36,7 @@ There are few jupyter notebook that explain how to use masslib. It is lockated i
 
 ## Graphical interface
 
-There is small script for graphical interface lockateыd in 
+There is small script for graphical interface lockated in 
 
 https://github.com/nhslab/masslib_gui
 

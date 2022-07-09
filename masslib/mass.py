@@ -212,7 +212,6 @@ class MassSpectrum(object):
             rel_error: float = 0.5,
             sign: str ='-'
     ) -> "MassSpectrum":
-
         """
         Finding the nearest mass in generated_bruttos_table
         
@@ -274,7 +273,6 @@ class MassSpectrum(object):
         rel_error: float = 0.5,
         remove: bool = False,
     ) -> 'MassSpectrum':
-
         """ 
         C13 isotope peak checking
 
@@ -342,7 +340,6 @@ class MassSpectrum(object):
         Return
         ------
         MassSpectrum object wit calculated error
-
         """
         if "calculated_mass" not in self.table:
             table = self.calculate_mass().table
@@ -372,10 +369,11 @@ class MassSpectrum(object):
         ax.set_ylabel('error, ppm')
 
     def calculate_mass(self) -> "MassSpectrum":
-        """Calculate mass from assigned brutto formulas
+        """
+        Calculate mass from assigned brutto formulas
 
-        Return:
-        -------
+        Return
+        ------
         MassSpectrum object with calculated mass
         """
 
@@ -418,11 +416,13 @@ class MassSpectrum(object):
         return self.table[columns].__str__()
 
     def __or__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
-        """Logic function or for two MassSpectrum object
+        """
+        Logic function or for two MassSpectrum object
 
         Work by calculated mass from brutto formulas
 
-        Return:
+        Return
+        ------
         MassSpectrum object contain all assigned brutto formulas from two spectrum
         """
         
@@ -444,11 +444,13 @@ class MassSpectrum(object):
         return MassSpectrum(a)
 
     def __xor__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
-        """Logic function xor for two MassSpectrum object
+        """
+        Logic function xor for two MassSpectrum object
 
         Work by calculated mass from brutto formulas
 
-        Return:
+        Return
+        ------
         MassSpectrum object contain xor assigned brutto formulas from two spectrum
         """
 
@@ -459,11 +461,13 @@ class MassSpectrum(object):
         return sub1.__or__(sub2)
 
     def __and__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
-        """Logic function and for two MassSpectrum object
+        """
+        Logic function and for two MassSpectrum object
 
         Work by calculated mass from brutto formulas
 
-        Return:
+        Return
+        ------
         MassSpectrum object contain common assigned brutto formulas from two spectrum
         """
 
@@ -494,21 +498,25 @@ class MassSpectrum(object):
         return MassSpectrum(res)
 
     def __add__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
-        """Logic function or for two MassSpectrum object
+        """
+        Logic function or for two MassSpectrum object
 
         Work by calculated mass from brutto formulas
 
-        Return:
+        Return
+        ------
         MassSpectrum object contain all assigned brutto formulas from two spectrum
         """
         return self.__or__(other)
 
     def __sub__(self, other):
-        """Logic function substraction for two MassSpectrum object
+        """
+        Logic function substraction for two MassSpectrum object
 
         Work by calculated mass from brutto formulas
 
-        Return:
+        Return
+        ------
         MassSpectrum object contain substraction assigned brutto formulas from two spectrum
         """
         
@@ -659,7 +667,8 @@ class MassSpectrum(object):
         return MassSpectrum(table)
 
     def normalize(self) -> 'MassSpectrum':
-        """Intensity normalize by max intensity
+        """
+        Intensity normalize by max intensity
         
         Return
         ------
@@ -695,10 +704,11 @@ class MassSpectrum(object):
         color: str = 'black',
         ax: plt.axes = None,
         ) -> None:
-        """Draw mass spectrum
+        """
+        Draw mass spectrum
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         xlim: Tuple (float, float)
             restrict for mass
         ylim: Tuple (float, float)
@@ -754,10 +764,11 @@ class MassSpectrum(object):
         return
 
     def recallibrate(self, error_table: "ErrorTable" = None, how = 'assign') -> "MassSpectrum":
-        '''Recallibrate data by error-table
+        '''
+        Recallibrate data by error-table
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         error_table: ErrorTable object
             ErrorTable object contain table error in ppm for mass, default 100 string
             If None - calculate for self
@@ -768,8 +779,8 @@ class MassSpectrum(object):
             'mdm' - by calculation mass-difference map
             filename - path to etalon spectrum, saved by masslib
 
-        Returns:
-        --------
+        Returns
+        -------
         MassSpectrum object with recallibrated mass
         '''
         if error_table is None:
@@ -808,10 +819,11 @@ class MassSpectrum(object):
         p = 0.2,
         max_num: int = None
         ) -> "MassSpectrum":
-        '''Assigne brutto formulas by TMDS
+        '''
+        Assigne brutto formulas by TMDS
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         tmds_spec: Tmds object
             Tmds object, include table with most probability mass difference
             if None generate tmds spectr with default parameters
@@ -822,8 +834,8 @@ class MassSpectrum(object):
         max_num: int
             max mass diff numbers
 
-        Return:
-        -------
+        Return
+        ------
         MassSpectrum object new assign brutto formulas
         '''
         if "assign" not in self.table:
@@ -884,18 +896,20 @@ class CanNotCreateVanKrevelen(Exception):
 
 
 class VanKrevelen(object):
-    """ A class used to plot Van-Krevelen diagramm
+    """
+    A class used to plot Van-Krevelen diagramm
 
-    Attributes:
+    Attributes
     ----------
     table : pandas Datarame
         consist spectrum (mass and intensity of peaks) and all calculated parameters
     """
 
     def __init__(self, table: Optional[Union[pd.DataFrame, 'MassSpectrum']] = None) -> None:
-        """ Init and calculate C/H, O/C relatives
+        """
+        Init and calculate C/H, O/C relatives
 
-        Parameters:
+        Parameters
         ----------
         table : pandas Datarame or MassSpectrum object
             consist spectrum (mass and intensity of peaks) and all calculated parameters
@@ -948,10 +962,11 @@ class VanKrevelen(object):
         alpha:float = 0.3, 
         mark_elem:str = None, 
         **kwargs) -> None:
-        """plot Van-Krevelen diagramm
+        """
+        plot Van-Krevelen diagramm
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         ax: Matplotlyb axes object
             send here ax if you want plot special graph
         volumes: float
@@ -1005,8 +1020,8 @@ class VanKrevelen(object):
     def plot_heatmap(self, df:pd.DataFrame) -> None:
         """Plot density map for VK
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         df: pd.DataFrame
             dataframe with density        
         """
@@ -1023,10 +1038,11 @@ class VanKrevelen(object):
         fig.tight_layout()
 
     def squares(self) -> pd.DataFrame:
-        """Calculate density  in VK divided into 20 squares
+        """
+        Calculate density  in VK divided into 20 squares
 
-        Return:
-        -------
+        Return
+        ------
         Pandas Dataframe with calculated square density
         """
 
@@ -1053,9 +1069,10 @@ class VanKrevelen(object):
 
 
 class ErrorTable(object):
-    """ A class used to recallibrate mass spectrum
+    """
+    A class used to recallibrate mass spectrum
 
-    Attributes:
+    Attributes
     ----------
     table : pandas Datarame
         consist error table: error in ppm for mass
@@ -1065,48 +1082,51 @@ class ErrorTable(object):
             self,
             table: pd.DataFrame = None,
     ) -> None:
-        """Init ErrorTable object
+        """
+        Init ErrorTable object
 
-        Parameters:
+        Parameters
         ----------
         table : pandas Datarame
             consist error table: error in ppm for mass
         """
         self.table = table
 
-    def dif_mass(self) -> dict:
-        '''Generate few mass diffrence
+    def dif_mass(self) -> list:
+        '''Generate common mass diffrence list
 
         Return:
         -------
-        Dictonary, containing mass difference with exact mass 
-        for CH2, CH2O, C2H2O, CO2, H2O
+        List, containing most common mass difference
         '''
         H = 1.007825
         C = 12.000000
-        N = 14.003074
         O = 15.994915
-        S = 31.972071
 
-        dif = {}
-        dif['CH2'] = C + H*2
-        dif['CH2O'] = C + O + H*2
-        dif['C2H2O'] = C*2 + O + H*2
-        dif['CO2'] = C + O*2
-        dif['H2O'] = O + H*2
+        dif = []
+        for k in range(1,11):
+            dif.append(k*(C + H*2))
+            dif.append(k*(O))
+            dif.append(k*(C + O))
+            dif.append(k*(H*2))
+            dif.append(k*(C*2 + O + H*2))
+            dif.append(k*(C + O + H*2))
+            dif.append(k*(O + H*2))
+            dif.append(k*(C + O*2))
 
         return dif
 
     def md_error_map(
         self, 
-        spec: pd.DataFrame, 
-        ppm: float = 3, 
+        spec: "MassSpectrum", 
+        ppm: float = 5, 
         show_map: bool = True
         ) -> pd.DataFrame:
-        '''Calculate mass differnce map
+        '''
+        Calculate mass differnce map
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         spec: pd.Dataframe
             Dataframe with spectrum table from MassSpectrum
         ppm: float
@@ -1114,35 +1134,38 @@ class ErrorTable(object):
         show_map: bool
             Show error in ppm versus mass
 
-        Return:
-        -------
+        Return
+        ------
         Pandas Dataframe object with calculated error map
         '''
 
         dif = self.dif_mass()
-        data = copy.deepcopy(spec)
+
+        data = copy.deepcopy(spec.table)
+        masses = data['mass'].values
+
         data = data.sort_values(by='intensity', ascending=False).reset_index(drop=True)
-        data = data[:1000]
+        if len(data) > 1000:
+            data = data[:1000]
         data = data.sort_values(by='mass').reset_index(drop=True)
 
         data_error = [] #array for new data
 
-        for i in tqdm(range(len(data)), total=len(data)): #take every mass in list
-            mass = data.loc[i, 'mass'] #take mass from list
-            for k in range(1,6): #generation of brutto series change
-                for i in dif: #take most common mass diff
-                    mz = mass + dif[i]*k #calc mass plus ion
-                    mz_p = mz + mz * ppm/1000000 #search from min
-                    mz_m = mz - mz * ppm/1000000 # to max
-                    ress = data.loc[(data['mass'] > mz_m) & (data['mass'] < mz_p)]
-                    if len(ress) > 0:
-                        res = copy.deepcopy(ress)
-                        res['ppm'] = (((res['mass'] - mz) / mz)*1000000).abs()
-                        min_ppm = res['ppm'].min()
-                        min_mz = res.loc[res['ppm']==min_ppm, 'mass'].values[0]
-                        data_error.append([mass, f'{k}*{i}', min_mz, (min_mz-mz)/mz*1000000])
+        for index, row in tqdm(data.iterrows(), total=len(data)): #take every mass in list
+            
+            mass = row["mass"]
+
+            for i in dif:
+                mz = mass + i #massdif
+
+                idx = np.searchsorted(masses, mz, side='left')                
+                if idx > 0 and (idx == len(masses) or np.fabs(mz - masses[idx - 1]) < np.fabs(mz - masses[idx])):
+                    idx -= 1
+
+                if np.fabs(masses[idx] - mz) / mz * 1e6 <= ppm:
+                    data_error.append([mass, (masses[idx] - mz)/mz*1000000])
         
-        df_error = pd.DataFrame(data = data_error, columns=['mass', 'mass_diff_brutto', 'mass_diff_mass', 'ppm' ])
+        df_error = pd.DataFrame(data = data_error, columns=['mass', 'ppm' ])
         
         if show_map:
             fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
@@ -1154,17 +1177,18 @@ class ErrorTable(object):
         self, 
         f: np.array, 
         show_map: bool = True) -> pd.DataFrame:
-        '''Fit max intesity of kernel density map
+        '''
+        Fit max intesity of kernel density map
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         f: np.array
             keerndel density map in numpy array 100*100
         show_map: bool
             Plot how fit kernel
 
-        Return:
-        -------
+        Return
+        ------
         Pandas Dataframe with error table for 100 values
         '''
         df = pd.DataFrame(f, index=np.linspace(3,-3,100))
@@ -1202,10 +1226,11 @@ class ErrorTable(object):
         ppm: float = 3, 
         show_map: bool = False
         ) -> np.array:
-        ''' Plot kernel density map 100*100 for data
+        '''
+        Plot kernel density map 100*100 for data
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         df_error: pd.Dataframe
             error_table for generate kerle density map
         ppm: float
@@ -1213,8 +1238,8 @@ class ErrorTable(object):
         show_map: bool
             plot kde
 
-        Return:
-        -------
+        Return
+        ------
         numpy array 100*100 with generated kde
         '''
         
@@ -1250,10 +1275,11 @@ class ErrorTable(object):
         ppm = 3,
         sign = '-',
         show_map:bool = True):
-        '''Recallibrate by assign error
+        '''
+        Recallibrate by assign error
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         spec: MassSpectrum object
             Initial mass spectrum for recallibrate
         ppm: float
@@ -1265,8 +1291,8 @@ class ErrorTable(object):
         show_error: bool
             show process 
 
-        Return:
-        -------
+        Return
+        ------
         ErrorTable object that contain recallabrate error ppm for mass diaposone
 
         '''
@@ -1293,7 +1319,8 @@ class ErrorTable(object):
         self,
         spec:MassSpectrum,
         show_map:bool = True):
-        '''Self-recallibration of mass-spectra by mass-difference map
+        '''
+        Self-recallibration of mass-spectra by mass-difference map
 
         Parameters
         -----------
@@ -1313,7 +1340,7 @@ class ErrorTable(object):
         recalibration of mass spectrometric data in nontargeted metabolomics. 
         Analytical chemistry, 91(5), 3350-3358. 
         '''
-        spec_table = copy.deepcopy(spec.table)
+        spec_table = copy.deepcopy(spec)
         mde = self.md_error_map(spec = spec_table, show_map=show_map)
         f = self.kernel_density_map(df_error=mde)
         err = self.fit_kernel(f=f, show_map=show_map)
@@ -1577,7 +1604,7 @@ class Tmds(object):
         elems: Sequence[str] = None,
         ) -> None:
         """
-        Parameters:
+        Parameters
         ----------
         table: pandas Datarame
             tmds spectrum - mass_diff, probability and caclulatedd parameters
@@ -1598,8 +1625,8 @@ class Tmds(object):
         """
         Total mass difference statistic calculation 
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         mass_spec: MassSpectrum object
             for tmds calculation
         p: float
