@@ -311,7 +311,7 @@ class MassSpectrum(object):
         table['C13_peak'] = flags
 
         if remove:
-            table = table.loc[table['C13_peak'] == True].reset_index(drop=True)
+            table = table.loc[(table['C13_peak'] == True) & (table['assign'] == True)].reset_index(drop=True)
 
         return MassSpectrum(table)
 
@@ -583,7 +583,7 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise SpectrumIsNotAssigned()
 
-        return MassSpectrum(self.table[self.table["assign"].astype(bool)])
+        return MassSpectrum(self.table.loc[self.table["assign"] == True])
 
     def calculate_jaccard_index(self, other) -> float:
         """
@@ -817,7 +817,8 @@ class MassSpectrum(object):
         tmds_spec: "Tmds" = None, 
         abs_error: float = 0.001,
         p = 0.2,
-        max_num: int = None
+        max_num: int = None,
+        C13_filter: bool = True
         ) -> "MassSpectrum":
         '''
         Assigne brutto formulas by TMDS
@@ -833,6 +834,8 @@ class MassSpectrum(object):
             relative probability coefficient for treshold tmds spectrum
         max_num: int
             max mass diff numbers
+        C13_filter: bool
+            Use only peaks with C13 isotope peak
 
         Return
         ------
@@ -842,7 +845,7 @@ class MassSpectrum(object):
             raise SpectrumIsNotAssigned()
 
         if tmds_spec is None:
-            tmds_spec = Tmds().calc(self, p=p) #by varifiy p-value we can choose how much mass-diff we will take
+            tmds_spec = Tmds().calc(self, p=p, C13_filter=C13_filter) #by varifiy p-value we can choose how much mass-diff we will take
             tmds_spec = tmds_spec.assign()
             tmds_spec = tmds_spec.calculate_mass()
 
@@ -1037,9 +1040,13 @@ class VanKrevelen(object):
         ax.set_ylabel('H/C')
         fig.tight_layout()
 
-    def squares(self) -> pd.DataFrame:
+    def squares(self, draw:bool = True) -> pd.DataFrame:
         """
         Calculate density  in VK divided into 20 squares
+
+        Parameters:
+        draw: bool
+            Draw heatmap for squares
 
         Return
         ------
@@ -1642,6 +1649,7 @@ class Tmds(object):
         """
 
         spec = copy.deepcopy(mass_spec)
+        spec.table = spec.table.reset_index(drop=True)
         if C13_filter:
             spec = spec.filter_by_C13(remove=True)
         else:
@@ -1680,6 +1688,9 @@ class Tmds(object):
         tmds_spec = tmds_spec.loc[peaks].reset_index(drop=True)
         tmds_spec['probability'] = prob
         tmds_spec = tmds_spec.loc[tmds_spec['probability'] > p]
+
+        if len(tmds_spec) < 0:
+            raise Exception(f"There isn't mass diff mass, decrease p-value")
 
         return Tmds(tmds_spec)
 
