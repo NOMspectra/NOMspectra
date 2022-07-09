@@ -744,22 +744,15 @@ class MassSpectrum(object):
         I = I.reshape(-1)
 
         if ax is None:
-
-            plt.plot(M, I, color=color)
-            plt.plot([xlim[0], xlim[1]], [0, 0], color=color)
-            plt.xlim(xlim)
-            plt.ylim(ylim)
-            plt.xlabel("m/z, Da")
-            plt.ylabel("Intensity")
-        
-        else:
-            ax.plot(M, I, color=color, linewidth=0.2)
-            ax.plot([xlim[0], xlim[1]], [0, 0], color=color, linewidth=0.2)
-            ax.set_xlim(xlim)
-            ax.set_ylim(ylim)
-            ax.set_xlabel('m/z, Da')
-            ax.set_ylabel('Intensity')
-            ax.set_title(f'{len(self.table)} peaks')
+            fig, ax = plt.subplots(figsize=(4,4), dpi=75)
+    
+        ax.plot(M, I, color=color, linewidth=0.2)
+        ax.plot([xlim[0], xlim[1]], [0, 0], color=color, linewidth=0.2)
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        ax.set_xlabel('m/z, Da')
+        ax.set_ylabel('Intensity')
+        ax.set_title(f'{len(self.table)} peaks')
 
         return
 
@@ -1836,22 +1829,15 @@ class Tmds(object):
         I = I.reshape(-1)
 
         if ax is None:
-
-            plt.plot(M, I, color=color)
-            plt.plot([xlim[0], xlim[1]], [0, 0], color=color)
-            plt.xlim(xlim)
-            plt.ylim(ylim)
-            plt.xlabel("mass difference, Da")
-            plt.ylabel("P")
-        
-        else:
-            ax.plot(M, I, color=color, linewidth=0.2)
-            ax.plot([xlim[0], xlim[1]], [0, 0], color=color, linewidth=0.2)
-            ax.set_xlim(xlim)
-            ax.set_ylim(ylim)
-            ax.set_xlabel('mass difference, Da')
-            ax.set_ylabel('P')
-            ax.set_title(f'{len(self.table)} peaks')
+            fig, ax = plt.subplots(figsize=(4,4), dpi=75)
+            
+        ax.plot(M, I, color=color, linewidth=0.2)
+        ax.plot([xlim[0], xlim[1]], [0, 0], color=color, linewidth=0.2)
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        ax.set_xlabel('mass difference, Da')
+        ax.set_ylabel('P')
+        ax.set_title(f'{len(self.table)} peaks')
 
         return
 
