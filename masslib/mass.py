@@ -54,7 +54,6 @@ class MassSpectrum(object):
 
         if table is not None:
             self.table = table
-
         else:
             self.table = pd.DataFrame(columns=['intensity', "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
 
