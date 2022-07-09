@@ -1,3 +1,23 @@
+#    Copyright 2019-2021 Rukhovich Gleb
+#    Copyright 2022 Volikov Alexander <ab.volikov@gmail.com>
+#
+#    This file is part of masslib. 
+#    Developed in Natural Humic System laboratory
+#    Moscow State University (Head of lab - Perminova I.V.)
+#
+#    masslib is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    masslib is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with masslib.  If not, see <http://www.gnu.org/licenses/>.
+
 from typing import Sequence
 import numpy as np
 import pandas as pd
@@ -69,7 +89,7 @@ def get_elements_masses(elems:Sequence[str]) -> np.array :
     Parameters
     ----------
     elems: Sequence[str]
-        Elements in list like ['C', 'H', 'N', 'C_13', 'O']
+        Elements in list. Example ['C', 'H', 'N', 'C_13', 'O']
 
     Return
     ------

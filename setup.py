@@ -16,5 +16,4 @@ setup(
         'scipy>=1.4.1',
         'seaborn>=0.10.0',
         'tqdm>=4.43.0'],
-    tests_require=["pytest"],
 )
