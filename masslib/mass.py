@@ -1086,7 +1086,6 @@ class VanKrevelen(object):
 
         ax.set_xlabel('O/C')
         ax.set_ylabel('H/C')
-        fig.tight_layout()
 
     def squares(self, draw:bool = True) -> pd.DataFrame:
         """
@@ -1488,7 +1487,6 @@ class ErrorTable(object):
             ax.plot(err['m/z'], err['ppm'])
             ax.set_xlabel('m/z, Da')
             ax.set_ylabel('Error, ppm')
-            fig.tight_layout()
         
         return ErrorTable(err)
 
@@ -1558,7 +1556,7 @@ class MassSpectrumList(object):
         else:
             self.names = list(range(len(spectra)))
 
-    def calculate_similarity(self, mode: str = "tanimoto", draw=True) -> np.ndarray:
+    def calculate_similarity(self, mode: str = "tanimoto") -> np.ndarray:
         """
         Calculate similarity matrix for all spectra in MassSpectrumList
 
@@ -1568,8 +1566,6 @@ class MassSpectrumList(object):
             Optionaly. Default tanimoto. 
             one of the similarity functions
             Mode can be: "tanimoto", "jaccard", "correlation", "common_correlation"
-        draw: bool
-            Optionaly. Default True. Draw matrix
 
         Return
         ------
@@ -1617,14 +1613,14 @@ class MassSpectrumList(object):
                     raise SpectrumIsNotAssigned()
                 values[-1].append(similarity_func(i['calculated_mass'].dropna(), j['calculated_mass'].dropna()))
 
-        if draw:
-            self.draw_similarity(values)
-
         return np.array(values)
 
     def draw_similarity(
         self,
+        mode: str = "tanimoto",
         values: np.ndarray = None,
+        ax: plt.axes = None,
+        annot = True
         ) -> None:
         """
         Draw similarity matrix by using seaborn
@@ -1634,22 +1630,24 @@ class MassSpectrumList(object):
         values: np.ndarray
             Optionaly. Similarity matix.
             Default None - It is call calculate_similarity() method.
-            
+        mode: str
+            Optionaly. If values is none for calculate matrix. 
+            Default tanimoto. one of the similarity functions
+            Mode can be: "tanimoto", "jaccard", "correlation", "common_correlation"
+        ax: matplotlib axes
+            Entarnal axes for plot
+        annotate: bool
+            Draw value of similarity onto titles
         """
         if values is None:
-            self.calculate_similarity()
-            return None
+            values = self.calculate_similarity(mode=mode)
 
-        sns.heatmap(np.array(values), vmin=0, vmax=1, annot=True)
-
-        plt.xticks(np.arange(len(self.names)) + .5, self.names, rotation="vertical")
-        plt.yticks(np.arange(len(self.names)) + .5, self.names, rotation="horizontal")
-        plt.title(title)
-        b, t = plt.ylim()  # discover the values for bottom and top
-        b += 0.5  # Add 0.5 to the bottom
-        t -= 0.5  # Subtract 0.5 from the top
-        plt.ylim(b, t)  # update the ylim(bottom, top) values
-        plt.xlim(b, t)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(len(self.spectra),len(self.spectra)), dpi=75)
+        
+        x_axis_labels = self.names
+        y_axis_labels = self.names
+        sns.heatmap(np.array(values), vmin=0, vmax=1, annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
 
 
 class Tmds(object):
