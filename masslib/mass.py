@@ -18,6 +18,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with masslib.  If not, see <http://www.gnu.org/licenses/>.
 
+from logging import raiseExceptions
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
 import copy
@@ -613,7 +614,7 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise SpectrumIsNotAssigned()
 
-        return MassSpectrum(self.table.loc[self.table["assign"] == True])
+        return MassSpectrum(self.table.loc[self.table["assign"] == True].reset_index(drop=True))
 
     def calculate_jaccard_index(self, other) -> float:
         """
@@ -1005,7 +1006,8 @@ class VanKrevelen(object):
     def draw_scatter(
         self, 
         ax:plt.axes = None, 
-        volumes:float = True,
+        volumes:float = None,
+        color:str = 'blue',
         nitrogen:bool = False,
         sulphur:bool = False,
         alpha:float = 0.3, 
@@ -1023,6 +1025,8 @@ class VanKrevelen(object):
         volumes: float
             size of dot at diagram.
             By default calc by median intensity of spectrum
+        color: str
+            color of VK. Default blue
         nitrogen: bool
             mark nitrogen in brutto-formulas as orange
         sulphur: bool
@@ -1040,12 +1044,12 @@ class VanKrevelen(object):
         else:
             ax=ax
         
-        if volumes:
+        if volumes is None:
             self.table['volume'] = self.table['intensity'] / self.table['intensity'].median()
         else:
-            self.table['volume'] = 5
+            self.table['volume'] = volumes
 
-        self.table['color'] = 'blue'
+        self.table['color'] = color
 
         if mark_elem is not None:
             self.table.loc[self.table[mark_elem] > 0, 'color'] = 'purple'
@@ -1665,22 +1669,29 @@ class Tmds(object):
     def __init__(
         self,
         table: pd.DataFrame = None,
-        elems: Sequence[str] = None,
+        elems: Sequence[str] = None
         ) -> None:
         """
         Parameters
         ----------
         table: pandas Datarame
-            tmds spectrum - mass_diff, probability and caclulatedd parameters
+            Optional. tmds spectrum - mass_diff, probability and caclulatedd parameters
         elems: Sequence[str]
-            elemnts in brutto formulas
+            Optional. elements in brutto formulas
         """
-        self.table = table
+
         self.elems = elems
+
+        if table is None:
+            self.table = pd.DataFrame()
+        else:
+            self.table = table
+            self.elems = self.find_elems()
 
     def calc(
         self,
         mass_spec:"MassSpectrum",
+        other:"MassSpectrum"=None,
         p: float = 0.2,
         wide: int = 10,
         C13_filter = True
@@ -1693,6 +1704,8 @@ class Tmds(object):
         ----------
         mass_spec: MassSpectrum object
             for tmds calculation
+        other: MassSpectrum object
+            Optional. If None, TMDS will call by self.
         p: float
             Optional. Default 0.2. 
             Minimum relative probability for taking mass-difference
@@ -1709,21 +1722,31 @@ class Tmds(object):
         """
 
         spec = copy.deepcopy(mass_spec)
-        spec.table = spec.table.reset_index(drop=True)
+        if other is None:
+            spec2 = copy.deepcopy(mass_spec)
+        else:
+            spec2 = copy.deepcopy(other)
+
         if C13_filter:
             spec = spec.filter_by_C13(remove=True)
+            spec2 = spec2.filter_by_C13(remove=True)
         else:
             spec = spec.drop_unassigned()
+            spec2 = spec2.drop_unassigned()
 
         masses = spec.table['mass'].values
+        masses2 = spec2.table['mass'].values
+
         mass_num = len(masses)
-        if mass_num < 2:
+        mass_num2 = len(masses2)
+
+        if mass_num <2 or mass_num2 < 2:
             raise Exception(f"Too low amount of assigned peaks")
 
-        mdiff = np.zeros((mass_num, mass_num), dtype=float)
+        mdiff = np.zeros((mass_num, mass_num2), dtype=float)
         for x in range(mass_num):
-            for y in range(x, mass_num):
-                dif = np.fabs(masses[x]-masses[y])
+            for y in range(x, mass_num2):
+                dif = np.fabs(masses[x]-masses2[y])
                 if dif < 300:
                     mdiff[x,y] = dif
 
@@ -1784,7 +1807,7 @@ class Tmds(object):
             generated_bruttos_table = brutto_gen(gdf, rules=False)
             generated_bruttos_table = generated_bruttos_table.loc[generated_bruttos_table['mass'] > 0]
 
-        table = self.table.loc[:,['mass_dif', 'probability']].copy()
+        table = self.table.loc[:,['mass_dif', 'probability', 'count']].copy()
 
         masses = generated_bruttos_table["mass"].values
         
@@ -1909,8 +1932,140 @@ class Tmds(object):
         ax.set_xlabel('mass difference, Da')
         ax.set_ylabel('P')
         ax.set_title(f'{len(self.table)} peaks')
-
         return
+
+    def save(self, filename:str) -> None:
+        """
+        Save Tmds spectrum as csv
+
+        Parameters
+        ----------
+        filename: str
+            file name with path in which save tmds
+        """
+        self.table.to_csv(filename)
+
+    def load(self, filename:str) -> "Tmds":
+        """
+        Load Tmds spectrum table from csv
+
+        Parameters
+        ----------
+        filename: str
+            file name with path in which load tmds
+        """
+        return Tmds(pd.read_csv(filename))
+
+
+class Reaction(object):
+    """
+    Class for discover reaction by MS-difference methods
+
+    Atributes
+    ---------
+    sourse: MassSpectrum object
+        mass spectrum of source
+    product: MassSpectrum object
+        mass spectrum of product
+    """
+    def __init__(self, 
+        sourse:"MassSpectrum" = None, 
+        product:"MassSpectrum" = None,
+        ) -> None:
+        """
+        Init Reaction
+
+        Parameters
+        ---------
+        sourse: MassSpectrum object
+            mass spectrum of source
+        product: MassSpectrum object
+            mass spectrum of product
+        """
+        self.sourse = sourse
+        self.product = product
+
+    def find_modification(self, brutto_table:pd.DataFrame) -> "Reaction":
+        """
+        Find in source peaks that have modifed by diff-mass-es in brutto table
+        Also cath them in product
+
+        Parameters
+        ----------
+        brutto_table:pd.DataFrame
+            table with element and their masses.
+            Can be generated by function brutto_generator.brutto_gen().
+        """
+
+        self.sourse = self.sourse.drop_unassigned().calculate_mass()
+        self.product = self.product.drop_unassigned().calculate_mass()
+
+        sourse_mass = self.sourse.table['calculated_mass'].values
+        product_mass = self.product.table['calculated_mass'].values
+
+        sourse_mass_num = len(sourse_mass)
+        product_mass_num = len(product_mass)
+
+        mdiff = np.zeros((sourse_mass_num, product_mass_num), dtype=float)
+        for x in range(sourse_mass_num):
+            for y in range(product_mass_num):
+                mdiff[x,y] = product_mass[y]-sourse_mass[x]
+
+        sourse_index = np.array([])
+        product_index = np.array([])
+        for i, row in brutto_table.iterrows():
+            arr = np.where(mdiff == row['mass'])
+            sourse_index = np.hstack([sourse_index, arr[0]])
+            product_index = np.hstack([product_index, arr[1]])
+
+        self.sourse.table['modified'] = False
+        self.product.table['modified'] = False
+
+        self.sourse.table.loc[sourse_index,'modified'] = True
+        self.product.table.loc[product_index,'modified'] = True
+
+        return Reaction(sourse=self.sourse, product=self.product)
+
+    def draw_modification(self,
+        ax:plt.axes = None,
+        sourse:bool = True,
+        product:bool = True,
+        sourse_color:str = 'red',
+        product_color:str = 'blue',
+        volume:float = 5
+        )->None:
+        """
+        Plot Van-Krevelen for modifed peaks in product and sourse
+
+        Parameters
+        ----------
+        ax: plt.axes
+            Optional. Use external ax
+        sourse: bool
+            Optional. Default True. plot sourse peaks
+        product: bool
+            Optional. Default True. plot product peaks
+        sourse_color: str
+            Optional. Default red. Color of sourse peaks
+        product_color: str
+            Optional. Default blue. Color of product peaks
+        volume: float
+            Optional. Default 5. Size of dot on VK
+        """
+
+        if 'modified' not in self.product.table or 'modified' not in self.sourse.table:
+            raise Exception(f"Modification hasn't calculated")
+
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(4,4), dpi = 75)
+
+        if sourse:
+            s = self.sourse.table.loc[self.sourse.table['modified'] == True]
+            vk_s = VanKrevelen(s).draw_scatter(ax=ax, volumes=volume, color=sourse_color)
+
+        if product:
+            p = self.sourse.table.loc[self.product.table['modified'] == True]
+            vk_p = VanKrevelen(p).draw_scatter(ax=ax, volumes=volume, color=product_color)        
 
 
 if __name__ == '__main__':
