@@ -42,9 +42,9 @@ There are few jupyter notebook that explain how to use nhsmasslib. It is lockate
 
 ## Graphical interface
 
-There is small script for graphical interface lockated here
+There is script for graphical interface lockated here
 
-https://github.com/nhslab/nhsmasslib_gui
+https://github.com/nhslab/nhsmasslibPQ
 
 It is support all main operation under spectrum
 
