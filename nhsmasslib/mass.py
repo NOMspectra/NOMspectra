@@ -1,22 +1,22 @@
 #    Copyright 2019-2021 Rukhovich Gleb
 #    Copyright 2022 Volikov Alexander <ab.volikov@gmail.com>
 #
-#    This file is part of masslib. 
+#    This file is part of nhsmasslib. 
 #    Developed in Natural Humic System laboratory
 #    Moscow State University (Head of lab - Perminova I.V.)
 #
-#    masslib is free software: you can redistribute it and/or modify
+#    nhsmasslib is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    masslib is distributed in the hope that it will be useful,
+#    nhsmasslib is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with masslib.  If not, see <http://www.gnu.org/licenses/>.
+#    along with nhsmasslib.  If not, see <http://www.gnu.org/licenses/>.
 
 from logging import raiseExceptions
 from pathlib import Path
@@ -628,7 +628,7 @@ class MassSpectrum(object):
         mode: str
             Optionaly. Default cosine. 
             one of the similarity functions
-            Mode can be: "tanimoto", "jaccard", "correlation", "cosine"
+            Mode can be: "tanimoto", "jaccard", "cosine"
 
         Return
         ------
@@ -656,8 +656,6 @@ class MassSpectrum(object):
             return 1 - spatial.distance.jaccard(A, B)
         elif mode == "tanimoto":
             return 1 - spatial.distance.rogerstanimoto(A, B)
-        elif mode == "correlation":
-            return 1 - spatial.distance.correlation(A, B)
         elif mode == 'cosine':
             return 1 - spatial.distance.cosine(A, B)
         else:
@@ -1597,7 +1595,7 @@ class MassSpectrumList(object):
         mode: str
             Optionaly. Default cosine. 
             one of the similarity functions
-            Mode can be: "tanimoto", "jaccard", "correlation", "cosine"
+            Mode can be: "tanimoto", "jaccard", "cosine"
 
         Return
         ------
@@ -1627,16 +1625,10 @@ class MassSpectrumList(object):
             A, B = get_vector(a, b)
             return 1 - spatial.distance.cosine(A, B)
 
-        def correlation(a, b):
-            A, B = get_vector(a, b)
-            return 1 - spatial.distance.correlation(A, B)
-
         if mode == "jaccard":
             similarity_func = jaccard
         elif mode == "tanimoto":
             similarity_func = tanimoto
-        elif mode == "correlation":
-            similarity_func = correlation
         elif mode == 'cosine':
             similarity_func = cosine
         else:
@@ -1672,7 +1664,7 @@ class MassSpectrumList(object):
         mode: str
             Optionaly. If values is none for calculate matrix. 
             Default cosine. one of the similarity functions
-            Mode can be: "tanimoto", "jaccard", "correlation", "cosine"
+            Mode can be: "tanimoto", "jaccard", "cosine"
         ax: matplotlib axes
             Entarnal axes for plot
         annotate: bool

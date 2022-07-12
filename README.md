@@ -1,4 +1,4 @@
-# masslib
+# nhsmasslib
 
 version 0.1.0
 
@@ -16,9 +16,9 @@ This lib supports
 
 There is few options now:
 
-- download masslib by clone this repository and place masslib folder near code script
+- download nhsmasslib by clone this repository and place nhsmasslib folder near code script
 
-- download masslib by clone this repository and install localy by pip:
+- download nhsmasslib by clone this repository and install localy by pip:
 
 ```console
 pip install .
@@ -27,7 +27,7 @@ pip install .
 Anytime after installation by pip you can delete it by comand
 
 ```console
-pip uninstall masslib
+pip uninstall nhsmasslib
 ```
 
 ## Documentation
@@ -38,13 +38,13 @@ Genereated by [pdoc3](https://pdoc3.github.io/pdoc/)
 
 ## Examples of usage
 
-There are few jupyter notebook that explain how to use masslib. It is lockated in folder "ipynb examples"
+There are few jupyter notebook that explain how to use nhsmasslib. It is lockated in folder "ipynb examples"
 
 ## Graphical interface
 
 There is small script for graphical interface lockated here
 
-https://github.com/nhslab/masslib_gui
+https://github.com/nhslab/nhsmasslib_gui
 
 It is support all main operation under spectrum
 

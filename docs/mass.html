@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>masslib.mass API documentation</title>
+<title>nhsmasslib.mass API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>masslib.mass</code></h1>
+<h1 class="title">Module <code>nhsmasslib.mass</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -29,22 +29,22 @@
 <pre><code class="python">#    Copyright 2019-2021 Rukhovich Gleb
 #    Copyright 2022 Volikov Alexander &lt;ab.volikov@gmail.com&gt;
 #
-#    This file is part of masslib. 
+#    This file is part of nhsmasslib. 
 #    Developed in Natural Humic System laboratory
 #    Moscow State University (Head of lab - Perminova I.V.)
 #
-#    masslib is free software: you can redistribute it and/or modify
+#    nhsmasslib is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    masslib is distributed in the hope that it will be useful,
+#    nhsmasslib is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with masslib.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+#    along with nhsmasslib.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 from logging import raiseExceptions
 from pathlib import Path
@@ -656,7 +656,7 @@ class MassSpectrum(object):
         mode: str
             Optionaly. Default cosine. 
             one of the similarity functions
-            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;correlation&#34;, &#34;cosine&#34;
+            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;cosine&#34;
 
         Return
         ------
@@ -684,8 +684,6 @@ class MassSpectrum(object):
             return 1 - spatial.distance.jaccard(A, B)
         elif mode == &#34;tanimoto&#34;:
             return 1 - spatial.distance.rogerstanimoto(A, B)
-        elif mode == &#34;correlation&#34;:
-            return 1 - spatial.distance.correlation(A, B)
         elif mode == &#39;cosine&#39;:
             return 1 - spatial.distance.cosine(A, B)
         else:
@@ -1625,7 +1623,7 @@ class MassSpectrumList(object):
         mode: str
             Optionaly. Default cosine. 
             one of the similarity functions
-            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;correlation&#34;, &#34;cosine&#34;
+            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;cosine&#34;
 
         Return
         ------
@@ -1655,16 +1653,10 @@ class MassSpectrumList(object):
             A, B = get_vector(a, b)
             return 1 - spatial.distance.cosine(A, B)
 
-        def correlation(a, b):
-            A, B = get_vector(a, b)
-            return 1 - spatial.distance.correlation(A, B)
-
         if mode == &#34;jaccard&#34;:
             similarity_func = jaccard
         elif mode == &#34;tanimoto&#34;:
             similarity_func = tanimoto
-        elif mode == &#34;correlation&#34;:
-            similarity_func = correlation
         elif mode == &#39;cosine&#39;:
             similarity_func = cosine
         else:
@@ -1700,7 +1692,7 @@ class MassSpectrumList(object):
         mode: str
             Optionaly. If values is none for calculate matrix. 
             Default cosine. one of the similarity functions
-            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;correlation&#34;, &#34;cosine&#34;
+            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;cosine&#34;
         ax: matplotlib axes
             Entarnal axes for plot
         annotate: bool
@@ -1846,7 +1838,7 @@ class Tmds(object):
         
         if max_num is not None and max_num &lt; len(tmds_spec):
             tmds_spec = tmds_spec.sort_values(by=&#39;probability&#39;).reset_index(drop=True)
-            tmds = tmds[:max_num]
+            tmds_spec = tmds_spec[:max_num]
             tmds_spec = tmds_spec.sort_values(by=&#39;mass_dif&#39;).reset_index(drop=True)
 
         return Tmds(tmds_spec)
@@ -2159,7 +2151,7 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="masslib.mass.CanNotCreateVanKrevelen"><code class="flex name class">
+<dt id="nhsmasslib.mass.CanNotCreateVanKrevelen"><code class="flex name class">
 <span>class <span class="ident">CanNotCreateVanKrevelen</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
@@ -2178,7 +2170,7 @@ if __name__ == &#39;__main__&#39;:
 <li>builtins.BaseException</li>
 </ul>
 </dd>
-<dt id="masslib.mass.ErrorTable"><code class="flex name class">
+<dt id="nhsmasslib.mass.ErrorTable"><code class="flex name class">
 <span>class <span class="ident">ErrorTable</span></span>
 <span>(</span><span>table: pandas.core.frame.DataFrame = None)</span>
 </code></dt>
@@ -2605,14 +2597,14 @@ if __name__ == &#39;__main__&#39;:
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="masslib.mass.ErrorTable.assign_error"><code class="name flex">
-<span>def <span class="ident">assign_error</span></span>(<span>self, spec: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>, ppm=3, sign='-', show_map: bool = True)</span>
+<dt id="nhsmasslib.mass.ErrorTable.assign_error"><code class="name flex">
+<span>def <span class="ident">assign_error</span></span>(<span>self, spec: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>, ppm=3, sign='-', show_map: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Recallibrate by assign error</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>spec</code></strong> :&ensp;<code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>spec</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>Initial mass spectrum for recallibrate</dd>
 <dt><strong><code>ppm</code></strong> :&ensp;<code>float</code></dt>
 <dd>Optional. Default 3.
@@ -2680,7 +2672,7 @@ for correct recallibration we need to mark mode
     return ErrorTable(err)  </code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.ErrorTable.dif_mass"><code class="name flex">
+<dt id="nhsmasslib.mass.ErrorTable.dif_mass"><code class="name flex">
 <span>def <span class="ident">dif_mass</span></span>(<span>self) ‑> list</span>
 </code></dt>
 <dd>
@@ -2716,16 +2708,16 @@ for correct recallibration we need to mark mode
     return dif</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.ErrorTable.etalon_error"><code class="name flex">
-<span>def <span class="ident">etalon_error</span></span>(<span>self, spec: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>, etalon: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>, quart: float = 0.9, ppm: float = 3, show_error: bool = True)</span>
+<dt id="nhsmasslib.mass.ErrorTable.etalon_error"><code class="name flex">
+<span>def <span class="ident">etalon_error</span></span>(<span>self, spec: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>, etalon: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>, quart: float = 0.9, ppm: float = 3, show_error: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Recallibrate by etalon</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>spec</code></strong> :&ensp;<code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>spec</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>Initial mass spectrum for recallibrate</dd>
-<dt><strong><code>etalon</code></strong> :&ensp;<code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>etalon</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>Etalon mass spectrum</dd>
 <dt><strong><code>quart</code></strong> :&ensp;<code>float</code></dt>
 <dd>Optionaly. by default it is 0.9.
@@ -2826,8 +2818,8 @@ permissible relative error in ppm for seak peak in etalon</dd>
     return ErrorTable(err)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.ErrorTable.extrapolate"><code class="name flex">
-<span>def <span class="ident">extrapolate</span></span>(<span>self, ranges: Tuple[float, float] = None) ‑> <a title="masslib.mass.ErrorTable" href="#masslib.mass.ErrorTable">ErrorTable</a></span>
+<dt id="nhsmasslib.mass.ErrorTable.extrapolate"><code class="name flex">
+<span>def <span class="ident">extrapolate</span></span>(<span>self, ranges: Tuple[float, float] = None) ‑> <a title="nhsmasslib.mass.ErrorTable" href="#nhsmasslib.mass.ErrorTable">ErrorTable</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Extrapolate error data</p>
@@ -2871,7 +2863,7 @@ For which diaposone of mass extrapolate existin data</dd>
     return ErrorTable(err)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.ErrorTable.fit_kernel"><code class="name flex">
+<dt id="nhsmasslib.mass.ErrorTable.fit_kernel"><code class="name flex">
 <span>def <span class="ident">fit_kernel</span></span>(<span>self, f: <built-in function array>, show_map: bool = True) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -2939,7 +2931,7 @@ Plot how fit kernel</dd>
     return kde_err</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.ErrorTable.kernel_density_map"><code class="name flex">
+<dt id="nhsmasslib.mass.ErrorTable.kernel_density_map"><code class="name flex">
 <span>def <span class="ident">kernel_density_map</span></span>(<span>self, df_error: pandas.core.frame.DataFrame, ppm: float = 3, show_map: bool = False) ‑> <built-in function array></span>
 </code></dt>
 <dd>
@@ -3011,14 +3003,14 @@ treshould for generate</dd>
     return f</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.ErrorTable.massdiff_error"><code class="name flex">
-<span>def <span class="ident">massdiff_error</span></span>(<span>self, spec: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>, show_map: bool = True)</span>
+<dt id="nhsmasslib.mass.ErrorTable.massdiff_error"><code class="name flex">
+<span>def <span class="ident">massdiff_error</span></span>(<span>self, spec: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>, show_map: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Self-recallibration of mass-spectra by mass-difference map</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>spec</code></strong> :&ensp;<code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>spec</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>Initial mass spectrum for recallibrate</dd>
 <dt><strong><code>show_error</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Optional. Default True. Show process</dd>
@@ -3068,8 +3060,8 @@ Analytical chemistry, 91(5), 3350-3358.</p></div>
     return ErrorTable(err)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.ErrorTable.md_error_map"><code class="name flex">
-<span>def <span class="ident">md_error_map</span></span>(<span>self, spec: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>, ppm: float = 5, show_map: bool = True) ‑> pandas.core.frame.DataFrame</span>
+<dt id="nhsmasslib.mass.ErrorTable.md_error_map"><code class="name flex">
+<span>def <span class="ident">md_error_map</span></span>(<span>self, spec: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>, ppm: float = 5, show_map: bool = True) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate mass differnce map</p>
@@ -3150,7 +3142,7 @@ Show error in ppm versus mass</dd>
     return df_error</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.ErrorTable.show_error"><code class="name flex">
+<dt id="nhsmasslib.mass.ErrorTable.show_error"><code class="name flex">
 <span>def <span class="ident">show_error</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
@@ -3171,7 +3163,7 @@ Show error in ppm versus mass</dd>
 </dd>
 </dl>
 </dd>
-<dt id="masslib.mass.MassSpectrum"><code class="flex name class">
+<dt id="nhsmasslib.mass.MassSpectrum"><code class="flex name class">
 <span>class <span class="ident">MassSpectrum</span></span>
 <span>(</span><span>table: pandas.core.frame.DataFrame = None, elems: Sequence[str] = None)</span>
 </code></dt>
@@ -3785,7 +3777,7 @@ can be finded by class method find_elems()</dd>
         mode: str
             Optionaly. Default cosine. 
             one of the similarity functions
-            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;correlation&#34;, &#34;cosine&#34;
+            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;cosine&#34;
 
         Return
         ------
@@ -3813,8 +3805,6 @@ can be finded by class method find_elems()</dd>
             return 1 - spatial.distance.jaccard(A, B)
         elif mode == &#34;tanimoto&#34;:
             return 1 - spatial.distance.rogerstanimoto(A, B)
-        elif mode == &#34;correlation&#34;:
-            return 1 - spatial.distance.correlation(A, B)
         elif mode == &#39;cosine&#39;:
             return 1 - spatial.distance.cosine(A, B)
         else:
@@ -4117,8 +4107,8 @@ can be finded by class method find_elems()</dd>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="masslib.mass.MassSpectrum.assign"><code class="name flex">
-<span>def <span class="ident">assign</span></span>(<span>self, generated_bruttos_table: pandas.core.frame.DataFrame = None, rel_error: float = 0.5, sign: str = '-') ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.assign"><code class="name flex">
+<span>def <span class="ident">assign</span></span>(<span>self, generated_bruttos_table: pandas.core.frame.DataFrame = None, rel_error: float = 0.5, sign: str = '-') ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Finding the nearest mass in generated_bruttos_table</p>
@@ -4210,14 +4200,14 @@ None for neutral</dd>
     return MassSpectrum(table.join(res), elems=elems)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.assign_by_tmds"><code class="name flex">
-<span>def <span class="ident">assign_by_tmds</span></span>(<span>self, tmds_spec: <a title="masslib.mass.Tmds" href="#masslib.mass.Tmds">Tmds</a> = None, abs_error: float = 0.001, p=0.2, max_num: int = None, C13_filter: bool = True) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.assign_by_tmds"><code class="name flex">
+<span>def <span class="ident">assign_by_tmds</span></span>(<span>self, tmds_spec: <a title="nhsmasslib.mass.Tmds" href="#nhsmasslib.mass.Tmds">Tmds</a> = None, abs_error: float = 0.001, p=0.2, max_num: int = None, C13_filter: bool = True) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Assigne brutto formulas by TMDS</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>tmds_spec</code></strong> :&ensp;<code><a title="masslib.mass.Tmds" href="#masslib.mass.Tmds">Tmds</a> object</code></dt>
+<dt><strong><code>tmds_spec</code></strong> :&ensp;<code><a title="nhsmasslib.mass.Tmds" href="#nhsmasslib.mass.Tmds">Tmds</a> object</code></dt>
 <dd>Optional. if None generate tmds spectr with default parameters
 Tmds object, include table with most probability mass difference</dd>
 <dt><strong><code>abs_error</code></strong> :&ensp;<code>float</code></dt>
@@ -4316,8 +4306,8 @@ Relative probability coefficient for treshold tmds spectrum</dd>
     return MassSpectrum(out2)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.calculate_ai"><code class="name flex">
-<span>def <span class="ident">calculate_ai</span></span>(<span>self) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_ai"><code class="name flex">
+<span>def <span class="ident">calculate_ai</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate AI</p>
@@ -4341,8 +4331,8 @@ Relative probability coefficient for treshold tmds spectrum</dd>
     return MassSpectrum(table)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.calculate_cai"><code class="name flex">
-<span>def <span class="ident">calculate_cai</span></span>(<span>self) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_cai"><code class="name flex">
+<span>def <span class="ident">calculate_cai</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate CAI</p>
@@ -4377,8 +4367,8 @@ Relative probability coefficient for treshold tmds spectrum</dd>
     return MassSpectrum(table)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.calculate_dbe"><code class="name flex">
-<span>def <span class="ident">calculate_dbe</span></span>(<span>self) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_dbe"><code class="name flex">
+<span>def <span class="ident">calculate_dbe</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate DBE</p>
@@ -4410,8 +4400,8 @@ Relative probability coefficient for treshold tmds spectrum</dd>
     return MassSpectrum(table)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.calculate_error"><code class="name flex">
-<span>def <span class="ident">calculate_error</span></span>(<span>self, sign: str = '-') ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_error"><code class="name flex">
+<span>def <span class="ident">calculate_error</span></span>(<span>self, sign: str = '-') ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate relative and absolute error of assigned peaks</p>
@@ -4464,8 +4454,8 @@ None for neutral</dd>
     return MassSpectrum(table)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.calculate_mass"><code class="name flex">
-<span>def <span class="ident">calculate_mass</span></span>(<span>self) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_mass"><code class="name flex">
+<span>def <span class="ident">calculate_mass</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate mass from assigned brutto formulas</p>
@@ -4500,19 +4490,19 @@ None for neutral</dd>
     return MassSpectrum(self.table)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.calculate_simmilarity"><code class="name flex">
-<span>def <span class="ident">calculate_simmilarity</span></span>(<span>self, other: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>, mode: str = 'cosine') ‑> float</span>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_simmilarity"><code class="name flex">
+<span>def <span class="ident">calculate_simmilarity</span></span>(<span>self, other: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>, mode: str = 'cosine') ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate Simmilarity</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>other</code></strong> :&ensp;<code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>other</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>second MaasSpectrum object with that calc simmilarity</dd>
 <dt><strong><code>mode</code></strong> :&ensp;<code>str</code></dt>
 <dd>Optionaly. Default cosine.
 one of the similarity functions
-Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
+Mode can be: "tanimoto", "jaccard", "cosine"</dd>
 </dl>
 <h2 id="return">Return</h2>
 <p>float Simmilarity index</p></div>
@@ -4531,7 +4521,7 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
     mode: str
         Optionaly. Default cosine. 
         one of the similarity functions
-        Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;correlation&#34;, &#34;cosine&#34;
+        Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;cosine&#34;
 
     Return
     ------
@@ -4559,16 +4549,14 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
         return 1 - spatial.distance.jaccard(A, B)
     elif mode == &#34;tanimoto&#34;:
         return 1 - spatial.distance.rogerstanimoto(A, B)
-    elif mode == &#34;correlation&#34;:
-        return 1 - spatial.distance.correlation(A, B)
     elif mode == &#39;cosine&#39;:
         return 1 - spatial.distance.cosine(A, B)
     else:
         raise Exception(f&#34;There is no such mode: {mode}&#34;)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.copy"><code class="name flex">
-<span>def <span class="ident">copy</span></span>(<span>self) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.copy"><code class="name flex">
+<span>def <span class="ident">copy</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Deepcopy of self MassSpectrum object</p>
@@ -4589,8 +4577,8 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
     return copy.deepcopy(MassSpectrum(self.table))</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.draw"><code class="name flex">
-<span>def <span class="ident">draw</span></span>(<span>self, xlim: Tuple[Optional[float], Optional[float]] = (None, None), ylim: Tuple[Optional[float], Optional[float]] = (None, None), color: str = 'black', ax: <function axes at 0x7f77e03f95e0> = None) ‑> None</span>
+<dt id="nhsmasslib.mass.MassSpectrum.draw"><code class="name flex">
+<span>def <span class="ident">draw</span></span>(<span>self, xlim: Tuple[Optional[float], Optional[float]] = (None, None), ylim: Tuple[Optional[float], Optional[float]] = (None, None), color: str = 'black', ax: <function axes at 0x7fd5f0e2b550> = None) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw mass spectrum</p>
@@ -4671,8 +4659,8 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
     return</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.drop_unassigned"><code class="name flex">
-<span>def <span class="ident">drop_unassigned</span></span>(<span>self) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.drop_unassigned"><code class="name flex">
+<span>def <span class="ident">drop_unassigned</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Drop unassigned mass from Mass Spectrum table</p>
@@ -4703,8 +4691,8 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
     return MassSpectrum(self.table.loc[self.table[&#34;assign&#34;] == True].reset_index(drop=True))</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.filter_by_C13"><code class="name flex">
-<span>def <span class="ident">filter_by_C13</span></span>(<span>self, rel_error: float = 0.5, remove: bool = False) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.filter_by_C13"><code class="name flex">
+<span>def <span class="ident">filter_by_C13</span></span>(<span>self, rel_error: float = 0.5, remove: bool = False) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>C13 isotope peak checking</p>
@@ -4773,7 +4761,7 @@ if True peakes without C13 isotopes peak will be dropped</dd>
     return MassSpectrum(table)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.find_elems"><code class="name flex">
+<dt id="nhsmasslib.mass.MassSpectrum.find_elems"><code class="name flex">
 <span>def <span class="ident">find_elems</span></span>(<span>self) ‑> Sequence[str]</span>
 </code></dt>
 <dd>
@@ -4817,7 +4805,7 @@ For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
     return elems</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.head"><code class="name flex">
+<dt id="nhsmasslib.mass.MassSpectrum.head"><code class="name flex">
 <span>def <span class="ident">head</span></span>(<span>self, num: int = None) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -4852,8 +4840,8 @@ For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
         return self.table.head(num)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.load"><code class="name flex">
-<span>def <span class="ident">load</span></span>(<span>self, filename: Union[pathlib.Path, str], mapper: Mapping[str, str] = None, ignore_columns: Sequence[str] = None, take_columns: Sequence[str] = None, take_only_mz: Sequence[str] = False, sep: str = ',', intens_min: float = None, intens_max: float = None, mass_min: float = None, mass_max: float = None) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>self, filename: Union[pathlib.Path, str], mapper: Mapping[str, str] = None, ignore_columns: Sequence[str] = None, take_columns: Sequence[str] = None, take_only_mz: Sequence[str] = False, sep: str = ',', intens_min: float = None, intens_max: float = None, mass_min: float = None, mass_max: float = None) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Load mass pectrum table to MassSpectrum object</p>
@@ -4988,8 +4976,8 @@ by default None and don't restrict by this</dd>
     return self</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.normalize"><code class="name flex">
-<span>def <span class="ident">normalize</span></span>(<span>self) ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.normalize"><code class="name flex">
+<span>def <span class="ident">normalize</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Intensity normalize by max intensity</p>
@@ -5012,14 +5000,14 @@ by default None and don't restrict by this</dd>
     return MassSpectrum(table)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.recallibrate"><code class="name flex">
-<span>def <span class="ident">recallibrate</span></span>(<span>self, error_table: <a title="masslib.mass.ErrorTable" href="#masslib.mass.ErrorTable">ErrorTable</a> = None, how='assign') ‑> <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.recallibrate"><code class="name flex">
+<span>def <span class="ident">recallibrate</span></span>(<span>self, error_table: <a title="nhsmasslib.mass.ErrorTable" href="#nhsmasslib.mass.ErrorTable">ErrorTable</a> = None, how='assign') ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Recallibrate data by error-table</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>error_table</code></strong> :&ensp;<code><a title="masslib.mass.ErrorTable" href="#masslib.mass.ErrorTable">ErrorTable</a> object</code></dt>
+<dt><strong><code>error_table</code></strong> :&ensp;<code><a title="nhsmasslib.mass.ErrorTable" href="#nhsmasslib.mass.ErrorTable">ErrorTable</a> object</code></dt>
 <dd>Optional. If None - calculate for self.
 ErrorTable object contain table error in ppm for mass, default 100 string</dd>
 <dt><strong><code>how</code></strong> :&ensp;<code>str</code></dt>
@@ -5031,7 +5019,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object with recallibrated mass</code></dt>
+<dt><code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object with recallibrated mass</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
@@ -5089,7 +5077,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
     return MassSpectrum(data)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.save"><code class="name flex">
+<dt id="nhsmasslib.mass.MassSpectrum.save"><code class="name flex">
 <span>def <span class="ident">save</span></span>(<span>self, filename: Union[pathlib.Path, str], sep: str = ',') ‑> None</span>
 </code></dt>
 <dd>
@@ -5119,7 +5107,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
     self.table.to_csv(filename, sep=sep, index=False)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.show_error"><code class="name flex">
+<dt id="nhsmasslib.mass.MassSpectrum.show_error"><code class="name flex">
 <span>def <span class="ident">show_error</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
@@ -5142,7 +5130,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
     ax.set_ylabel(&#39;error, ppm&#39;)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrum.tail"><code class="name flex">
+<dt id="nhsmasslib.mass.MassSpectrum.tail"><code class="name flex">
 <span>def <span class="ident">tail</span></span>(<span>self, num: int = None) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -5179,15 +5167,15 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
 </dd>
 </dl>
 </dd>
-<dt id="masslib.mass.MassSpectrumList"><code class="flex name class">
+<dt id="nhsmasslib.mass.MassSpectrumList"><code class="flex name class">
 <span>class <span class="ident">MassSpectrumList</span></span>
-<span>(</span><span>spectra: Sequence[<a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>] = None, names: Optional[Sequence[str]] = None)</span>
+<span>(</span><span>spectra: Sequence[<a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>] = None, names: Optional[Sequence[str]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Class for work list of MassSpectrums objects</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>spectra</code></strong> :&ensp;<code>Sequence[<a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>]</code></dt>
+<dt><strong><code>spectra</code></strong> :&ensp;<code>Sequence[<a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>]</code></dt>
 <dd>list of MassSpectrum objects</dd>
 <dt><strong><code>names</code></strong> :&ensp;<code>Optional[Sequence[str]]</code></dt>
 <dd>list of names for spectra</dd>
@@ -5195,7 +5183,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
 <p>init MassSpectrumList Class</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>spectra</code></strong> :&ensp;<code>Sequence[<a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>]</code></dt>
+<dt><strong><code>spectra</code></strong> :&ensp;<code>Sequence[<a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>]</code></dt>
 <dd>list of MassSpectrum objects</dd>
 <dt><strong><code>names</code></strong> :&ensp;<code>Optional[Sequence[str]]</code></dt>
 <dd>list of names for spectra</dd>
@@ -5249,7 +5237,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
         mode: str
             Optionaly. Default cosine. 
             one of the similarity functions
-            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;correlation&#34;, &#34;cosine&#34;
+            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;cosine&#34;
 
         Return
         ------
@@ -5279,16 +5267,10 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
             A, B = get_vector(a, b)
             return 1 - spatial.distance.cosine(A, B)
 
-        def correlation(a, b):
-            A, B = get_vector(a, b)
-            return 1 - spatial.distance.correlation(A, B)
-
         if mode == &#34;jaccard&#34;:
             similarity_func = jaccard
         elif mode == &#34;tanimoto&#34;:
             similarity_func = tanimoto
-        elif mode == &#34;correlation&#34;:
-            similarity_func = correlation
         elif mode == &#39;cosine&#39;:
             similarity_func = cosine
         else:
@@ -5324,7 +5306,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
         mode: str
             Optionaly. If values is none for calculate matrix. 
             Default cosine. one of the similarity functions
-            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;correlation&#34;, &#34;cosine&#34;
+            Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;cosine&#34;
         ax: matplotlib axes
             Entarnal axes for plot
         annotate: bool
@@ -5343,7 +5325,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="masslib.mass.MassSpectrumList.calculate_similarity"><code class="name flex">
+<dt id="nhsmasslib.mass.MassSpectrumList.calculate_similarity"><code class="name flex">
 <span>def <span class="ident">calculate_similarity</span></span>(<span>self, mode: str = 'cosine') ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
@@ -5353,7 +5335,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
 <dt><strong><code>mode</code></strong> :&ensp;<code>str</code></dt>
 <dd>Optionaly. Default cosine.
 one of the similarity functions
-Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
+Mode can be: "tanimoto", "jaccard", "cosine"</dd>
 </dl>
 <h2 id="return">Return</h2>
 <p>similarity matrix, 2d np.ndarray with size [len(names), len(names)]</p></div>
@@ -5370,7 +5352,7 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
     mode: str
         Optionaly. Default cosine. 
         one of the similarity functions
-        Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;correlation&#34;, &#34;cosine&#34;
+        Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;cosine&#34;
 
     Return
     ------
@@ -5400,16 +5382,10 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
         A, B = get_vector(a, b)
         return 1 - spatial.distance.cosine(A, B)
 
-    def correlation(a, b):
-        A, B = get_vector(a, b)
-        return 1 - spatial.distance.correlation(A, B)
-
     if mode == &#34;jaccard&#34;:
         similarity_func = jaccard
     elif mode == &#34;tanimoto&#34;:
         similarity_func = tanimoto
-    elif mode == &#34;correlation&#34;:
-        similarity_func = correlation
     elif mode == &#39;cosine&#39;:
         similarity_func = cosine
     else:
@@ -5428,8 +5404,8 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
     return np.array(values)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.MassSpectrumList.draw_similarity"><code class="name flex">
-<span>def <span class="ident">draw_similarity</span></span>(<span>self, mode: str = 'cosine', values: numpy.ndarray = None, ax: <function axes at 0x7f77e03f95e0> = None, annot=True) ‑> None</span>
+<dt id="nhsmasslib.mass.MassSpectrumList.draw_similarity"><code class="name flex">
+<span>def <span class="ident">draw_similarity</span></span>(<span>self, mode: str = 'cosine', values: numpy.ndarray = None, ax: <function axes at 0x7fd5f0e2b550> = None, annot=True) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw similarity matrix by using seaborn</p>
@@ -5441,7 +5417,7 @@ Default None - It is call calculate_similarity() method.</dd>
 <dt><strong><code>mode</code></strong> :&ensp;<code>str</code></dt>
 <dd>Optionaly. If values is none for calculate matrix.
 Default cosine. one of the similarity functions
-Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
+Mode can be: "tanimoto", "jaccard", "cosine"</dd>
 <dt><strong><code>ax</code></strong> :&ensp;<code>matplotlib axes</code></dt>
 <dd>Entarnal axes for plot</dd>
 <dt><strong><code>annotate</code></strong> :&ensp;<code>bool</code></dt>
@@ -5469,7 +5445,7 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
     mode: str
         Optionaly. If values is none for calculate matrix. 
         Default cosine. one of the similarity functions
-        Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;correlation&#34;, &#34;cosine&#34;
+        Mode can be: &#34;tanimoto&#34;, &#34;jaccard&#34;, &#34;cosine&#34;
     ax: matplotlib axes
         Entarnal axes for plot
     annotate: bool
@@ -5489,9 +5465,9 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
 </dd>
 </dl>
 </dd>
-<dt id="masslib.mass.Reaction"><code class="flex name class">
+<dt id="nhsmasslib.mass.Reaction"><code class="flex name class">
 <span>class <span class="ident">Reaction</span></span>
-<span>(</span><span>sourse: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> = None, product: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> = None)</span>
+<span>(</span><span>sourse: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> = None, product: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Class for discover reaction by MS-difference methods</p>
@@ -5503,9 +5479,9 @@ mass spectrum of product</p>
 <p>Init Reaction</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>sourse</code></strong> :&ensp;<code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>sourse</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>mass spectrum of source</dd>
-<dt><strong><code>product</code></strong> :&ensp;<code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>product</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>mass spectrum of product</dd>
 </dl></div>
 <details class="source">
@@ -5624,8 +5600,8 @@ mass spectrum of product</p>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="masslib.mass.Reaction.draw_modification"><code class="name flex">
-<span>def <span class="ident">draw_modification</span></span>(<span>self, ax: <function axes at 0x7f77e03f95e0> = None, sourse: bool = True, product: bool = True, sourse_color: str = 'red', product_color: str = 'blue', volume: float = 5) ‑> None</span>
+<dt id="nhsmasslib.mass.Reaction.draw_modification"><code class="name flex">
+<span>def <span class="ident">draw_modification</span></span>(<span>self, ax: <function axes at 0x7fd5f0e2b550> = None, sourse: bool = True, product: bool = True, sourse_color: str = 'red', product_color: str = 'blue', volume: float = 5) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot Van-Krevelen for modifed peaks in product and sourse</p>
@@ -5690,8 +5666,8 @@ mass spectrum of product</p>
         vk_p = VanKrevelen(p).draw_scatter(ax=ax, volumes=volume, color=product_color)        </code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.Reaction.find_modification"><code class="name flex">
-<span>def <span class="ident">find_modification</span></span>(<span>self, brutto_table: pandas.core.frame.DataFrame) ‑> <a title="masslib.mass.Reaction" href="#masslib.mass.Reaction">Reaction</a></span>
+<dt id="nhsmasslib.mass.Reaction.find_modification"><code class="name flex">
+<span>def <span class="ident">find_modification</span></span>(<span>self, brutto_table: pandas.core.frame.DataFrame) ‑> <a title="nhsmasslib.mass.Reaction" href="#nhsmasslib.mass.Reaction">Reaction</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Find in source peaks that have modifed by diff-mass-es in brutto table
@@ -5748,7 +5724,7 @@ Can be generated by function brutto_generator.brutto_gen().</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="masslib.mass.SpectrumIsNotAssigned"><code class="flex name class">
+<dt id="nhsmasslib.mass.SpectrumIsNotAssigned"><code class="flex name class">
 <span>class <span class="ident">SpectrumIsNotAssigned</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
@@ -5767,7 +5743,7 @@ Can be generated by function brutto_generator.brutto_gen().</p></div>
 <li>builtins.BaseException</li>
 </ul>
 </dd>
-<dt id="masslib.mass.Tmds"><code class="flex name class">
+<dt id="nhsmasslib.mass.Tmds"><code class="flex name class">
 <span>class <span class="ident">Tmds</span></span>
 <span>(</span><span>table: pandas.core.frame.DataFrame = None, elems: Sequence[str] = None)</span>
 </code></dt>
@@ -5919,7 +5895,7 @@ Can be generated by function brutto_generator.brutto_gen().</p></div>
         
         if max_num is not None and max_num &lt; len(tmds_spec):
             tmds_spec = tmds_spec.sort_values(by=&#39;probability&#39;).reset_index(drop=True)
-            tmds = tmds[:max_num]
+            tmds_spec = tmds_spec[:max_num]
             tmds_spec = tmds_spec.sort_values(by=&#39;mass_dif&#39;).reset_index(drop=True)
 
         return Tmds(tmds_spec)
@@ -6105,8 +6081,8 @@ Can be generated by function brutto_generator.brutto_gen().</p></div>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="masslib.mass.Tmds.assign"><code class="name flex">
-<span>def <span class="ident">assign</span></span>(<span>self, generated_bruttos_table: pandas.core.frame.DataFrame = None, error: float = 0.001, gdf: dict = {'C': (-1, 20), 'H': (-4, 40), 'O': (-1, 20), 'N': (-1, 2)}) ‑> <a title="masslib.mass.Tmds" href="#masslib.mass.Tmds">Tmds</a></span>
+<dt id="nhsmasslib.mass.Tmds.assign"><code class="name flex">
+<span>def <span class="ident">assign</span></span>(<span>self, generated_bruttos_table: pandas.core.frame.DataFrame = None, error: float = 0.001, gdf: dict = {'C': (-1, 20), 'H': (-4, 40), 'O': (-1, 20), 'N': (-1, 2)}) ‑> <a title="nhsmasslib.mass.Tmds" href="#nhsmasslib.mass.Tmds">Tmds</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Finding the nearest mass in generated_bruttos_table</p>
@@ -6179,16 +6155,16 @@ generate brutto table if generated_bruttos_table is None.</dd>
     return Tmds(table=res, elems=elems)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.Tmds.calc"><code class="name flex">
-<span>def <span class="ident">calc</span></span>(<span>self, mass_spec: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>, other: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> = None, p: float = 0.2, wide: int = 10, C13_filter: bool = True, max_num: int = None) ‑> <a title="masslib.mass.Tmds" href="#masslib.mass.Tmds">Tmds</a></span>
+<dt id="nhsmasslib.mass.Tmds.calc"><code class="name flex">
+<span>def <span class="ident">calc</span></span>(<span>self, mass_spec: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>, other: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> = None, p: float = 0.2, wide: int = 10, C13_filter: bool = True, max_num: int = None) ‑> <a title="nhsmasslib.mass.Tmds" href="#nhsmasslib.mass.Tmds">Tmds</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Total mass difference statistic calculation </p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>mass_spec</code></strong> :&ensp;<code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>mass_spec</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>for tmds calculation</dd>
-<dt><strong><code>other</code></strong> :&ensp;<code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>other</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>Optional. If None, TMDS will call by self.</dd>
 <dt><strong><code>p</code></strong> :&ensp;<code>float</code></dt>
 <dd>Optional. Default 0.2.
@@ -6303,14 +6279,14 @@ If not None take only max_num peaks with higher probability</dd>
     
     if max_num is not None and max_num &lt; len(tmds_spec):
         tmds_spec = tmds_spec.sort_values(by=&#39;probability&#39;).reset_index(drop=True)
-        tmds = tmds[:max_num]
+        tmds_spec = tmds_spec[:max_num]
         tmds_spec = tmds_spec.sort_values(by=&#39;mass_dif&#39;).reset_index(drop=True)
 
     return Tmds(tmds_spec)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.Tmds.calculate_mass"><code class="name flex">
-<span>def <span class="ident">calculate_mass</span></span>(<span>self) ‑> <a title="masslib.mass.Tmds" href="#masslib.mass.Tmds">Tmds</a></span>
+<dt id="nhsmasslib.mass.Tmds.calculate_mass"><code class="name flex">
+<span>def <span class="ident">calculate_mass</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.Tmds" href="#nhsmasslib.mass.Tmds">Tmds</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate mass from brutto formulas in tmds table</p>
@@ -6342,7 +6318,7 @@ If not None take only max_num peaks with higher probability</dd>
     return Tmds(self.table, elems=self.elems)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.Tmds.draw"><code class="name flex">
+<dt id="nhsmasslib.mass.Tmds.draw"><code class="name flex">
 <span>def <span class="ident">draw</span></span>(<span>self, xlim: Tuple[float, float] = (None, None), ylim: Tuple[float, float] = (None, None), color: str = 'black', ax=None) ‑> None</span>
 </code></dt>
 <dd>
@@ -6424,7 +6400,7 @@ If not None take only max_num peaks with higher probability</dd>
     return</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.Tmds.find_elems"><code class="name flex">
+<dt id="nhsmasslib.mass.Tmds.find_elems"><code class="name flex">
 <span>def <span class="ident">find_elems</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -6466,8 +6442,8 @@ For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
     return elems</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.Tmds.load"><code class="name flex">
-<span>def <span class="ident">load</span></span>(<span>self, filename: str) ‑> <a title="masslib.mass.Tmds" href="#masslib.mass.Tmds">Tmds</a></span>
+<dt id="nhsmasslib.mass.Tmds.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>self, filename: str) ‑> <a title="nhsmasslib.mass.Tmds" href="#nhsmasslib.mass.Tmds">Tmds</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Load Tmds spectrum table from csv</p>
@@ -6492,7 +6468,7 @@ For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
     return Tmds(pd.read_csv(filename))</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.Tmds.save"><code class="name flex">
+<dt id="nhsmasslib.mass.Tmds.save"><code class="name flex">
 <span>def <span class="ident">save</span></span>(<span>self, filename: str) ‑> None</span>
 </code></dt>
 <dd>
@@ -6520,22 +6496,22 @@ For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
 </dd>
 </dl>
 </dd>
-<dt id="masslib.mass.VanKrevelen"><code class="flex name class">
+<dt id="nhsmasslib.mass.VanKrevelen"><code class="flex name class">
 <span>class <span class="ident">VanKrevelen</span></span>
-<span>(</span><span>table: Union[pandas.core.frame.DataFrame, ForwardRef('<a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>'), None] = None)</span>
+<span>(</span><span>table: Union[pandas.core.frame.DataFrame, ForwardRef('<a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>'), None] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A class used to plot Van-Krevelen diagramm</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>table</code></strong> :&ensp;<code>pandas Datarame</code> or <code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>table</code></strong> :&ensp;<code>pandas Datarame</code> or <code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>consist spectrum (mass and intensity of peaks) and all calculated parameters.
 Must contain elements 'C', 'H', 'N'</dd>
 </dl>
 <p>Init and calculate C/H, O/C relatives</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>table</code></strong> :&ensp;<code>pandas Datarame</code> or <code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dt><strong><code>table</code></strong> :&ensp;<code>pandas Datarame</code> or <code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
 <dd>consist spectrum (mass and intensity of peaks) and all calculated parameters
 Must contain elements 'C', 'H', 'N'</dd>
 </dl></div>
@@ -6728,8 +6704,8 @@ Must contain elements 'C', 'H', 'N'</dd>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="masslib.mass.VanKrevelen.draw_density"><code class="name flex">
-<span>def <span class="ident">draw_density</span></span>(<span>self, cmap: str = 'Blues', ax: <function axes at 0x7f77e03f95e0> = None, shade: bool = True) ‑> None</span>
+<dt id="nhsmasslib.mass.VanKrevelen.draw_density"><code class="name flex">
+<span>def <span class="ident">draw_density</span></span>(<span>self, cmap: str = 'Blues', ax: <function axes at 0x7fd5f0e2b550> = None, shade: bool = True) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw Van-Krevelen density</p>
@@ -6770,8 +6746,8 @@ Must contain elements 'C', 'H', 'N'</dd>
     sns.kdeplot(self.table[&#34;O/C&#34;], self.table[&#34;H/C&#34;], ax=ax, cmap=cmap, shade=shade)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.VanKrevelen.draw_scatter"><code class="name flex">
-<span>def <span class="ident">draw_scatter</span></span>(<span>self, ax: <function axes at 0x7f77e03f95e0> = None, volumes: float = None, color: str = 'blue', nitrogen: bool = False, sulphur: bool = False, alpha: float = 0.3, mark_elem: str = None, **kwargs) ‑> None</span>
+<dt id="nhsmasslib.mass.VanKrevelen.draw_scatter"><code class="name flex">
+<span>def <span class="ident">draw_scatter</span></span>(<span>self, ax: <function axes at 0x7fd5f0e2b550> = None, volumes: float = None, color: str = 'blue', nitrogen: bool = False, sulphur: bool = False, alpha: float = 0.3, mark_elem: str = None, **kwargs) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>plot Van-Krevelen diagramm</p>
@@ -6870,7 +6846,7 @@ By default calc by median intensity of spectrum</dd>
     ax.set_title(f&#39;{num_formules} formulas&#39;, size=10)</code></pre>
 </details>
 </dd>
-<dt id="masslib.mass.VanKrevelen.squares"><code class="name flex">
+<dt id="nhsmasslib.mass.VanKrevelen.squares"><code class="name flex">
 <span>def <span class="ident">squares</span></span>(<span>self, draw: bool = True) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
@@ -6933,88 +6909,88 @@ Optional, default True. Draw heatmap for squares</p>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="masslib" href="index.html">masslib</a></code></li>
+<li><code><a title="nhsmasslib" href="index.html">nhsmasslib</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="masslib.mass.CanNotCreateVanKrevelen" href="#masslib.mass.CanNotCreateVanKrevelen">CanNotCreateVanKrevelen</a></code></h4>
+<h4><code><a title="nhsmasslib.mass.CanNotCreateVanKrevelen" href="#nhsmasslib.mass.CanNotCreateVanKrevelen">CanNotCreateVanKrevelen</a></code></h4>
 </li>
 <li>
-<h4><code><a title="masslib.mass.ErrorTable" href="#masslib.mass.ErrorTable">ErrorTable</a></code></h4>
+<h4><code><a title="nhsmasslib.mass.ErrorTable" href="#nhsmasslib.mass.ErrorTable">ErrorTable</a></code></h4>
 <ul class="two-column">
-<li><code><a title="masslib.mass.ErrorTable.assign_error" href="#masslib.mass.ErrorTable.assign_error">assign_error</a></code></li>
-<li><code><a title="masslib.mass.ErrorTable.dif_mass" href="#masslib.mass.ErrorTable.dif_mass">dif_mass</a></code></li>
-<li><code><a title="masslib.mass.ErrorTable.etalon_error" href="#masslib.mass.ErrorTable.etalon_error">etalon_error</a></code></li>
-<li><code><a title="masslib.mass.ErrorTable.extrapolate" href="#masslib.mass.ErrorTable.extrapolate">extrapolate</a></code></li>
-<li><code><a title="masslib.mass.ErrorTable.fit_kernel" href="#masslib.mass.ErrorTable.fit_kernel">fit_kernel</a></code></li>
-<li><code><a title="masslib.mass.ErrorTable.kernel_density_map" href="#masslib.mass.ErrorTable.kernel_density_map">kernel_density_map</a></code></li>
-<li><code><a title="masslib.mass.ErrorTable.massdiff_error" href="#masslib.mass.ErrorTable.massdiff_error">massdiff_error</a></code></li>
-<li><code><a title="masslib.mass.ErrorTable.md_error_map" href="#masslib.mass.ErrorTable.md_error_map">md_error_map</a></code></li>
-<li><code><a title="masslib.mass.ErrorTable.show_error" href="#masslib.mass.ErrorTable.show_error">show_error</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.assign_error" href="#nhsmasslib.mass.ErrorTable.assign_error">assign_error</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.dif_mass" href="#nhsmasslib.mass.ErrorTable.dif_mass">dif_mass</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.etalon_error" href="#nhsmasslib.mass.ErrorTable.etalon_error">etalon_error</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.extrapolate" href="#nhsmasslib.mass.ErrorTable.extrapolate">extrapolate</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.fit_kernel" href="#nhsmasslib.mass.ErrorTable.fit_kernel">fit_kernel</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.kernel_density_map" href="#nhsmasslib.mass.ErrorTable.kernel_density_map">kernel_density_map</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.massdiff_error" href="#nhsmasslib.mass.ErrorTable.massdiff_error">massdiff_error</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.md_error_map" href="#nhsmasslib.mass.ErrorTable.md_error_map">md_error_map</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.show_error" href="#nhsmasslib.mass.ErrorTable.show_error">show_error</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a></code></h4>
+<h4><code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></code></h4>
 <ul class="">
-<li><code><a title="masslib.mass.MassSpectrum.assign" href="#masslib.mass.MassSpectrum.assign">assign</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.assign_by_tmds" href="#masslib.mass.MassSpectrum.assign_by_tmds">assign_by_tmds</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.calculate_ai" href="#masslib.mass.MassSpectrum.calculate_ai">calculate_ai</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.calculate_cai" href="#masslib.mass.MassSpectrum.calculate_cai">calculate_cai</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.calculate_dbe" href="#masslib.mass.MassSpectrum.calculate_dbe">calculate_dbe</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.calculate_error" href="#masslib.mass.MassSpectrum.calculate_error">calculate_error</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.calculate_mass" href="#masslib.mass.MassSpectrum.calculate_mass">calculate_mass</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.calculate_simmilarity" href="#masslib.mass.MassSpectrum.calculate_simmilarity">calculate_simmilarity</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.copy" href="#masslib.mass.MassSpectrum.copy">copy</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.draw" href="#masslib.mass.MassSpectrum.draw">draw</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.drop_unassigned" href="#masslib.mass.MassSpectrum.drop_unassigned">drop_unassigned</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.filter_by_C13" href="#masslib.mass.MassSpectrum.filter_by_C13">filter_by_C13</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.find_elems" href="#masslib.mass.MassSpectrum.find_elems">find_elems</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.head" href="#masslib.mass.MassSpectrum.head">head</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.load" href="#masslib.mass.MassSpectrum.load">load</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.normalize" href="#masslib.mass.MassSpectrum.normalize">normalize</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.recallibrate" href="#masslib.mass.MassSpectrum.recallibrate">recallibrate</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.save" href="#masslib.mass.MassSpectrum.save">save</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.show_error" href="#masslib.mass.MassSpectrum.show_error">show_error</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrum.tail" href="#masslib.mass.MassSpectrum.tail">tail</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.assign" href="#nhsmasslib.mass.MassSpectrum.assign">assign</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.assign_by_tmds" href="#nhsmasslib.mass.MassSpectrum.assign_by_tmds">assign_by_tmds</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_ai" href="#nhsmasslib.mass.MassSpectrum.calculate_ai">calculate_ai</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_cai" href="#nhsmasslib.mass.MassSpectrum.calculate_cai">calculate_cai</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_dbe" href="#nhsmasslib.mass.MassSpectrum.calculate_dbe">calculate_dbe</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_error" href="#nhsmasslib.mass.MassSpectrum.calculate_error">calculate_error</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_mass" href="#nhsmasslib.mass.MassSpectrum.calculate_mass">calculate_mass</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_simmilarity" href="#nhsmasslib.mass.MassSpectrum.calculate_simmilarity">calculate_simmilarity</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.copy" href="#nhsmasslib.mass.MassSpectrum.copy">copy</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.draw" href="#nhsmasslib.mass.MassSpectrum.draw">draw</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.drop_unassigned" href="#nhsmasslib.mass.MassSpectrum.drop_unassigned">drop_unassigned</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.filter_by_C13" href="#nhsmasslib.mass.MassSpectrum.filter_by_C13">filter_by_C13</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.find_elems" href="#nhsmasslib.mass.MassSpectrum.find_elems">find_elems</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.head" href="#nhsmasslib.mass.MassSpectrum.head">head</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.load" href="#nhsmasslib.mass.MassSpectrum.load">load</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.normalize" href="#nhsmasslib.mass.MassSpectrum.normalize">normalize</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.recallibrate" href="#nhsmasslib.mass.MassSpectrum.recallibrate">recallibrate</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.save" href="#nhsmasslib.mass.MassSpectrum.save">save</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.show_error" href="#nhsmasslib.mass.MassSpectrum.show_error">show_error</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.tail" href="#nhsmasslib.mass.MassSpectrum.tail">tail</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="masslib.mass.MassSpectrumList" href="#masslib.mass.MassSpectrumList">MassSpectrumList</a></code></h4>
+<h4><code><a title="nhsmasslib.mass.MassSpectrumList" href="#nhsmasslib.mass.MassSpectrumList">MassSpectrumList</a></code></h4>
 <ul class="">
-<li><code><a title="masslib.mass.MassSpectrumList.calculate_similarity" href="#masslib.mass.MassSpectrumList.calculate_similarity">calculate_similarity</a></code></li>
-<li><code><a title="masslib.mass.MassSpectrumList.draw_similarity" href="#masslib.mass.MassSpectrumList.draw_similarity">draw_similarity</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrumList.calculate_similarity" href="#nhsmasslib.mass.MassSpectrumList.calculate_similarity">calculate_similarity</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrumList.draw_similarity" href="#nhsmasslib.mass.MassSpectrumList.draw_similarity">draw_similarity</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="masslib.mass.Reaction" href="#masslib.mass.Reaction">Reaction</a></code></h4>
+<h4><code><a title="nhsmasslib.mass.Reaction" href="#nhsmasslib.mass.Reaction">Reaction</a></code></h4>
 <ul class="">
-<li><code><a title="masslib.mass.Reaction.draw_modification" href="#masslib.mass.Reaction.draw_modification">draw_modification</a></code></li>
-<li><code><a title="masslib.mass.Reaction.find_modification" href="#masslib.mass.Reaction.find_modification">find_modification</a></code></li>
+<li><code><a title="nhsmasslib.mass.Reaction.draw_modification" href="#nhsmasslib.mass.Reaction.draw_modification">draw_modification</a></code></li>
+<li><code><a title="nhsmasslib.mass.Reaction.find_modification" href="#nhsmasslib.mass.Reaction.find_modification">find_modification</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="masslib.mass.SpectrumIsNotAssigned" href="#masslib.mass.SpectrumIsNotAssigned">SpectrumIsNotAssigned</a></code></h4>
+<h4><code><a title="nhsmasslib.mass.SpectrumIsNotAssigned" href="#nhsmasslib.mass.SpectrumIsNotAssigned">SpectrumIsNotAssigned</a></code></h4>
 </li>
 <li>
-<h4><code><a title="masslib.mass.Tmds" href="#masslib.mass.Tmds">Tmds</a></code></h4>
+<h4><code><a title="nhsmasslib.mass.Tmds" href="#nhsmasslib.mass.Tmds">Tmds</a></code></h4>
 <ul class="two-column">
-<li><code><a title="masslib.mass.Tmds.assign" href="#masslib.mass.Tmds.assign">assign</a></code></li>
-<li><code><a title="masslib.mass.Tmds.calc" href="#masslib.mass.Tmds.calc">calc</a></code></li>
-<li><code><a title="masslib.mass.Tmds.calculate_mass" href="#masslib.mass.Tmds.calculate_mass">calculate_mass</a></code></li>
-<li><code><a title="masslib.mass.Tmds.draw" href="#masslib.mass.Tmds.draw">draw</a></code></li>
-<li><code><a title="masslib.mass.Tmds.find_elems" href="#masslib.mass.Tmds.find_elems">find_elems</a></code></li>
-<li><code><a title="masslib.mass.Tmds.load" href="#masslib.mass.Tmds.load">load</a></code></li>
-<li><code><a title="masslib.mass.Tmds.save" href="#masslib.mass.Tmds.save">save</a></code></li>
+<li><code><a title="nhsmasslib.mass.Tmds.assign" href="#nhsmasslib.mass.Tmds.assign">assign</a></code></li>
+<li><code><a title="nhsmasslib.mass.Tmds.calc" href="#nhsmasslib.mass.Tmds.calc">calc</a></code></li>
+<li><code><a title="nhsmasslib.mass.Tmds.calculate_mass" href="#nhsmasslib.mass.Tmds.calculate_mass">calculate_mass</a></code></li>
+<li><code><a title="nhsmasslib.mass.Tmds.draw" href="#nhsmasslib.mass.Tmds.draw">draw</a></code></li>
+<li><code><a title="nhsmasslib.mass.Tmds.find_elems" href="#nhsmasslib.mass.Tmds.find_elems">find_elems</a></code></li>
+<li><code><a title="nhsmasslib.mass.Tmds.load" href="#nhsmasslib.mass.Tmds.load">load</a></code></li>
+<li><code><a title="nhsmasslib.mass.Tmds.save" href="#nhsmasslib.mass.Tmds.save">save</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="masslib.mass.VanKrevelen" href="#masslib.mass.VanKrevelen">VanKrevelen</a></code></h4>
+<h4><code><a title="nhsmasslib.mass.VanKrevelen" href="#nhsmasslib.mass.VanKrevelen">VanKrevelen</a></code></h4>
 <ul class="">
-<li><code><a title="masslib.mass.VanKrevelen.draw_density" href="#masslib.mass.VanKrevelen.draw_density">draw_density</a></code></li>
-<li><code><a title="masslib.mass.VanKrevelen.draw_scatter" href="#masslib.mass.VanKrevelen.draw_scatter">draw_scatter</a></code></li>
-<li><code><a title="masslib.mass.VanKrevelen.squares" href="#masslib.mass.VanKrevelen.squares">squares</a></code></li>
+<li><code><a title="nhsmasslib.mass.VanKrevelen.draw_density" href="#nhsmasslib.mass.VanKrevelen.draw_density">draw_density</a></code></li>
+<li><code><a title="nhsmasslib.mass.VanKrevelen.draw_scatter" href="#nhsmasslib.mass.VanKrevelen.draw_scatter">draw_scatter</a></code></li>
+<li><code><a title="nhsmasslib.mass.VanKrevelen.squares" href="#nhsmasslib.mass.VanKrevelen.squares">squares</a></code></li>
 </ul>
 </li>
 </ul>

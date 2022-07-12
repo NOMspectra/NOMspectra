@@ -1,9 +1,9 @@
 from distutils.core import setup
 
 setup(
-    name='masslib',
+    name='nhsmasslib',
     version='0.1.0',
-    packages=['masslib',],
+    packages=['nhsmasslib',],
     license='GPLv3',
     description='A small lib for treatment high-resolution mass spectrum',
     long_description=open('README.md').read(),
