@@ -941,16 +941,13 @@ class MassSpectrum(object):
             raise SpectrumIsNotAssigned()
 
         if tmds_spec is None:
-            tmds_spec = Tmds().calc(self, p=p, C13_filter=C13_filter) #by varifiy p-value we can choose how much mass-diff we will take
+            tmds_spec = Tmds().calc(self, p=p, C13_filter=C13_filter, max_num=max_num) #by varifiy p-value we can choose how much mass-diff we will take
             tmds_spec = tmds_spec.assign()
             tmds_spec = tmds_spec.calculate_mass()
 
         tmds = tmds_spec.table.sort_values(by=&#39;probability&#39;, ascending=False).reset_index(drop=True)
         tmds = tmds.loc[tmds[&#39;probability&#39;] &gt; p]
         elem = tmds_spec.elems
-
-        if max_num is not None and max_num &lt; len(tmds):
-            tmds = tmds[:max_num]
 
         spec = copy.deepcopy(self)
         
@@ -1595,7 +1592,7 @@ class MassSpectrumList(object):
         list of names for spectra
     &#34;&#34;&#34;
 
-    def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]] = None):
+    def __init__(self, spectra: Sequence[MassSpectrum] = None, names: Optional[Sequence[str]] = None):
         &#34;&#34;&#34;
         init MassSpectrumList Class
         
@@ -1606,11 +1603,18 @@ class MassSpectrumList(object):
         names: Optional[Sequence[str]]
             list of names for spectra
         &#34;&#34;&#34;
-        self.spectra = spectra
+        
+        if spectra:
+            self.spectra = spectra
+        else:
+            self.spectra = []
+
         if names:
             self.names = names
+        elif len(self.spectra) &gt; 0:
+            self.names = list(range(len(self.spectra)))
         else:
-            self.names = list(range(len(spectra)))
+            self.names = []
 
     def calculate_similarity(self, mode: str = &#34;cosine&#34;) -&gt; np.ndarray:
         &#34;&#34;&#34;
@@ -1672,7 +1676,7 @@ class MassSpectrumList(object):
                 i = i.calculate_mass()
             values.append([])
             for j in self.spectra:
-                if &#39;calculated_mass&#39; not in i.table:
+                if &#39;calculated_mass&#39; not in j.table:
                     j = j.calculate_mass()
                 values[-1].append(similarity_func(i.table[&#39;calculated_mass&#39;].dropna().values, j.table[&#39;calculated_mass&#39;].dropna().values))
 
@@ -1754,7 +1758,8 @@ class Tmds(object):
         other:&#34;MassSpectrum&#34;=None,
         p: float = 0.2,
         wide: int = 10,
-        C13_filter = True
+        C13_filter:bool = True,
+        max_num: int = None
         ) -&gt; &#34;Tmds&#34;:
 
         &#34;&#34;&#34;
@@ -1775,6 +1780,9 @@ class Tmds(object):
         C13_filter: bool
             Optional. Default True. 
             Use only peaks that have C13 isotope peak
+        max_num: int
+            Optional. Default None
+            If not None take only max_num peaks with higher probability
 
         Reference
         ---------
@@ -1834,6 +1842,12 @@ class Tmds(object):
 
         if len(tmds_spec) &lt; 0:
             raise Exception(f&#34;There isn&#39;t mass diff mass, decrease p-value&#34;)
+
+        
+        if max_num is not None and max_num &lt; len(tmds_spec):
+            tmds_spec = tmds_spec.sort_values(by=&#39;probability&#39;).reset_index(drop=True)
+            tmds = tmds[:max_num]
+            tmds_spec = tmds_spec.sort_values(by=&#39;mass_dif&#39;).reset_index(drop=True)
 
         return Tmds(tmds_spec)
 
@@ -4056,16 +4070,13 @@ can be finded by class method find_elems()</dd>
             raise SpectrumIsNotAssigned()
 
         if tmds_spec is None:
-            tmds_spec = Tmds().calc(self, p=p, C13_filter=C13_filter) #by varifiy p-value we can choose how much mass-diff we will take
+            tmds_spec = Tmds().calc(self, p=p, C13_filter=C13_filter, max_num=max_num) #by varifiy p-value we can choose how much mass-diff we will take
             tmds_spec = tmds_spec.assign()
             tmds_spec = tmds_spec.calculate_mass()
 
         tmds = tmds_spec.table.sort_values(by=&#39;probability&#39;, ascending=False).reset_index(drop=True)
         tmds = tmds.loc[tmds[&#39;probability&#39;] &gt; p]
         elem = tmds_spec.elems
-
-        if max_num is not None and max_num &lt; len(tmds):
-            tmds = tmds[:max_num]
 
         spec = copy.deepcopy(self)
         
@@ -4259,16 +4270,13 @@ Relative probability coefficient for treshold tmds spectrum</dd>
         raise SpectrumIsNotAssigned()
 
     if tmds_spec is None:
-        tmds_spec = Tmds().calc(self, p=p, C13_filter=C13_filter) #by varifiy p-value we can choose how much mass-diff we will take
+        tmds_spec = Tmds().calc(self, p=p, C13_filter=C13_filter, max_num=max_num) #by varifiy p-value we can choose how much mass-diff we will take
         tmds_spec = tmds_spec.assign()
         tmds_spec = tmds_spec.calculate_mass()
 
     tmds = tmds_spec.table.sort_values(by=&#39;probability&#39;, ascending=False).reset_index(drop=True)
     tmds = tmds.loc[tmds[&#39;probability&#39;] &gt; p]
     elem = tmds_spec.elems
-
-    if max_num is not None and max_num &lt; len(tmds):
-        tmds = tmds[:max_num]
 
     spec = copy.deepcopy(self)
     
@@ -4582,7 +4590,7 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
 </details>
 </dd>
 <dt id="masslib.mass.MassSpectrum.draw"><code class="name flex">
-<span>def <span class="ident">draw</span></span>(<span>self, xlim: Tuple[Optional[float], Optional[float]] = (None, None), ylim: Tuple[Optional[float], Optional[float]] = (None, None), color: str = 'black', ax: <function axes at 0x7f97e871b670> = None) ‑> None</span>
+<span>def <span class="ident">draw</span></span>(<span>self, xlim: Tuple[Optional[float], Optional[float]] = (None, None), ylim: Tuple[Optional[float], Optional[float]] = (None, None), color: str = 'black', ax: <function axes at 0x7f77e03f95e0> = None) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw mass spectrum</p>
@@ -5173,7 +5181,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
 </dd>
 <dt id="masslib.mass.MassSpectrumList"><code class="flex name class">
 <span>class <span class="ident">MassSpectrumList</span></span>
-<span>(</span><span>spectra: Sequence[<a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>], names: Optional[Sequence[str]] = None)</span>
+<span>(</span><span>spectra: Sequence[<a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>] = None, names: Optional[Sequence[str]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Class for work list of MassSpectrums objects</p>
@@ -5208,7 +5216,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
         list of names for spectra
     &#34;&#34;&#34;
 
-    def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]] = None):
+    def __init__(self, spectra: Sequence[MassSpectrum] = None, names: Optional[Sequence[str]] = None):
         &#34;&#34;&#34;
         init MassSpectrumList Class
         
@@ -5219,11 +5227,18 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
         names: Optional[Sequence[str]]
             list of names for spectra
         &#34;&#34;&#34;
-        self.spectra = spectra
+        
+        if spectra:
+            self.spectra = spectra
+        else:
+            self.spectra = []
+
         if names:
             self.names = names
+        elif len(self.spectra) &gt; 0:
+            self.names = list(range(len(self.spectra)))
         else:
-            self.names = list(range(len(spectra)))
+            self.names = []
 
     def calculate_similarity(self, mode: str = &#34;cosine&#34;) -&gt; np.ndarray:
         &#34;&#34;&#34;
@@ -5285,7 +5300,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
                 i = i.calculate_mass()
             values.append([])
             for j in self.spectra:
-                if &#39;calculated_mass&#39; not in i.table:
+                if &#39;calculated_mass&#39; not in j.table:
                     j = j.calculate_mass()
                 values[-1].append(similarity_func(i.table[&#39;calculated_mass&#39;].dropna().values, j.table[&#39;calculated_mass&#39;].dropna().values))
 
@@ -5406,7 +5421,7 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
             i = i.calculate_mass()
         values.append([])
         for j in self.spectra:
-            if &#39;calculated_mass&#39; not in i.table:
+            if &#39;calculated_mass&#39; not in j.table:
                 j = j.calculate_mass()
             values[-1].append(similarity_func(i.table[&#39;calculated_mass&#39;].dropna().values, j.table[&#39;calculated_mass&#39;].dropna().values))
 
@@ -5414,7 +5429,7 @@ Mode can be: "tanimoto", "jaccard", "correlation", "cosine"</dd>
 </details>
 </dd>
 <dt id="masslib.mass.MassSpectrumList.draw_similarity"><code class="name flex">
-<span>def <span class="ident">draw_similarity</span></span>(<span>self, mode: str = 'cosine', values: numpy.ndarray = None, ax: <function axes at 0x7f97e871b670> = None, annot=True) ‑> None</span>
+<span>def <span class="ident">draw_similarity</span></span>(<span>self, mode: str = 'cosine', values: numpy.ndarray = None, ax: <function axes at 0x7f77e03f95e0> = None, annot=True) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw similarity matrix by using seaborn</p>
@@ -5610,7 +5625,7 @@ mass spectrum of product</p>
 <h3>Methods</h3>
 <dl>
 <dt id="masslib.mass.Reaction.draw_modification"><code class="name flex">
-<span>def <span class="ident">draw_modification</span></span>(<span>self, ax: <function axes at 0x7f97e871b670> = None, sourse: bool = True, product: bool = True, sourse_color: str = 'red', product_color: str = 'blue', volume: float = 5) ‑> None</span>
+<span>def <span class="ident">draw_modification</span></span>(<span>self, ax: <function axes at 0x7f77e03f95e0> = None, sourse: bool = True, product: bool = True, sourse_color: str = 'red', product_color: str = 'blue', volume: float = 5) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot Van-Krevelen for modifed peaks in product and sourse</p>
@@ -5816,7 +5831,8 @@ Can be generated by function brutto_generator.brutto_gen().</p></div>
         other:&#34;MassSpectrum&#34;=None,
         p: float = 0.2,
         wide: int = 10,
-        C13_filter = True
+        C13_filter:bool = True,
+        max_num: int = None
         ) -&gt; &#34;Tmds&#34;:
 
         &#34;&#34;&#34;
@@ -5837,6 +5853,9 @@ Can be generated by function brutto_generator.brutto_gen().</p></div>
         C13_filter: bool
             Optional. Default True. 
             Use only peaks that have C13 isotope peak
+        max_num: int
+            Optional. Default None
+            If not None take only max_num peaks with higher probability
 
         Reference
         ---------
@@ -5896,6 +5915,12 @@ Can be generated by function brutto_generator.brutto_gen().</p></div>
 
         if len(tmds_spec) &lt; 0:
             raise Exception(f&#34;There isn&#39;t mass diff mass, decrease p-value&#34;)
+
+        
+        if max_num is not None and max_num &lt; len(tmds_spec):
+            tmds_spec = tmds_spec.sort_values(by=&#39;probability&#39;).reset_index(drop=True)
+            tmds = tmds[:max_num]
+            tmds_spec = tmds_spec.sort_values(by=&#39;mass_dif&#39;).reset_index(drop=True)
 
         return Tmds(tmds_spec)
 
@@ -6155,7 +6180,7 @@ generate brutto table if generated_bruttos_table is None.</dd>
 </details>
 </dd>
 <dt id="masslib.mass.Tmds.calc"><code class="name flex">
-<span>def <span class="ident">calc</span></span>(<span>self, mass_spec: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>, other: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> = None, p: float = 0.2, wide: int = 10, C13_filter=True) ‑> <a title="masslib.mass.Tmds" href="#masslib.mass.Tmds">Tmds</a></span>
+<span>def <span class="ident">calc</span></span>(<span>self, mass_spec: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a>, other: <a title="masslib.mass.MassSpectrum" href="#masslib.mass.MassSpectrum">MassSpectrum</a> = None, p: float = 0.2, wide: int = 10, C13_filter: bool = True, max_num: int = None) ‑> <a title="masslib.mass.Tmds" href="#masslib.mass.Tmds">Tmds</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Total mass difference statistic calculation </p>
@@ -6174,6 +6199,9 @@ Minimum interval in 0.001*wide Da of peaeks.</dd>
 <dt><strong><code>C13_filter</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Optional. Default True.
 Use only peaks that have C13 isotope peak</dd>
+<dt><strong><code>max_num</code></strong> :&ensp;<code>int</code></dt>
+<dd>Optional. Default None
+If not None take only max_num peaks with higher probability</dd>
 </dl>
 <h2 id="reference">Reference</h2>
 <p>Anal. Chem. 2009, 81, 10106</p></div>
@@ -6187,7 +6215,8 @@ Use only peaks that have C13 isotope peak</dd>
     other:&#34;MassSpectrum&#34;=None,
     p: float = 0.2,
     wide: int = 10,
-    C13_filter = True
+    C13_filter:bool = True,
+    max_num: int = None
     ) -&gt; &#34;Tmds&#34;:
 
     &#34;&#34;&#34;
@@ -6208,6 +6237,9 @@ Use only peaks that have C13 isotope peak</dd>
     C13_filter: bool
         Optional. Default True. 
         Use only peaks that have C13 isotope peak
+    max_num: int
+        Optional. Default None
+        If not None take only max_num peaks with higher probability
 
     Reference
     ---------
@@ -6267,6 +6299,12 @@ Use only peaks that have C13 isotope peak</dd>
 
     if len(tmds_spec) &lt; 0:
         raise Exception(f&#34;There isn&#39;t mass diff mass, decrease p-value&#34;)
+
+    
+    if max_num is not None and max_num &lt; len(tmds_spec):
+        tmds_spec = tmds_spec.sort_values(by=&#39;probability&#39;).reset_index(drop=True)
+        tmds = tmds[:max_num]
+        tmds_spec = tmds_spec.sort_values(by=&#39;mass_dif&#39;).reset_index(drop=True)
 
     return Tmds(tmds_spec)</code></pre>
 </details>
@@ -6691,7 +6729,7 @@ Must contain elements 'C', 'H', 'N'</dd>
 <h3>Methods</h3>
 <dl>
 <dt id="masslib.mass.VanKrevelen.draw_density"><code class="name flex">
-<span>def <span class="ident">draw_density</span></span>(<span>self, cmap: str = 'Blues', ax: <function axes at 0x7f97e871b670> = None, shade: bool = True) ‑> None</span>
+<span>def <span class="ident">draw_density</span></span>(<span>self, cmap: str = 'Blues', ax: <function axes at 0x7f77e03f95e0> = None, shade: bool = True) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw Van-Krevelen density</p>
@@ -6733,7 +6771,7 @@ Must contain elements 'C', 'H', 'N'</dd>
 </details>
 </dd>
 <dt id="masslib.mass.VanKrevelen.draw_scatter"><code class="name flex">
-<span>def <span class="ident">draw_scatter</span></span>(<span>self, ax: <function axes at 0x7f97e871b670> = None, volumes: float = None, color: str = 'blue', nitrogen: bool = False, sulphur: bool = False, alpha: float = 0.3, mark_elem: str = None, **kwargs) ‑> None</span>
+<span>def <span class="ident">draw_scatter</span></span>(<span>self, ax: <function axes at 0x7f77e03f95e0> = None, volumes: float = None, color: str = 'blue', nitrogen: bool = False, sulphur: bool = False, alpha: float = 0.3, mark_elem: str = None, **kwargs) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>plot Van-Krevelen diagramm</p>

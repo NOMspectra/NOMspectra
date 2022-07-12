@@ -913,16 +913,13 @@ class MassSpectrum(object):
             raise SpectrumIsNotAssigned()
 
         if tmds_spec is None:
-            tmds_spec = Tmds().calc(self, p=p, C13_filter=C13_filter) #by varifiy p-value we can choose how much mass-diff we will take
+            tmds_spec = Tmds().calc(self, p=p, C13_filter=C13_filter, max_num=max_num) #by varifiy p-value we can choose how much mass-diff we will take
             tmds_spec = tmds_spec.assign()
             tmds_spec = tmds_spec.calculate_mass()
 
         tmds = tmds_spec.table.sort_values(by='probability', ascending=False).reset_index(drop=True)
         tmds = tmds.loc[tmds['probability'] > p]
         elem = tmds_spec.elems
-
-        if max_num is not None and max_num < len(tmds):
-            tmds = tmds[:max_num]
 
         spec = copy.deepcopy(self)
         
@@ -1733,7 +1730,8 @@ class Tmds(object):
         other:"MassSpectrum"=None,
         p: float = 0.2,
         wide: int = 10,
-        C13_filter = True
+        C13_filter:bool = True,
+        max_num: int = None
         ) -> "Tmds":
 
         """
@@ -1754,6 +1752,9 @@ class Tmds(object):
         C13_filter: bool
             Optional. Default True. 
             Use only peaks that have C13 isotope peak
+        max_num: int
+            Optional. Default None
+            If not None take only max_num peaks with higher probability
 
         Reference
         ---------
@@ -1813,6 +1814,12 @@ class Tmds(object):
 
         if len(tmds_spec) < 0:
             raise Exception(f"There isn't mass diff mass, decrease p-value")
+
+        
+        if max_num is not None and max_num < len(tmds_spec):
+            tmds_spec = tmds_spec.sort_values(by='probability').reset_index(drop=True)
+            tmds_spec = tmds_spec[:max_num]
+            tmds_spec = tmds_spec.sort_values(by='mass_dif').reset_index(drop=True)
 
         return Tmds(tmds_spec)
 
