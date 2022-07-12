@@ -32,6 +32,7 @@ from scipy.signal import savgol_filter
 from scipy.interpolate import interp1d
 from scipy.signal import find_peaks
 import scipy.stats as st
+from scipy import spatial
 
 from tqdm import tqdm
 
@@ -616,28 +617,51 @@ class MassSpectrum(object):
 
         return MassSpectrum(self.table.loc[self.table["assign"] == True].reset_index(drop=True))
 
-    def calculate_jaccard_index(self, other) -> float:
+    def calculate_simmilarity(self, other:"MassSpectrum", mode:str='cosine') -> float:
         """
-        Calculate Jaccard index
+        Calculate Simmilarity
+
+        Parameters
+        ----------
+        other: MassSpectrum object
+            second MaasSpectrum object with that calc simmilarity
+        mode: str
+            Optionaly. Default cosine. 
+            one of the similarity functions
+            Mode can be: "tanimoto", "jaccard", "correlation", "cosine"
 
         Return
         ------
-        float Jaccard index
+        float Simmilarity index
         """
-        return len(self & other) / len(self | other)
 
-    def calculate_tanimoto_distance(self, other) -> float:
-        """
-        Calculate Tanimoto distance
+        if 'calculated_mass' not in self.table:
+            self = self.calculate_mass()
+        if 'calculated_mass' not in other.table:
+            other = other.calculate_mass()
 
-        Return
-        ------
-        float Tanimoto distance
-        """
-        common = len(self & other)
-        sub1 = len(self - other)
-        sub2 = len(other-self)
-        return common/(sub1 + sub2 + common)
+        a = self.table['calculated_mass'].dropna().values
+        b = other.table['calculated_mass'].dropna().values
+        c = np.union1d(a, b)
+
+        A = np.zeros(len(c), dtype=bool)
+        B = np.zeros(len(c), dtype=bool)
+        for i, el in enumerate(c):
+            if el in a:
+                A[i] = True
+            if el in b:
+                B[i] = True
+
+        if mode == "jaccard":
+            return 1 - spatial.distance.jaccard(A, B)
+        elif mode == "tanimoto":
+            return 1 - spatial.distance.rogerstanimoto(A, B)
+        elif mode == "correlation":
+            return 1 - spatial.distance.correlation(A, B)
+        elif mode == 'cosine':
+            return 1 - spatial.distance.cosine(A, B)
+        else:
+            raise Exception(f"There is no such mode: {mode}")
 
     def calculate_ai(self) -> 'MassSpectrum':
         """
@@ -1560,41 +1584,48 @@ class MassSpectrumList(object):
         else:
             self.names = list(range(len(spectra)))
 
-    def calculate_similarity(self, mode: str = "tanimoto") -> np.ndarray:
+    def calculate_similarity(self, mode: str = "cosine") -> np.ndarray:
         """
         Calculate similarity matrix for all spectra in MassSpectrumList
 
         Parameters
         ----------
         mode: str
-            Optionaly. Default tanimoto. 
+            Optionaly. Default cosine. 
             one of the similarity functions
-            Mode can be: "tanimoto", "jaccard", "correlation", "common_correlation"
+            Mode can be: "tanimoto", "jaccard", "correlation", "cosine"
 
         Return
         ------
         similarity matrix, 2d np.ndarray with size [len(names), len(names)]"""
 
-        def jaccard(a, b):
-            a = a.astype(bool)
-            b = b.astype(bool)
+        def get_vector(a, b):
+            # FIXME Probably bad solution
+            c = np.union1d(a, b)
+            A = np.zeros(len(c), dtype=bool)
+            B = np.zeros(len(c), dtype=bool)
+            for i, el in enumerate(c):
+                if el in a:
+                    A[i] = True
+                if el in b:
+                    B[i] = True
+            return A, B
 
-            return (a & b).sum() / (a | b).sum()
+        def jaccard(a, b):
+            A, B = get_vector(a, b)
+            return 1 - spatial.distance.jaccard(A, B)
 
         def tanimoto(a, b):
-            return (a * b).sum() / ((a * a).sum() + (b * b).sum() - (a * b).sum())
-
-        def common_correlation(a, b):
-            A = a[a.astype(bool) == b.astype(bool)]
-            B = b[a.astype(bool) == b.astype(bool)]
-
-            return np.corrcoef(A, B)[0, 1]
+            A, B = get_vector(a, b)
+            return 1 - spatial.distance.rogerstanimoto(A, B)
 
         def cosine(a, b):
-            return (a*b).sum() / ((a*a).sum() * (b*b).sum())**0.5
+            A, B = get_vector(a, b)
+            return 1 - spatial.distance.cosine(A, B)
 
         def correlation(a, b):
-            return np.corrcoef(a, b)[0, 1]
+            A, B = get_vector(a, b)
+            return 1 - spatial.distance.correlation(A, B)
 
         if mode == "jaccard":
             similarity_func = jaccard
@@ -1602,8 +1633,6 @@ class MassSpectrumList(object):
             similarity_func = tanimoto
         elif mode == "correlation":
             similarity_func = correlation
-        elif mode == "common_correlation":
-            similarity_func = common_correlation
         elif mode == 'cosine':
             similarity_func = cosine
         else:
@@ -1611,17 +1640,19 @@ class MassSpectrumList(object):
 
         values = []
         for i in self.spectra:
+            if 'calculated_mass' not in i.table:
+                i = i.calculate_mass()
             values.append([])
             for j in self.spectra:
-                if 'calculated_mass' not in i.table.columns or 'calculated_mass' not in j.table.columns:
-                    raise SpectrumIsNotAssigned()
-                values[-1].append(similarity_func(i['calculated_mass'].dropna(), j['calculated_mass'].dropna()))
+                if 'calculated_mass' not in i.table:
+                    j = j.calculate_mass()
+                values[-1].append(similarity_func(i.table['calculated_mass'].dropna().values, j.table['calculated_mass'].dropna().values))
 
         return np.array(values)
 
     def draw_similarity(
         self,
-        mode: str = "tanimoto",
+        mode: str = "cosine",
         values: np.ndarray = None,
         ax: plt.axes = None,
         annot = True
@@ -1636,8 +1667,8 @@ class MassSpectrumList(object):
             Default None - It is call calculate_similarity() method.
         mode: str
             Optionaly. If values is none for calculate matrix. 
-            Default tanimoto. one of the similarity functions
-            Mode can be: "tanimoto", "jaccard", "correlation", "common_correlation"
+            Default cosine. one of the similarity functions
+            Mode can be: "tanimoto", "jaccard", "correlation", "cosine"
         ax: matplotlib axes
             Entarnal axes for plot
         annotate: bool
@@ -1652,6 +1683,7 @@ class MassSpectrumList(object):
         x_axis_labels = self.names
         y_axis_labels = self.names
         sns.heatmap(np.array(values), vmin=0, vmax=1, annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
+        plt.title(mode)
 
 
 class Tmds(object):
