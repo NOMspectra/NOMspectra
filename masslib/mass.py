@@ -1567,7 +1567,7 @@ class MassSpectrumList(object):
         list of names for spectra
     """
 
-    def __init__(self, spectra: Sequence[MassSpectrum], names: Optional[Sequence[str]] = None):
+    def __init__(self, spectra: Sequence[MassSpectrum] = None, names: Optional[Sequence[str]] = None):
         """
         init MassSpectrumList Class
         
@@ -1578,11 +1578,18 @@ class MassSpectrumList(object):
         names: Optional[Sequence[str]]
             list of names for spectra
         """
-        self.spectra = spectra
+        
+        if spectra:
+            self.spectra = spectra
+        else:
+            self.spectra = []
+
         if names:
             self.names = names
+        elif len(self.spectra) > 0:
+            self.names = list(range(len(self.spectra)))
         else:
-            self.names = list(range(len(spectra)))
+            self.names = []
 
     def calculate_similarity(self, mode: str = "cosine") -> np.ndarray:
         """
@@ -1644,7 +1651,7 @@ class MassSpectrumList(object):
                 i = i.calculate_mass()
             values.append([])
             for j in self.spectra:
-                if 'calculated_mass' not in i.table:
+                if 'calculated_mass' not in j.table:
                     j = j.calculate_mass()
                 values[-1].append(similarity_func(i.table['calculated_mass'].dropna().values, j.table['calculated_mass'].dropna().values))
 
