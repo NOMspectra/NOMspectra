@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>nhsmasslib.brutto API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>nhsmasslib.brutto</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#    Copyright 2019-2021 Rukhovich Gleb
+#    Copyright 2022 Volikov Alexander &lt;ab.volikov@gmail.com&gt;
+#
+#    This file is part of nhsmasslib. 
+#    Developed in Natural Humic System laboratory
+#    Moscow State University (Head of lab - Perminova I.V.)
+#
+#    nhsmasslib is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    nhsmasslib is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with nhsmasslib.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+
+from typing import Sequence
+import numpy as np
+import pandas as pd
+
+def brutto_gen(elems = {&#39;C&#39;:(0, 41),&#39;H&#39;:(0, 81),&#39;O&#39;:(0,41), &#39;N&#39;:(0,3)}, 
+               rules = True):
+    &#34;&#34;&#34;
+    Generete brutto formulas
+
+    Parameters
+    ----------
+    elems: dict
+        Dictonary, consisted elements and their range for generate
+        Examples
+        &#39;C&#39;:(1,60) - content of carbon (main isotope) from 1 to 59 (60-1)
+        &#39;O_18&#39;:(0,3) - conent of isotope 18 oxygen from 0 to 2
+    rules: bool
+        Rules: 0.25&lt;H/C&lt;2.2, O/C &lt; 1, nitogen parity
+        By default it is on, but for tmds should be off
+
+    Returns
+    -------
+    pandas Dataframe
+        consist all possible brutto formalas restricted by elems dict
+        with exast masses
+    &#34;&#34;&#34;
+
+    #load elements table. Generatete in mass folder
+    elems_mass_table = elements_table()
+    elems_arr = []
+    elems_dict = {}
+    for el in elems:
+        elems_arr.append(np.array(range(elems[el][0],elems[el][1])))
+        if &#39;_&#39; not in el:
+            temp = elems_mass_table.loc[elems_mass_table[&#39;element&#39;]==el].sort_values(by=&#39;abundance&#39;,ascending=False).reset_index(drop=True)
+            elems_dict[el] = temp.loc[0,&#39;mass&#39;]
+        else:
+            temp = elems_mass_table.loc[elems_mass_table[&#39;element_isotop&#39;]==el].reset_index(drop=True)
+            elems_dict[el] = temp.loc[0,&#39;mass&#39;]
+
+    #generate grid with all possible combination of elements in their ranges
+    t = np.array(np.meshgrid(*elems_arr)).T.reshape(-1,len(elems_arr))
+    gdf = pd.DataFrame(t,columns=list(elems_dict.keys()))
+
+    #do rules H/C, O/C, and parity
+    if &#39;H&#39; in gdf.columns and &#39;C&#39; in gdf.columns and rules:
+        gdf[&#39;H/C&#39;] = gdf[&#39;H&#39;]/gdf[&#39;C&#39;]
+        gdf[&#39;O/C&#39;] = gdf[&#39;O&#39;]/gdf[&#39;C&#39;]
+        gdf = gdf.loc[(gdf[&#39;H/C&#39;] &lt; 2.2) &amp; (gdf[&#39;H/C&#39;] &gt; 0.25) &amp; (gdf[&#39;O/C&#39;] &lt; 1)]
+        gdf = gdf.drop(columns=[&#39;H/C&#39;,&#39;O/C&#39;])
+    
+    if &#39;N&#39; in gdf.columns and &#39;H&#39; in gdf.columns and rules:
+        gdf[&#39;parity&#39;] = (gdf[&#39;H&#39;] + gdf[&#39;N&#39;])%2
+        gdf = gdf.loc[gdf[&#39;parity&#39;]==0]
+        gdf = gdf.drop(columns=[&#39;parity&#39;])
+
+    #calculate mass
+    masses = np.array(list(elems_dict.values()))
+    gdf[&#39;mass&#39;] = gdf.multiply(masses).sum(axis=1)
+
+    gdf = gdf.sort_values(&#34;mass&#34;).reset_index(drop=True)
+
+    return gdf
+
+def get_elements_masses(elems:Sequence[str]) -&gt; np.array :
+    &#34;&#34;&#34;
+    Get elenments masses from list
+
+    Parameters
+    ----------
+    elems: Sequence[str]
+        Elements in list. Example [&#39;C&#39;, &#39;H&#39;, &#39;N&#39;, &#39;C_13&#39;, &#39;O&#39;]
+
+    Return
+    ------
+    numpy array with elements masses
+    &#34;&#34;&#34;
+    
+    elements = elements_table()    
+    elems_masses = []
+
+    for el in elems:
+        if &#39;_&#39; not in el:
+            temp = elements.loc[elements[&#39;element&#39;]==el].sort_values(by=&#39;abundance&#39;,ascending=False).reset_index(drop=True)
+            elems_masses.append(temp.loc[0,&#39;mass&#39;])
+        else:
+            temp = elements.loc[elements[&#39;element_isotop&#39;]==el].reset_index(drop=True)
+            elems_masses.append(temp.loc[0,&#39;mass&#39;])
+
+    return np.array(elems_masses)
+
+def elements_table() -&gt; pd.DataFrame: 
+    &#34;&#34;&#34;
+    Table with exact mass of element and their isotop abundance
+
+    Return
+    ------
+    Pandas DataFrame with exact mass of element and their isotop abundance
+
+    &#34;&#34;&#34;
+
+    return pd.DataFrame(
+    columns = [&#39;element&#39;, &#39;mass&#39;, &#39;abundance&#39;, &#39;isotop&#39;, &#39;element_isotop&#39;],
+    data = [[&#34;Al&#34;,26.981538,100.0,26,&#34;Al_26&#34;],
+            [&#34;Sb&#34;,120.903818,57.21,120,&#34;Sb_120&#34;],
+            [&#34;Sb&#34;,122.904216,42.79,122,&#34;Sb_122&#34;],
+            [&#34;Ar&#34;,35.967546,0.3365,35,&#34;Ar_35&#34;],
+            [&#34;Ar&#34;,37.962732,0.0632,37,&#34;Ar_37&#34;],
+            [&#34;Ar&#34;,39.962383,99.6003,39,&#34;Ar_39&#34;],
+            [&#34;As&#34;,74.921596,100.0,74,&#34;As_74&#34;],
+            [&#34;Ba&#34;,129.90631,0.106,129,&#34;Ba_129&#34;],
+            [&#34;Ba&#34;,131.905056,0.101,131,&#34;Ba_131&#34;],
+            [&#34;Ba&#34;,133.904503,2.417,133,&#34;Ba_133&#34;],
+            [&#34;Ba&#34;,134.905683,6.592,134,&#34;Ba_134&#34;],
+            [&#34;Ba&#34;,135.90457,7.854,135,&#34;Ba_135&#34;],
+            [&#34;Ba&#34;,136.905821,11.232,136,&#34;Ba_136&#34;],
+            [&#34;Ba&#34;,137.905241,71.698,137,&#34;Ba_137&#34;],
+            [&#34;Be&#34;,9.012182,100.0,9,&#34;Be_9&#34;],
+            [&#34;Bi&#34;,208.980383,100.0,208,&#34;Bi_208&#34;],
+            [&#34;B&#34;,10.012937,19.9,10,&#34;B_10&#34;],
+            [&#34;B&#34;,11.009305,80.1,11,&#34;B_11&#34;],
+            [&#34;Br&#34;,78.918338,50.69,78,&#34;Br_78&#34;],
+            [&#34;Br&#34;,80.916291,49.31,80,&#34;Br_80&#34;],
+            [&#34;Cd&#34;,105.906458,1.25,105,&#34;Cd_105&#34;],
+            [&#34;Cd&#34;,107.904183,0.89,107,&#34;Cd_107&#34;],
+            [&#34;Cd&#34;,109.903006,12.49,109,&#34;Cd_109&#34;],
+            [&#34;Cd&#34;,110.904182,12.8,110,&#34;Cd_110&#34;],
+            [&#34;Cd&#34;,111.902757,24.13,111,&#34;Cd_111&#34;],
+            [&#34;Cd&#34;,112.904401,12.22,112,&#34;Cd_112&#34;],
+            [&#34;Cd&#34;,113.903358,28.73,113,&#34;Cd_113&#34;],
+            [&#34;Cd&#34;,115.904755,7.49,115,&#34;Cd_115&#34;],
+            [&#34;Ca&#34;,39.962591,96.941,39,&#34;Ca_39&#34;],
+            [&#34;Ca&#34;,41.958618,0.647,41,&#34;Ca_41&#34;],
+            [&#34;Ca&#34;,42.958767,0.135,42,&#34;Ca_42&#34;],
+            [&#34;Ca&#34;,43.955481,2.086,43,&#34;Ca_43&#34;],
+            [&#34;Ca&#34;,45.953693,0.004,45,&#34;Ca_45&#34;],
+            [&#34;Ca&#34;,47.952534,0.187,47,&#34;Ca_47&#34;],
+            [&#34;C&#34;,12.0,98.93,12,&#34;C_12&#34;],
+            [&#34;C&#34;,13.003355,1.07,13,&#34;C_13&#34;],
+            [&#34;Ce&#34;,135.907144,0.185,135,&#34;Ce_135&#34;],
+            [&#34;Ce&#34;,137.905986,0.251,137,&#34;Ce_137&#34;],
+            [&#34;Ce&#34;,139.905434,88.45,139,&#34;Ce_139&#34;],
+            [&#34;Ce&#34;,141.90924,11.114,141,&#34;Ce_141&#34;],
+            [&#34;Cs&#34;,132.905447,100.0,132,&#34;Cs_132&#34;],
+            [&#34;Cl&#34;,34.968853,75.78,34,&#34;Cl_34&#34;],
+            [&#34;Cl&#34;,36.965903,24.22,36,&#34;Cl_36&#34;],
+            [&#34;Cr&#34;,49.94605,4.345,49,&#34;Cr_49&#34;],
+            [&#34;Cr&#34;,51.940512,83.789,51,&#34;Cr_51&#34;],
+            [&#34;Cr&#34;,52.940654,9.501,52,&#34;Cr_52&#34;],
+            [&#34;Cr&#34;,53.938885,2.365,53,&#34;Cr_53&#34;],
+            [&#34;Co&#34;,58.9332,100.0,58,&#34;Co_58&#34;],
+            [&#34;Cu&#34;,62.929601,69.17,62,&#34;Cu_62&#34;],
+            [&#34;Cu&#34;,64.927794,30.83,64,&#34;Cu_64&#34;],
+            [&#34;Dy&#34;,155.924278,0.06,155,&#34;Dy_155&#34;],
+            [&#34;Dy&#34;,157.924405,0.1,157,&#34;Dy_157&#34;],
+            [&#34;Dy&#34;,159.925194,2.34,159,&#34;Dy_159&#34;],
+            [&#34;Dy&#34;,160.92693,18.91,160,&#34;Dy_160&#34;],
+            [&#34;Dy&#34;,161.926795,25.51,161,&#34;Dy_161&#34;],
+            [&#34;Dy&#34;,162.928728,24.9,162,&#34;Dy_162&#34;],
+            [&#34;Dy&#34;,163.929171,28.18,163,&#34;Dy_163&#34;],
+            [&#34;Er&#34;,161.928775,0.14,161,&#34;Er_161&#34;],
+            [&#34;Er&#34;,163.929197,1.61,163,&#34;Er_163&#34;],
+            [&#34;Er&#34;,165.93029,33.61,165,&#34;Er_165&#34;],
+            [&#34;Er&#34;,166.932045,22.93,166,&#34;Er_166&#34;],
+            [&#34;Er&#34;,167.932368,26.78,167,&#34;Er_167&#34;],
+            [&#34;Er&#34;,169.93546,14.93,169,&#34;Er_169&#34;],
+            [&#34;Eu&#34;,150.919846,47.81,150,&#34;Eu_150&#34;],
+            [&#34;Eu&#34;,152.921226,52.19,152,&#34;Eu_152&#34;],
+            [&#34;F&#34;,18.998403,100.0,18,&#34;F_18&#34;],
+            [&#34;Ga&#34;,68.925581,60.108,68,&#34;Ga_68&#34;],
+            [&#34;Ga&#34;,70.924705,39.892,70,&#34;Ga_70&#34;],
+            [&#34;Gd&#34;,151.919788,0.2,151,&#34;Gd_151&#34;],
+            [&#34;Gd&#34;,153.920862,2.18,153,&#34;Gd_153&#34;],
+            [&#34;Gd&#34;,154.822619,14.8,154,&#34;Gd_154&#34;],
+            [&#34;Gd&#34;,155.92212,20.47,155,&#34;Gd_155&#34;],
+            [&#34;Gd&#34;,156.923957,15.65,156,&#34;Gd_156&#34;],
+            [&#34;Gd&#34;,157.924101,24.84,157,&#34;Gd_157&#34;],
+            [&#34;Gd&#34;,159.927051,21.86,159,&#34;Gd_159&#34;],
+            [&#34;Ge&#34;,69.92425,20.84,69,&#34;Ge_69&#34;],
+            [&#34;Ge&#34;,71.922076,27.54,71,&#34;Ge_71&#34;],
+            [&#34;Ge&#34;,72.923459,7.73,72,&#34;Ge_72&#34;],
+            [&#34;Ge&#34;,73.921178,36.5,73,&#34;Ge_73&#34;],
+            [&#34;Ge&#34;,75.921403,7.61,75,&#34;Ge_75&#34;],
+            [&#34;Au&#34;,196.966552,100.0,196,&#34;Au_196&#34;],
+            [&#34;Hf&#34;,173.94004,0.16,173,&#34;Hf_173&#34;],
+            [&#34;Hf&#34;,175.941402,5.26,175,&#34;Hf_175&#34;],
+            [&#34;Hf&#34;,176.94322,18.6,176,&#34;Hf_176&#34;],
+            [&#34;Hf&#34;,177.943698,27.28,177,&#34;Hf_177&#34;],
+            [&#34;Hf&#34;,178.945815,13.62,178,&#34;Hf_178&#34;],
+            [&#34;Hf&#34;,179.946549,35.08,179,&#34;Hf_179&#34;],
+            [&#34;He&#34;,3.016029,0.000137,3,&#34;He_3&#34;],
+            [&#34;He&#34;,4.002603,99.999863,4,&#34;He_4&#34;],
+            [&#34;Ho&#34;,164.930319,100.0,164,&#34;Ho_164&#34;],
+            [&#34;H&#34;,1.007825,99.9885,1,&#34;H_1&#34;],
+            [&#34;H&#34;,2.014102,0.115,2,&#34;H_2&#34;],
+            [&#34;In&#34;,112.904061,4.29,112,&#34;In_112&#34;],
+            [&#34;In&#34;,114.903878,95.71,114,&#34;In_114&#34;],
+            [&#34;I&#34;,126.904468,100.0,126,&#34;I_126&#34;],
+            [&#34;Ir&#34;,190.960591,37.3,190,&#34;Ir_190&#34;],
+            [&#34;Ir&#34;,192.962924,62.7,192,&#34;Ir_192&#34;],
+            [&#34;Fe&#34;,53.939615,5.845,53,&#34;Fe_53&#34;],
+            [&#34;Fe&#34;,55.934942,91.754,55,&#34;Fe_55&#34;],
+            [&#34;Fe&#34;,56.935399,2.119,56,&#34;Fe_56&#34;],
+            [&#34;Fe&#34;,57.93328,0.282,57,&#34;Fe_57&#34;],
+            [&#34;Kr&#34;,77.920386,0.35,77,&#34;Kr_77&#34;],
+            [&#34;Kr&#34;,79.916378,2.28,79,&#34;Kr_79&#34;],
+            [&#34;Kr&#34;,81.913485,11.58,81,&#34;Kr_81&#34;],
+            [&#34;Kr&#34;,82.914136,11.49,82,&#34;Kr_82&#34;],
+            [&#34;Kr&#34;,83.911507,57.0,83,&#34;Kr_83&#34;],
+            [&#34;Kr&#34;,85.91061,17.3,85,&#34;Kr_85&#34;],
+            [&#34;La&#34;,137.907107,0.09,137,&#34;La_137&#34;],
+            [&#34;La&#34;,138.906348,99.91,138,&#34;La_138&#34;],
+            [&#34;Pb&#34;,203.973029,1.4,203,&#34;Pb_203&#34;],
+            [&#34;Pb&#34;,205.974449,24.1,205,&#34;Pb_205&#34;],
+            [&#34;Pb&#34;,206.975881,22.1,206,&#34;Pb_206&#34;],
+            [&#34;Pb&#34;,207.976636,52.4,207,&#34;Pb_207&#34;],
+            [&#34;Li&#34;,6.015122,7.59,6,&#34;Li_6&#34;],
+            [&#34;Li&#34;,7.016004,92.41,7,&#34;Li_7&#34;],
+            [&#34;Lu&#34;,174.940768,97.41,174,&#34;Lu_174&#34;],
+            [&#34;Lu&#34;,175.942682,2.59,175,&#34;Lu_175&#34;],
+            [&#34;Mg&#34;,23.985042,78.99,23,&#34;Mg_23&#34;],
+            [&#34;Mg&#34;,24.985837,10.0,24,&#34;Mg_24&#34;],
+            [&#34;Mg&#34;,25.982593,11.01,25,&#34;Mg_25&#34;],
+            [&#34;Mn&#34;,54.93805,100.0,54,&#34;Mn_54&#34;],
+            [&#34;Hg&#34;,195.965815,0.15,195,&#34;Hg_195&#34;],
+            [&#34;Hg&#34;,197.966752,9.97,197,&#34;Hg_197&#34;],
+            [&#34;Hg&#34;,198.968262,16.87,198,&#34;Hg_198&#34;],
+            [&#34;Hg&#34;,199.968309,23.1,199,&#34;Hg_199&#34;],
+            [&#34;Hg&#34;,200.970285,13.18,200,&#34;Hg_200&#34;],
+            [&#34;Hg&#34;,201.970626,29.86,201,&#34;Hg_201&#34;],
+            [&#34;Hg&#34;,203.973476,6.87,203,&#34;Hg_203&#34;],
+            [&#34;Mo&#34;,91.90681,14.84,91,&#34;Mo_91&#34;],
+            [&#34;Mo&#34;,93.905088,9.25,93,&#34;Mo_93&#34;],
+            [&#34;Mo&#34;,94.905841,15.92,94,&#34;Mo_94&#34;],
+            [&#34;Mo&#34;,95.904679,16.68,95,&#34;Mo_95&#34;],
+            [&#34;Mo&#34;,96.906021,9.55,96,&#34;Mo_96&#34;],
+            [&#34;Mo&#34;,97.905408,24.13,97,&#34;Mo_97&#34;],
+            [&#34;Mo&#34;,99.907477,9.63,99,&#34;Mo_99&#34;],
+            [&#34;Nd&#34;,141.907719,27.2,141,&#34;Nd_141&#34;],
+            [&#34;Nd&#34;,142.90981,12.2,142,&#34;Nd_142&#34;],
+            [&#34;Nd&#34;,143.910083,23.8,143,&#34;Nd_143&#34;],
+            [&#34;Nd&#34;,144.912569,8.3,144,&#34;Nd_144&#34;],
+            [&#34;Nd&#34;,145.913112,17.2,145,&#34;Nd_145&#34;],
+            [&#34;Nd&#34;,147.916889,5.7,147,&#34;Nd_147&#34;],
+            [&#34;Nd&#34;,149.920887,5.6,149,&#34;Nd_149&#34;],
+            [&#34;Ne&#34;,19.99244,90.48,19,&#34;Ne_19&#34;],
+            [&#34;Ne&#34;,20.993847,0.27,20,&#34;Ne_20&#34;],
+            [&#34;Ne&#34;,21.991386,9.25,21,&#34;Ne_21&#34;],
+            [&#34;Ni&#34;,57.935348,68.0769,57,&#34;Ni_57&#34;],
+            [&#34;Ni&#34;,59.930791,26.2231,59,&#34;Ni_59&#34;],
+            [&#34;Ni&#34;,60.93106,1.1399,60,&#34;Ni_60&#34;],
+            [&#34;Ni&#34;,61.928349,3.6345,61,&#34;Ni_61&#34;],
+            [&#34;Ni&#34;,63.92797,0.9256,63,&#34;Ni_63&#34;],
+            [&#34;Nb&#34;,92.906378,100.0,92,&#34;Nb_92&#34;],
+            [&#34;N&#34;,14.003074,99.632,14,&#34;N_14&#34;],
+            [&#34;N&#34;,15.000109,0.368,15,&#34;N_15&#34;],
+            [&#34;Os&#34;,183.952491,0.02,183,&#34;Os_183&#34;],
+            [&#34;Os&#34;,185.953838,1.59,185,&#34;Os_185&#34;],
+            [&#34;Os&#34;,186.955748,1.96,186,&#34;Os_186&#34;],
+            [&#34;Os&#34;,187.955836,13.24,187,&#34;Os_187&#34;],
+            [&#34;Os&#34;,188.958145,16.15,188,&#34;Os_188&#34;],
+            [&#34;Os&#34;,189.958445,26.26,189,&#34;Os_189&#34;],
+            [&#34;Os&#34;,191.961479,40.78,191,&#34;Os_191&#34;],
+            [&#34;O&#34;,15.994915,99.757,15,&#34;O_15&#34;],
+            [&#34;O&#34;,16.999132,0.038,16,&#34;O_16&#34;],
+            [&#34;O&#34;,17.99916,0.205,17,&#34;O_17&#34;],
+            [&#34;Pd&#34;,101.905608,1.02,101,&#34;Pd_101&#34;],
+            [&#34;Pd&#34;,103.904035,11.14,103,&#34;Pd_103&#34;],
+            [&#34;Pd&#34;,104.905084,22.33,104,&#34;Pd_104&#34;],
+            [&#34;Pd&#34;,105.903483,27.33,105,&#34;Pd_105&#34;],
+            [&#34;Pd&#34;,107.903894,26.46,107,&#34;Pd_107&#34;],
+            [&#34;Pd&#34;,109.905152,11.72,109,&#34;Pd_109&#34;],
+            [&#34;P&#34;,30.973762,100.0,30,&#34;P_30&#34;],
+            [&#34;Pt&#34;,189.95993,0.014,189,&#34;Pt_189&#34;],
+            [&#34;Pt&#34;,191.961035,0.782,191,&#34;Pt_191&#34;],
+            [&#34;Pt&#34;,193.962664,32.967,193,&#34;Pt_193&#34;],
+            [&#34;Pt&#34;,194.964774,33.832,194,&#34;Pt_194&#34;],
+            [&#34;Pt&#34;,195.964935,25.242,195,&#34;Pt_195&#34;],
+            [&#34;Pt&#34;,197.967876,7.163,197,&#34;Pt_197&#34;],
+            [&#34;K&#34;,38.963707,93.2581,38,&#34;K_38&#34;],
+            [&#34;K&#34;,39.963999,0.0117,39,&#34;K_39&#34;],
+            [&#34;K&#34;,40.961826,6.7302,40,&#34;K_40&#34;],
+            [&#34;Pr&#34;,140.907648,100.0,140,&#34;Pr_140&#34;],
+            [&#34;Re&#34;,184.952956,37.4,184,&#34;Re_184&#34;],
+            [&#34;Re&#34;,186.955751,62.6,186,&#34;Re_186&#34;],
+            [&#34;Rh&#34;,102.905504,100.0,102,&#34;Rh_102&#34;],
+            [&#34;Rb&#34;,84.911789,72.17,84,&#34;Rb_84&#34;],
+            [&#34;Rb&#34;,86.909183,27.83,86,&#34;Rb_86&#34;],
+            [&#34;Ru&#34;,95.907598,5.54,95,&#34;Ru_95&#34;],
+            [&#34;Ru&#34;,97.905287,1.87,97,&#34;Ru_97&#34;],
+            [&#34;Ru&#34;,98.905939,12.76,98,&#34;Ru_98&#34;],
+            [&#34;Ru&#34;,99.90422,12.6,99,&#34;Ru_99&#34;],
+            [&#34;Ru&#34;,100.905582,17.06,100,&#34;Ru_100&#34;],
+            [&#34;Ru&#34;,101.90435,31.55,101,&#34;Ru_101&#34;],
+            [&#34;Ru&#34;,103.90543,18.62,103,&#34;Ru_103&#34;],
+            [&#34;Sm&#34;,143.911995,3.07,143,&#34;Sm_143&#34;],
+            [&#34;Sm&#34;,146.914893,14.99,146,&#34;Sm_146&#34;],
+            [&#34;Sm&#34;,147.914818,11.24,147,&#34;Sm_147&#34;],
+            [&#34;Sm&#34;,148.91718,13.82,148,&#34;Sm_148&#34;],
+            [&#34;Sm&#34;,149.917271,7.38,149,&#34;Sm_149&#34;],
+            [&#34;Sm&#34;,151.919728,26.75,151,&#34;Sm_151&#34;],
+            [&#34;Sm&#34;,153.922205,22.75,153,&#34;Sm_153&#34;],
+            [&#34;Sc&#34;,44.95591,100.0,44,&#34;Sc_44&#34;],
+            [&#34;Se&#34;,73.922477,0.89,73,&#34;Se_73&#34;],
+            [&#34;Se&#34;,75.919214,9.37,75,&#34;Se_75&#34;],
+            [&#34;Se&#34;,76.919915,7.63,76,&#34;Se_76&#34;],
+            [&#34;Se&#34;,77.91731,23.77,77,&#34;Se_77&#34;],
+            [&#34;Se&#34;,79.916522,49.61,79,&#34;Se_79&#34;],
+            [&#34;Se&#34;,81.9167,8.73,81,&#34;Se_81&#34;],
+            [&#34;Si&#34;,27.976927,92.2297,27,&#34;Si_27&#34;],
+            [&#34;Si&#34;,28.976495,4.6832,28,&#34;Si_28&#34;],
+            [&#34;Si&#34;,29.97377,3.0872,29,&#34;Si_29&#34;],
+            [&#34;Ag&#34;,106.905093,51.839,106,&#34;Ag_106&#34;],
+            [&#34;Ag&#34;,108.904756,48.161,108,&#34;Ag_108&#34;],
+            [&#34;Na&#34;,22.98977,100.0,22,&#34;Na_22&#34;],
+            [&#34;Sr&#34;,83.913425,0.56,83,&#34;Sr_83&#34;],
+            [&#34;Sr&#34;,85.909262,9.86,85,&#34;Sr_85&#34;],
+            [&#34;Sr&#34;,86.908879,7.0,86,&#34;Sr_86&#34;],
+            [&#34;Sr&#34;,87.905614,82.58,87,&#34;Sr_87&#34;],
+            [&#34;S&#34;,31.972071,94.93,31,&#34;S_31&#34;],
+            [&#34;S&#34;,32.971458,0.76,32,&#34;S_32&#34;],
+            [&#34;S&#34;,33.967867,4.29,33,&#34;S_33&#34;],
+            [&#34;S&#34;,35.967081,0.02,35,&#34;S_35&#34;],
+            [&#34;Ta&#34;,179.947466,0.012,179,&#34;Ta_179&#34;],
+            [&#34;Ta&#34;,180.947996,99.988,180,&#34;Ta_180&#34;],
+            [&#34;Te&#34;,119.90402,0.09,119,&#34;Te_119&#34;],
+            [&#34;Te&#34;,121.903047,2.55,121,&#34;Te_121&#34;],
+            [&#34;Te&#34;,122.904273,0.89,122,&#34;Te_122&#34;],
+            [&#34;Te&#34;,123.902819,4.74,123,&#34;Te_123&#34;],
+            [&#34;Te&#34;,124.904425,7.07,124,&#34;Te_124&#34;],
+            [&#34;Te&#34;,125.903306,18.84,125,&#34;Te_125&#34;],
+            [&#34;Te&#34;,127.904461,31.74,127,&#34;Te_127&#34;],
+            [&#34;Te&#34;,129.906223,34.08,129,&#34;Te_129&#34;],
+            [&#34;Tb&#34;,158.925343,100.0,158,&#34;Tb_158&#34;],
+            [&#34;Tl&#34;,202.972329,29.524,202,&#34;Tl_202&#34;],
+            [&#34;Tl&#34;,204.974412,70.476,204,&#34;Tl_204&#34;],
+            [&#34;Th&#34;,232.03805,100.0,232,&#34;Th_232&#34;],
+            [&#34;Tm&#34;,168.934211,100.0,168,&#34;Tm_168&#34;],
+            [&#34;Sn&#34;,111.904821,0.97,111,&#34;Sn_111&#34;],
+            [&#34;Sn&#34;,113.902782,0.66,113,&#34;Sn_113&#34;],
+            [&#34;Sn&#34;,114.903346,0.34,114,&#34;Sn_114&#34;],
+            [&#34;Sn&#34;,115.901744,14.54,115,&#34;Sn_115&#34;],
+            [&#34;Sn&#34;,116.902954,7.68,116,&#34;Sn_116&#34;],
+            [&#34;Sn&#34;,117.901606,24.22,117,&#34;Sn_117&#34;],
+            [&#34;Sn&#34;,118.903309,8.59,118,&#34;Sn_118&#34;],
+            [&#34;Sn&#34;,119.902197,32.58,119,&#34;Sn_119&#34;],
+            [&#34;Sn&#34;,121.90344,4.63,121,&#34;Sn_121&#34;],
+            [&#34;Sn&#34;,123.905275,5.79,123,&#34;Sn_123&#34;],
+            [&#34;Ti&#34;,45.952629,8.25,45,&#34;Ti_45&#34;],
+            [&#34;Ti&#34;,46.951764,7.44,46,&#34;Ti_46&#34;],
+            [&#34;Ti&#34;,47.947871,73.72,47,&#34;Ti_47&#34;],
+            [&#34;W&#34;,179.946706,0.12,179,&#34;W_179&#34;],
+            [&#34;W&#34;,181.948206,26.5,181,&#34;W_181&#34;],
+            [&#34;W&#34;,182.950224,14.31,182,&#34;W_182&#34;],
+            [&#34;W&#34;,183.950933,30.64,183,&#34;W_183&#34;],
+            [&#34;W&#34;,185.954362,28.43,185,&#34;W_185&#34;],
+            [&#34;U&#34;,234.040946,0.0055,234,&#34;U_234&#34;],
+            [&#34;U&#34;,235.043923,0.72,235,&#34;U_235&#34;],
+            [&#34;U&#34;,238.050783,99.2745,238,&#34;U_238&#34;],
+            [&#34;V&#34;,49.947163,0.25,49,&#34;V_49&#34;],
+            [&#34;V&#34;,50.943964,99.75,50,&#34;V_50&#34;],
+            [&#34;Xe&#34;,123.905896,0.09,123,&#34;Xe_123&#34;],
+            [&#34;Xe&#34;,125.904269,0.09,125,&#34;Xe_125&#34;],
+            [&#34;Xe&#34;,127.90353,1.92,127,&#34;Xe_127&#34;],
+            [&#34;Xe&#34;,128.904779,26.44,128,&#34;Xe_128&#34;],
+            [&#34;Xe&#34;,129.903508,10.44,129,&#34;Xe_129&#34;],
+            [&#34;Xe&#34;,130.905082,21.18,130,&#34;Xe_130&#34;],
+            [&#34;Xe&#34;,131.904154,26.89,131,&#34;Xe_131&#34;],
+            [&#34;Xe&#34;,133.905395,10.44,133,&#34;Xe_133&#34;],
+            [&#34;Xe&#34;,135.90722,8.87,135,&#34;Xe_135&#34;],
+            [&#34;Yb&#34;,167.933894,0.13,167,&#34;Yb_167&#34;],
+            [&#34;Yb&#34;,169.934759,3.04,169,&#34;Yb_169&#34;],
+            [&#34;Yb&#34;,170.936322,14.28,170,&#34;Yb_170&#34;],
+            [&#34;Yb&#34;,171.936378,21.83,171,&#34;Yb_171&#34;],
+            [&#34;Yb&#34;,172.938207,16.13,172,&#34;Yb_172&#34;],
+            [&#34;Yb&#34;,173.938858,31.83,173,&#34;Yb_173&#34;],
+            [&#34;Yb&#34;,175.942568,12.76,175,&#34;Yb_175&#34;],
+            [&#34;Y&#34;,88.905848,100.0,88,&#34;Y_88&#34;],
+            [&#34;Zn&#34;,63.929147,48.63,63,&#34;Zn_63&#34;],
+            [&#34;Zn&#34;,65.926037,27.9,65,&#34;Zn_65&#34;],
+            [&#34;Zn&#34;,66.927131,4.1,66,&#34;Zn_66&#34;],
+            [&#34;Zn&#34;,67.924848,18.75,67,&#34;Zn_67&#34;],
+            [&#34;Zn&#34;,69.925325,0.62,69,&#34;Zn_69&#34;],
+            [&#34;Zr&#34;,89.904704,51.45,89,&#34;Zr_89&#34;],
+            [&#34;Zr&#34;,90.905645,11.22,90,&#34;Zr_90&#34;],
+            [&#34;Zr&#34;,91.90504,17.15,91,&#34;Zr_91&#34;],
+            [&#34;Zr&#34;,93.906316,17.38,93,&#34;Zr_93&#34;],
+            [&#34;Zr&#34;,95.908276,2.8,95,&#34;Zr_95&#34;]])</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="nhsmasslib.brutto.brutto_gen"><code class="name flex">
+<span>def <span class="ident">brutto_gen</span></span>(<span>elems={'C': (0, 41), 'H': (0, 81), 'O': (0, 41), 'N': (0, 3)}, rules=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generete brutto formulas</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>elems</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictonary, consisted elements and their range for generate
+Examples
+'C':(1,60) - content of carbon (main isotope) from 1 to 59 (60-1)
+'O_18':(0,3) - conent of isotope 18 oxygen from 0 to 2</dd>
+<dt><strong><code>rules</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Rules: 0.25&lt;H/C&lt;2.2, O/C &lt; 1, nitogen parity
+By default it is on, but for tmds should be off</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pandas Dataframe</code></dt>
+<dd>consist all possible brutto formalas restricted by elems dict
+with exast masses</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def brutto_gen(elems = {&#39;C&#39;:(0, 41),&#39;H&#39;:(0, 81),&#39;O&#39;:(0,41), &#39;N&#39;:(0,3)}, 
+               rules = True):
+    &#34;&#34;&#34;
+    Generete brutto formulas
+
+    Parameters
+    ----------
+    elems: dict
+        Dictonary, consisted elements and their range for generate
+        Examples
+        &#39;C&#39;:(1,60) - content of carbon (main isotope) from 1 to 59 (60-1)
+        &#39;O_18&#39;:(0,3) - conent of isotope 18 oxygen from 0 to 2
+    rules: bool
+        Rules: 0.25&lt;H/C&lt;2.2, O/C &lt; 1, nitogen parity
+        By default it is on, but for tmds should be off
+
+    Returns
+    -------
+    pandas Dataframe
+        consist all possible brutto formalas restricted by elems dict
+        with exast masses
+    &#34;&#34;&#34;
+
+    #load elements table. Generatete in mass folder
+    elems_mass_table = elements_table()
+    elems_arr = []
+    elems_dict = {}
+    for el in elems:
+        elems_arr.append(np.array(range(elems[el][0],elems[el][1])))
+        if &#39;_&#39; not in el:
+            temp = elems_mass_table.loc[elems_mass_table[&#39;element&#39;]==el].sort_values(by=&#39;abundance&#39;,ascending=False).reset_index(drop=True)
+            elems_dict[el] = temp.loc[0,&#39;mass&#39;]
+        else:
+            temp = elems_mass_table.loc[elems_mass_table[&#39;element_isotop&#39;]==el].reset_index(drop=True)
+            elems_dict[el] = temp.loc[0,&#39;mass&#39;]
+
+    #generate grid with all possible combination of elements in their ranges
+    t = np.array(np.meshgrid(*elems_arr)).T.reshape(-1,len(elems_arr))
+    gdf = pd.DataFrame(t,columns=list(elems_dict.keys()))
+
+    #do rules H/C, O/C, and parity
+    if &#39;H&#39; in gdf.columns and &#39;C&#39; in gdf.columns and rules:
+        gdf[&#39;H/C&#39;] = gdf[&#39;H&#39;]/gdf[&#39;C&#39;]
+        gdf[&#39;O/C&#39;] = gdf[&#39;O&#39;]/gdf[&#39;C&#39;]
+        gdf = gdf.loc[(gdf[&#39;H/C&#39;] &lt; 2.2) &amp; (gdf[&#39;H/C&#39;] &gt; 0.25) &amp; (gdf[&#39;O/C&#39;] &lt; 1)]
+        gdf = gdf.drop(columns=[&#39;H/C&#39;,&#39;O/C&#39;])
+    
+    if &#39;N&#39; in gdf.columns and &#39;H&#39; in gdf.columns and rules:
+        gdf[&#39;parity&#39;] = (gdf[&#39;H&#39;] + gdf[&#39;N&#39;])%2
+        gdf = gdf.loc[gdf[&#39;parity&#39;]==0]
+        gdf = gdf.drop(columns=[&#39;parity&#39;])
+
+    #calculate mass
+    masses = np.array(list(elems_dict.values()))
+    gdf[&#39;mass&#39;] = gdf.multiply(masses).sum(axis=1)
+
+    gdf = gdf.sort_values(&#34;mass&#34;).reset_index(drop=True)
+
+    return gdf</code></pre>
+</details>
+</dd>
+<dt id="nhsmasslib.brutto.elements_table"><code class="name flex">
+<span>def <span class="ident">elements_table</span></span>(<span>) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Table with exact mass of element and their isotop abundance</p>
+<h2 id="return">Return</h2>
+<p>Pandas DataFrame with exact mass of element and their isotop abundance</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def elements_table() -&gt; pd.DataFrame: 
+    &#34;&#34;&#34;
+    Table with exact mass of element and their isotop abundance
+
+    Return
+    ------
+    Pandas DataFrame with exact mass of element and their isotop abundance
+
+    &#34;&#34;&#34;
+
+    return pd.DataFrame(
+    columns = [&#39;element&#39;, &#39;mass&#39;, &#39;abundance&#39;, &#39;isotop&#39;, &#39;element_isotop&#39;],
+    data = [[&#34;Al&#34;,26.981538,100.0,26,&#34;Al_26&#34;],
+            [&#34;Sb&#34;,120.903818,57.21,120,&#34;Sb_120&#34;],
+            [&#34;Sb&#34;,122.904216,42.79,122,&#34;Sb_122&#34;],
+            [&#34;Ar&#34;,35.967546,0.3365,35,&#34;Ar_35&#34;],
+            [&#34;Ar&#34;,37.962732,0.0632,37,&#34;Ar_37&#34;],
+            [&#34;Ar&#34;,39.962383,99.6003,39,&#34;Ar_39&#34;],
+            [&#34;As&#34;,74.921596,100.0,74,&#34;As_74&#34;],
+            [&#34;Ba&#34;,129.90631,0.106,129,&#34;Ba_129&#34;],
+            [&#34;Ba&#34;,131.905056,0.101,131,&#34;Ba_131&#34;],
+            [&#34;Ba&#34;,133.904503,2.417,133,&#34;Ba_133&#34;],
+            [&#34;Ba&#34;,134.905683,6.592,134,&#34;Ba_134&#34;],
+            [&#34;Ba&#34;,135.90457,7.854,135,&#34;Ba_135&#34;],
+            [&#34;Ba&#34;,136.905821,11.232,136,&#34;Ba_136&#34;],
+            [&#34;Ba&#34;,137.905241,71.698,137,&#34;Ba_137&#34;],
+            [&#34;Be&#34;,9.012182,100.0,9,&#34;Be_9&#34;],
+            [&#34;Bi&#34;,208.980383,100.0,208,&#34;Bi_208&#34;],
+            [&#34;B&#34;,10.012937,19.9,10,&#34;B_10&#34;],
+            [&#34;B&#34;,11.009305,80.1,11,&#34;B_11&#34;],
+            [&#34;Br&#34;,78.918338,50.69,78,&#34;Br_78&#34;],
+            [&#34;Br&#34;,80.916291,49.31,80,&#34;Br_80&#34;],
+            [&#34;Cd&#34;,105.906458,1.25,105,&#34;Cd_105&#34;],
+            [&#34;Cd&#34;,107.904183,0.89,107,&#34;Cd_107&#34;],
+            [&#34;Cd&#34;,109.903006,12.49,109,&#34;Cd_109&#34;],
+            [&#34;Cd&#34;,110.904182,12.8,110,&#34;Cd_110&#34;],
+            [&#34;Cd&#34;,111.902757,24.13,111,&#34;Cd_111&#34;],
+            [&#34;Cd&#34;,112.904401,12.22,112,&#34;Cd_112&#34;],
+            [&#34;Cd&#34;,113.903358,28.73,113,&#34;Cd_113&#34;],
+            [&#34;Cd&#34;,115.904755,7.49,115,&#34;Cd_115&#34;],
+            [&#34;Ca&#34;,39.962591,96.941,39,&#34;Ca_39&#34;],
+            [&#34;Ca&#34;,41.958618,0.647,41,&#34;Ca_41&#34;],
+            [&#34;Ca&#34;,42.958767,0.135,42,&#34;Ca_42&#34;],
+            [&#34;Ca&#34;,43.955481,2.086,43,&#34;Ca_43&#34;],
+            [&#34;Ca&#34;,45.953693,0.004,45,&#34;Ca_45&#34;],
+            [&#34;Ca&#34;,47.952534,0.187,47,&#34;Ca_47&#34;],
+            [&#34;C&#34;,12.0,98.93,12,&#34;C_12&#34;],
+            [&#34;C&#34;,13.003355,1.07,13,&#34;C_13&#34;],
+            [&#34;Ce&#34;,135.907144,0.185,135,&#34;Ce_135&#34;],
+            [&#34;Ce&#34;,137.905986,0.251,137,&#34;Ce_137&#34;],
+            [&#34;Ce&#34;,139.905434,88.45,139,&#34;Ce_139&#34;],
+            [&#34;Ce&#34;,141.90924,11.114,141,&#34;Ce_141&#34;],
+            [&#34;Cs&#34;,132.905447,100.0,132,&#34;Cs_132&#34;],
+            [&#34;Cl&#34;,34.968853,75.78,34,&#34;Cl_34&#34;],
+            [&#34;Cl&#34;,36.965903,24.22,36,&#34;Cl_36&#34;],
+            [&#34;Cr&#34;,49.94605,4.345,49,&#34;Cr_49&#34;],
+            [&#34;Cr&#34;,51.940512,83.789,51,&#34;Cr_51&#34;],
+            [&#34;Cr&#34;,52.940654,9.501,52,&#34;Cr_52&#34;],
+            [&#34;Cr&#34;,53.938885,2.365,53,&#34;Cr_53&#34;],
+            [&#34;Co&#34;,58.9332,100.0,58,&#34;Co_58&#34;],
+            [&#34;Cu&#34;,62.929601,69.17,62,&#34;Cu_62&#34;],
+            [&#34;Cu&#34;,64.927794,30.83,64,&#34;Cu_64&#34;],
+            [&#34;Dy&#34;,155.924278,0.06,155,&#34;Dy_155&#34;],
+            [&#34;Dy&#34;,157.924405,0.1,157,&#34;Dy_157&#34;],
+            [&#34;Dy&#34;,159.925194,2.34,159,&#34;Dy_159&#34;],
+            [&#34;Dy&#34;,160.92693,18.91,160,&#34;Dy_160&#34;],
+            [&#34;Dy&#34;,161.926795,25.51,161,&#34;Dy_161&#34;],
+            [&#34;Dy&#34;,162.928728,24.9,162,&#34;Dy_162&#34;],
+            [&#34;Dy&#34;,163.929171,28.18,163,&#34;Dy_163&#34;],
+            [&#34;Er&#34;,161.928775,0.14,161,&#34;Er_161&#34;],
+            [&#34;Er&#34;,163.929197,1.61,163,&#34;Er_163&#34;],
+            [&#34;Er&#34;,165.93029,33.61,165,&#34;Er_165&#34;],
+            [&#34;Er&#34;,166.932045,22.93,166,&#34;Er_166&#34;],
+            [&#34;Er&#34;,167.932368,26.78,167,&#34;Er_167&#34;],
+            [&#34;Er&#34;,169.93546,14.93,169,&#34;Er_169&#34;],
+            [&#34;Eu&#34;,150.919846,47.81,150,&#34;Eu_150&#34;],
+            [&#34;Eu&#34;,152.921226,52.19,152,&#34;Eu_152&#34;],
+            [&#34;F&#34;,18.998403,100.0,18,&#34;F_18&#34;],
+            [&#34;Ga&#34;,68.925581,60.108,68,&#34;Ga_68&#34;],
+            [&#34;Ga&#34;,70.924705,39.892,70,&#34;Ga_70&#34;],
+            [&#34;Gd&#34;,151.919788,0.2,151,&#34;Gd_151&#34;],
+            [&#34;Gd&#34;,153.920862,2.18,153,&#34;Gd_153&#34;],
+            [&#34;Gd&#34;,154.822619,14.8,154,&#34;Gd_154&#34;],
+            [&#34;Gd&#34;,155.92212,20.47,155,&#34;Gd_155&#34;],
+            [&#34;Gd&#34;,156.923957,15.65,156,&#34;Gd_156&#34;],
+            [&#34;Gd&#34;,157.924101,24.84,157,&#34;Gd_157&#34;],
+            [&#34;Gd&#34;,159.927051,21.86,159,&#34;Gd_159&#34;],
+            [&#34;Ge&#34;,69.92425,20.84,69,&#34;Ge_69&#34;],
+            [&#34;Ge&#34;,71.922076,27.54,71,&#34;Ge_71&#34;],
+            [&#34;Ge&#34;,72.923459,7.73,72,&#34;Ge_72&#34;],
+            [&#34;Ge&#34;,73.921178,36.5,73,&#34;Ge_73&#34;],
+            [&#34;Ge&#34;,75.921403,7.61,75,&#34;Ge_75&#34;],
+            [&#34;Au&#34;,196.966552,100.0,196,&#34;Au_196&#34;],
+            [&#34;Hf&#34;,173.94004,0.16,173,&#34;Hf_173&#34;],
+            [&#34;Hf&#34;,175.941402,5.26,175,&#34;Hf_175&#34;],
+            [&#34;Hf&#34;,176.94322,18.6,176,&#34;Hf_176&#34;],
+            [&#34;Hf&#34;,177.943698,27.28,177,&#34;Hf_177&#34;],
+            [&#34;Hf&#34;,178.945815,13.62,178,&#34;Hf_178&#34;],
+            [&#34;Hf&#34;,179.946549,35.08,179,&#34;Hf_179&#34;],
+            [&#34;He&#34;,3.016029,0.000137,3,&#34;He_3&#34;],
+            [&#34;He&#34;,4.002603,99.999863,4,&#34;He_4&#34;],
+            [&#34;Ho&#34;,164.930319,100.0,164,&#34;Ho_164&#34;],
+            [&#34;H&#34;,1.007825,99.9885,1,&#34;H_1&#34;],
+            [&#34;H&#34;,2.014102,0.115,2,&#34;H_2&#34;],
+            [&#34;In&#34;,112.904061,4.29,112,&#34;In_112&#34;],
+            [&#34;In&#34;,114.903878,95.71,114,&#34;In_114&#34;],
+            [&#34;I&#34;,126.904468,100.0,126,&#34;I_126&#34;],
+            [&#34;Ir&#34;,190.960591,37.3,190,&#34;Ir_190&#34;],
+            [&#34;Ir&#34;,192.962924,62.7,192,&#34;Ir_192&#34;],
+            [&#34;Fe&#34;,53.939615,5.845,53,&#34;Fe_53&#34;],
+            [&#34;Fe&#34;,55.934942,91.754,55,&#34;Fe_55&#34;],
+            [&#34;Fe&#34;,56.935399,2.119,56,&#34;Fe_56&#34;],
+            [&#34;Fe&#34;,57.93328,0.282,57,&#34;Fe_57&#34;],
+            [&#34;Kr&#34;,77.920386,0.35,77,&#34;Kr_77&#34;],
+            [&#34;Kr&#34;,79.916378,2.28,79,&#34;Kr_79&#34;],
+            [&#34;Kr&#34;,81.913485,11.58,81,&#34;Kr_81&#34;],
+            [&#34;Kr&#34;,82.914136,11.49,82,&#34;Kr_82&#34;],
+            [&#34;Kr&#34;,83.911507,57.0,83,&#34;Kr_83&#34;],
+            [&#34;Kr&#34;,85.91061,17.3,85,&#34;Kr_85&#34;],
+            [&#34;La&#34;,137.907107,0.09,137,&#34;La_137&#34;],
+            [&#34;La&#34;,138.906348,99.91,138,&#34;La_138&#34;],
+            [&#34;Pb&#34;,203.973029,1.4,203,&#34;Pb_203&#34;],
+            [&#34;Pb&#34;,205.974449,24.1,205,&#34;Pb_205&#34;],
+            [&#34;Pb&#34;,206.975881,22.1,206,&#34;Pb_206&#34;],
+            [&#34;Pb&#34;,207.976636,52.4,207,&#34;Pb_207&#34;],
+            [&#34;Li&#34;,6.015122,7.59,6,&#34;Li_6&#34;],
+            [&#34;Li&#34;,7.016004,92.41,7,&#34;Li_7&#34;],
+            [&#34;Lu&#34;,174.940768,97.41,174,&#34;Lu_174&#34;],
+            [&#34;Lu&#34;,175.942682,2.59,175,&#34;Lu_175&#34;],
+            [&#34;Mg&#34;,23.985042,78.99,23,&#34;Mg_23&#34;],
+            [&#34;Mg&#34;,24.985837,10.0,24,&#34;Mg_24&#34;],
+            [&#34;Mg&#34;,25.982593,11.01,25,&#34;Mg_25&#34;],
+            [&#34;Mn&#34;,54.93805,100.0,54,&#34;Mn_54&#34;],
+            [&#34;Hg&#34;,195.965815,0.15,195,&#34;Hg_195&#34;],
+            [&#34;Hg&#34;,197.966752,9.97,197,&#34;Hg_197&#34;],
+            [&#34;Hg&#34;,198.968262,16.87,198,&#34;Hg_198&#34;],
+            [&#34;Hg&#34;,199.968309,23.1,199,&#34;Hg_199&#34;],
+            [&#34;Hg&#34;,200.970285,13.18,200,&#34;Hg_200&#34;],
+            [&#34;Hg&#34;,201.970626,29.86,201,&#34;Hg_201&#34;],
+            [&#34;Hg&#34;,203.973476,6.87,203,&#34;Hg_203&#34;],
+            [&#34;Mo&#34;,91.90681,14.84,91,&#34;Mo_91&#34;],
+            [&#34;Mo&#34;,93.905088,9.25,93,&#34;Mo_93&#34;],
+            [&#34;Mo&#34;,94.905841,15.92,94,&#34;Mo_94&#34;],
+            [&#34;Mo&#34;,95.904679,16.68,95,&#34;Mo_95&#34;],
+            [&#34;Mo&#34;,96.906021,9.55,96,&#34;Mo_96&#34;],
+            [&#34;Mo&#34;,97.905408,24.13,97,&#34;Mo_97&#34;],
+            [&#34;Mo&#34;,99.907477,9.63,99,&#34;Mo_99&#34;],
+            [&#34;Nd&#34;,141.907719,27.2,141,&#34;Nd_141&#34;],
+            [&#34;Nd&#34;,142.90981,12.2,142,&#34;Nd_142&#34;],
+            [&#34;Nd&#34;,143.910083,23.8,143,&#34;Nd_143&#34;],
+            [&#34;Nd&#34;,144.912569,8.3,144,&#34;Nd_144&#34;],
+            [&#34;Nd&#34;,145.913112,17.2,145,&#34;Nd_145&#34;],
+            [&#34;Nd&#34;,147.916889,5.7,147,&#34;Nd_147&#34;],
+            [&#34;Nd&#34;,149.920887,5.6,149,&#34;Nd_149&#34;],
+            [&#34;Ne&#34;,19.99244,90.48,19,&#34;Ne_19&#34;],
+            [&#34;Ne&#34;,20.993847,0.27,20,&#34;Ne_20&#34;],
+            [&#34;Ne&#34;,21.991386,9.25,21,&#34;Ne_21&#34;],
+            [&#34;Ni&#34;,57.935348,68.0769,57,&#34;Ni_57&#34;],
+            [&#34;Ni&#34;,59.930791,26.2231,59,&#34;Ni_59&#34;],
+            [&#34;Ni&#34;,60.93106,1.1399,60,&#34;Ni_60&#34;],
+            [&#34;Ni&#34;,61.928349,3.6345,61,&#34;Ni_61&#34;],
+            [&#34;Ni&#34;,63.92797,0.9256,63,&#34;Ni_63&#34;],
+            [&#34;Nb&#34;,92.906378,100.0,92,&#34;Nb_92&#34;],
+            [&#34;N&#34;,14.003074,99.632,14,&#34;N_14&#34;],
+            [&#34;N&#34;,15.000109,0.368,15,&#34;N_15&#34;],
+            [&#34;Os&#34;,183.952491,0.02,183,&#34;Os_183&#34;],
+            [&#34;Os&#34;,185.953838,1.59,185,&#34;Os_185&#34;],
+            [&#34;Os&#34;,186.955748,1.96,186,&#34;Os_186&#34;],
+            [&#34;Os&#34;,187.955836,13.24,187,&#34;Os_187&#34;],
+            [&#34;Os&#34;,188.958145,16.15,188,&#34;Os_188&#34;],
+            [&#34;Os&#34;,189.958445,26.26,189,&#34;Os_189&#34;],
+            [&#34;Os&#34;,191.961479,40.78,191,&#34;Os_191&#34;],
+            [&#34;O&#34;,15.994915,99.757,15,&#34;O_15&#34;],
+            [&#34;O&#34;,16.999132,0.038,16,&#34;O_16&#34;],
+            [&#34;O&#34;,17.99916,0.205,17,&#34;O_17&#34;],
+            [&#34;Pd&#34;,101.905608,1.02,101,&#34;Pd_101&#34;],
+            [&#34;Pd&#34;,103.904035,11.14,103,&#34;Pd_103&#34;],
+            [&#34;Pd&#34;,104.905084,22.33,104,&#34;Pd_104&#34;],
+            [&#34;Pd&#34;,105.903483,27.33,105,&#34;Pd_105&#34;],
+            [&#34;Pd&#34;,107.903894,26.46,107,&#34;Pd_107&#34;],
+            [&#34;Pd&#34;,109.905152,11.72,109,&#34;Pd_109&#34;],
+            [&#34;P&#34;,30.973762,100.0,30,&#34;P_30&#34;],
+            [&#34;Pt&#34;,189.95993,0.014,189,&#34;Pt_189&#34;],
+            [&#34;Pt&#34;,191.961035,0.782,191,&#34;Pt_191&#34;],
+            [&#34;Pt&#34;,193.962664,32.967,193,&#34;Pt_193&#34;],
+            [&#34;Pt&#34;,194.964774,33.832,194,&#34;Pt_194&#34;],
+            [&#34;Pt&#34;,195.964935,25.242,195,&#34;Pt_195&#34;],
+            [&#34;Pt&#34;,197.967876,7.163,197,&#34;Pt_197&#34;],
+            [&#34;K&#34;,38.963707,93.2581,38,&#34;K_38&#34;],
+            [&#34;K&#34;,39.963999,0.0117,39,&#34;K_39&#34;],
+            [&#34;K&#34;,40.961826,6.7302,40,&#34;K_40&#34;],
+            [&#34;Pr&#34;,140.907648,100.0,140,&#34;Pr_140&#34;],
+            [&#34;Re&#34;,184.952956,37.4,184,&#34;Re_184&#34;],
+            [&#34;Re&#34;,186.955751,62.6,186,&#34;Re_186&#34;],
+            [&#34;Rh&#34;,102.905504,100.0,102,&#34;Rh_102&#34;],
+            [&#34;Rb&#34;,84.911789,72.17,84,&#34;Rb_84&#34;],
+            [&#34;Rb&#34;,86.909183,27.83,86,&#34;Rb_86&#34;],
+            [&#34;Ru&#34;,95.907598,5.54,95,&#34;Ru_95&#34;],
+            [&#34;Ru&#34;,97.905287,1.87,97,&#34;Ru_97&#34;],
+            [&#34;Ru&#34;,98.905939,12.76,98,&#34;Ru_98&#34;],
+            [&#34;Ru&#34;,99.90422,12.6,99,&#34;Ru_99&#34;],
+            [&#34;Ru&#34;,100.905582,17.06,100,&#34;Ru_100&#34;],
+            [&#34;Ru&#34;,101.90435,31.55,101,&#34;Ru_101&#34;],
+            [&#34;Ru&#34;,103.90543,18.62,103,&#34;Ru_103&#34;],
+            [&#34;Sm&#34;,143.911995,3.07,143,&#34;Sm_143&#34;],
+            [&#34;Sm&#34;,146.914893,14.99,146,&#34;Sm_146&#34;],
+            [&#34;Sm&#34;,147.914818,11.24,147,&#34;Sm_147&#34;],
+            [&#34;Sm&#34;,148.91718,13.82,148,&#34;Sm_148&#34;],
+            [&#34;Sm&#34;,149.917271,7.38,149,&#34;Sm_149&#34;],
+            [&#34;Sm&#34;,151.919728,26.75,151,&#34;Sm_151&#34;],
+            [&#34;Sm&#34;,153.922205,22.75,153,&#34;Sm_153&#34;],
+            [&#34;Sc&#34;,44.95591,100.0,44,&#34;Sc_44&#34;],
+            [&#34;Se&#34;,73.922477,0.89,73,&#34;Se_73&#34;],
+            [&#34;Se&#34;,75.919214,9.37,75,&#34;Se_75&#34;],
+            [&#34;Se&#34;,76.919915,7.63,76,&#34;Se_76&#34;],
+            [&#34;Se&#34;,77.91731,23.77,77,&#34;Se_77&#34;],
+            [&#34;Se&#34;,79.916522,49.61,79,&#34;Se_79&#34;],
+            [&#34;Se&#34;,81.9167,8.73,81,&#34;Se_81&#34;],
+            [&#34;Si&#34;,27.976927,92.2297,27,&#34;Si_27&#34;],
+            [&#34;Si&#34;,28.976495,4.6832,28,&#34;Si_28&#34;],
+            [&#34;Si&#34;,29.97377,3.0872,29,&#34;Si_29&#34;],
+            [&#34;Ag&#34;,106.905093,51.839,106,&#34;Ag_106&#34;],
+            [&#34;Ag&#34;,108.904756,48.161,108,&#34;Ag_108&#34;],
+            [&#34;Na&#34;,22.98977,100.0,22,&#34;Na_22&#34;],
+            [&#34;Sr&#34;,83.913425,0.56,83,&#34;Sr_83&#34;],
+            [&#34;Sr&#34;,85.909262,9.86,85,&#34;Sr_85&#34;],
+            [&#34;Sr&#34;,86.908879,7.0,86,&#34;Sr_86&#34;],
+            [&#34;Sr&#34;,87.905614,82.58,87,&#34;Sr_87&#34;],
+            [&#34;S&#34;,31.972071,94.93,31,&#34;S_31&#34;],
+            [&#34;S&#34;,32.971458,0.76,32,&#34;S_32&#34;],
+            [&#34;S&#34;,33.967867,4.29,33,&#34;S_33&#34;],
+            [&#34;S&#34;,35.967081,0.02,35,&#34;S_35&#34;],
+            [&#34;Ta&#34;,179.947466,0.012,179,&#34;Ta_179&#34;],
+            [&#34;Ta&#34;,180.947996,99.988,180,&#34;Ta_180&#34;],
+            [&#34;Te&#34;,119.90402,0.09,119,&#34;Te_119&#34;],
+            [&#34;Te&#34;,121.903047,2.55,121,&#34;Te_121&#34;],
+            [&#34;Te&#34;,122.904273,0.89,122,&#34;Te_122&#34;],
+            [&#34;Te&#34;,123.902819,4.74,123,&#34;Te_123&#34;],
+            [&#34;Te&#34;,124.904425,7.07,124,&#34;Te_124&#34;],
+            [&#34;Te&#34;,125.903306,18.84,125,&#34;Te_125&#34;],
+            [&#34;Te&#34;,127.904461,31.74,127,&#34;Te_127&#34;],
+            [&#34;Te&#34;,129.906223,34.08,129,&#34;Te_129&#34;],
+            [&#34;Tb&#34;,158.925343,100.0,158,&#34;Tb_158&#34;],
+            [&#34;Tl&#34;,202.972329,29.524,202,&#34;Tl_202&#34;],
+            [&#34;Tl&#34;,204.974412,70.476,204,&#34;Tl_204&#34;],
+            [&#34;Th&#34;,232.03805,100.0,232,&#34;Th_232&#34;],
+            [&#34;Tm&#34;,168.934211,100.0,168,&#34;Tm_168&#34;],
+            [&#34;Sn&#34;,111.904821,0.97,111,&#34;Sn_111&#34;],
+            [&#34;Sn&#34;,113.902782,0.66,113,&#34;Sn_113&#34;],
+            [&#34;Sn&#34;,114.903346,0.34,114,&#34;Sn_114&#34;],
+            [&#34;Sn&#34;,115.901744,14.54,115,&#34;Sn_115&#34;],
+            [&#34;Sn&#34;,116.902954,7.68,116,&#34;Sn_116&#34;],
+            [&#34;Sn&#34;,117.901606,24.22,117,&#34;Sn_117&#34;],
+            [&#34;Sn&#34;,118.903309,8.59,118,&#34;Sn_118&#34;],
+            [&#34;Sn&#34;,119.902197,32.58,119,&#34;Sn_119&#34;],
+            [&#34;Sn&#34;,121.90344,4.63,121,&#34;Sn_121&#34;],
+            [&#34;Sn&#34;,123.905275,5.79,123,&#34;Sn_123&#34;],
+            [&#34;Ti&#34;,45.952629,8.25,45,&#34;Ti_45&#34;],
+            [&#34;Ti&#34;,46.951764,7.44,46,&#34;Ti_46&#34;],
+            [&#34;Ti&#34;,47.947871,73.72,47,&#34;Ti_47&#34;],
+            [&#34;W&#34;,179.946706,0.12,179,&#34;W_179&#34;],
+            [&#34;W&#34;,181.948206,26.5,181,&#34;W_181&#34;],
+            [&#34;W&#34;,182.950224,14.31,182,&#34;W_182&#34;],
+            [&#34;W&#34;,183.950933,30.64,183,&#34;W_183&#34;],
+            [&#34;W&#34;,185.954362,28.43,185,&#34;W_185&#34;],
+            [&#34;U&#34;,234.040946,0.0055,234,&#34;U_234&#34;],
+            [&#34;U&#34;,235.043923,0.72,235,&#34;U_235&#34;],
+            [&#34;U&#34;,238.050783,99.2745,238,&#34;U_238&#34;],
+            [&#34;V&#34;,49.947163,0.25,49,&#34;V_49&#34;],
+            [&#34;V&#34;,50.943964,99.75,50,&#34;V_50&#34;],
+            [&#34;Xe&#34;,123.905896,0.09,123,&#34;Xe_123&#34;],
+            [&#34;Xe&#34;,125.904269,0.09,125,&#34;Xe_125&#34;],
+            [&#34;Xe&#34;,127.90353,1.92,127,&#34;Xe_127&#34;],
+            [&#34;Xe&#34;,128.904779,26.44,128,&#34;Xe_128&#34;],
+            [&#34;Xe&#34;,129.903508,10.44,129,&#34;Xe_129&#34;],
+            [&#34;Xe&#34;,130.905082,21.18,130,&#34;Xe_130&#34;],
+            [&#34;Xe&#34;,131.904154,26.89,131,&#34;Xe_131&#34;],
+            [&#34;Xe&#34;,133.905395,10.44,133,&#34;Xe_133&#34;],
+            [&#34;Xe&#34;,135.90722,8.87,135,&#34;Xe_135&#34;],
+            [&#34;Yb&#34;,167.933894,0.13,167,&#34;Yb_167&#34;],
+            [&#34;Yb&#34;,169.934759,3.04,169,&#34;Yb_169&#34;],
+            [&#34;Yb&#34;,170.936322,14.28,170,&#34;Yb_170&#34;],
+            [&#34;Yb&#34;,171.936378,21.83,171,&#34;Yb_171&#34;],
+            [&#34;Yb&#34;,172.938207,16.13,172,&#34;Yb_172&#34;],
+            [&#34;Yb&#34;,173.938858,31.83,173,&#34;Yb_173&#34;],
+            [&#34;Yb&#34;,175.942568,12.76,175,&#34;Yb_175&#34;],
+            [&#34;Y&#34;,88.905848,100.0,88,&#34;Y_88&#34;],
+            [&#34;Zn&#34;,63.929147,48.63,63,&#34;Zn_63&#34;],
+            [&#34;Zn&#34;,65.926037,27.9,65,&#34;Zn_65&#34;],
+            [&#34;Zn&#34;,66.927131,4.1,66,&#34;Zn_66&#34;],
+            [&#34;Zn&#34;,67.924848,18.75,67,&#34;Zn_67&#34;],
+            [&#34;Zn&#34;,69.925325,0.62,69,&#34;Zn_69&#34;],
+            [&#34;Zr&#34;,89.904704,51.45,89,&#34;Zr_89&#34;],
+            [&#34;Zr&#34;,90.905645,11.22,90,&#34;Zr_90&#34;],
+            [&#34;Zr&#34;,91.90504,17.15,91,&#34;Zr_91&#34;],
+            [&#34;Zr&#34;,93.906316,17.38,93,&#34;Zr_93&#34;],
+            [&#34;Zr&#34;,95.908276,2.8,95,&#34;Zr_95&#34;]])</code></pre>
+</details>
+</dd>
+<dt id="nhsmasslib.brutto.get_elements_masses"><code class="name flex">
+<span>def <span class="ident">get_elements_masses</span></span>(<span>elems: Sequence[str]) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get elenments masses from list</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>elems</code></strong> :&ensp;<code>Sequence[str]</code></dt>
+<dd>Elements in list. Example ['C', 'H', 'N', 'C_13', 'O']</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>numpy array with elements masses</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_elements_masses(elems:Sequence[str]) -&gt; np.array :
+    &#34;&#34;&#34;
+    Get elenments masses from list
+
+    Parameters
+    ----------
+    elems: Sequence[str]
+        Elements in list. Example [&#39;C&#39;, &#39;H&#39;, &#39;N&#39;, &#39;C_13&#39;, &#39;O&#39;]
+
+    Return
+    ------
+    numpy array with elements masses
+    &#34;&#34;&#34;
+    
+    elements = elements_table()    
+    elems_masses = []
+
+    for el in elems:
+        if &#39;_&#39; not in el:
+            temp = elements.loc[elements[&#39;element&#39;]==el].sort_values(by=&#39;abundance&#39;,ascending=False).reset_index(drop=True)
+            elems_masses.append(temp.loc[0,&#39;mass&#39;])
+        else:
+            temp = elements.loc[elements[&#39;element_isotop&#39;]==el].reset_index(drop=True)
+            elems_masses.append(temp.loc[0,&#39;mass&#39;])
+
+    return np.array(elems_masses)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="nhsmasslib" href="index.html">nhsmasslib</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="nhsmasslib.brutto.brutto_gen" href="#nhsmasslib.brutto.brutto_gen">brutto_gen</a></code></li>
+<li><code><a title="nhsmasslib.brutto.elements_table" href="#nhsmasslib.brutto.elements_table">elements_table</a></code></li>
+<li><code><a title="nhsmasslib.brutto.get_elements_masses" href="#nhsmasslib.brutto.get_elements_masses">get_elements_masses</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

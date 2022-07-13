@@ -36,8 +36,8 @@ from scipy import spatial
 
 from tqdm import tqdm
 
-from .brutto_generator import brutto_gen
-from .brutto_generator import elements_table, get_elements_masses
+from .brutto import brutto_gen
+from .brutto import elements_table, get_elements_masses
 
 class SpectrumIsNotAssigned(Exception):
     pass
