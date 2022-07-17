@@ -188,8 +188,8 @@ class Metric(object):
         dif: diff_mass
             diff-mass inm rounded by 6
         
-        Retun
-        -----
+        Return
+        ------
         tuple of characteristics
         &#39;nodes&#39;, &#39;chains&#39;, &#39;max_chain&#39;, &#39;median chain&#39;
         &#34;&#34;&#34;
@@ -252,7 +252,7 @@ class Vis(object):
 
     Atributes
     ---------
-    Networkx Graph
+    G: Networkx Graph
     &#34;&#34;&#34;
 
     def __init__(self, G:nx.Graph=None) -&gt; None:
@@ -284,7 +284,7 @@ class Vis(object):
             dif_table = self.gen_diftable()
 
         if brutto_name:
-            spec = spec.calc_brutto()
+            spec = spec.calculate_brutto()
             brutto = spec.table[&#39;brutto&#39;].to_list()
             massl = spec.table[&#39;calculated_mass&#39;].to_list()
             nods = dict(zip(massl, brutto))
@@ -320,6 +320,8 @@ class Vis(object):
         &#34;&#34;&#34;
         Generate html with graph
 
+        Parameters
+        ----------
         filename: str
             file to save html
         size: str
@@ -550,8 +552,8 @@ Massspectrum for calculate</p></div>
         dif: diff_mass
             diff-mass inm rounded by 6
         
-        Retun
-        -----
+        Return
+        ------
         tuple of characteristics
         &#39;nodes&#39;, &#39;chains&#39;, &#39;max_chain&#39;, &#39;median chain&#39;
         &#34;&#34;&#34;
@@ -774,7 +776,7 @@ Add to TMDS table 'nodes', 'chains', 'max_chain', 'median chain'</p></div>
 <dt><strong><code>dif</code></strong> :&ensp;<code>diff_mass</code></dt>
 <dd>diff-mass inm rounded by 6</dd>
 </dl>
-<h2 id="retun">Retun</h2>
+<h2 id="return">Return</h2>
 <p>tuple of characteristics
 'nodes', 'chains', 'max_chain', 'median chain'</p></div>
 <details class="source">
@@ -792,8 +794,8 @@ Add to TMDS table 'nodes', 'chains', 'max_chain', 'median chain'</p></div>
     dif: diff_mass
         diff-mass inm rounded by 6
     
-    Retun
-    -----
+    Return
+    ------
     tuple of characteristics
     &#39;nodes&#39;, &#39;chains&#39;, &#39;max_chain&#39;, &#39;median chain&#39;
     &#34;&#34;&#34;
@@ -895,7 +897,7 @@ where n - length of chain,
 <dd>
 <div class="desc"><p>Generate visulization</p>
 <h2 id="atributes">Atributes</h2>
-<p>Networkx Graph</p></div>
+<p>G: Networkx Graph</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -906,7 +908,7 @@ where n - length of chain,
 
     Atributes
     ---------
-    Networkx Graph
+    G: Networkx Graph
     &#34;&#34;&#34;
 
     def __init__(self, G:nx.Graph=None) -&gt; None:
@@ -938,7 +940,7 @@ where n - length of chain,
             dif_table = self.gen_diftable()
 
         if brutto_name:
-            spec = spec.calc_brutto()
+            spec = spec.calculate_brutto()
             brutto = spec.table[&#39;brutto&#39;].to_list()
             massl = spec.table[&#39;calculated_mass&#39;].to_list()
             nods = dict(zip(massl, brutto))
@@ -974,6 +976,8 @@ where n - length of chain,
         &#34;&#34;&#34;
         Generate html with graph
 
+        Parameters
+        ----------
         filename: str
             file to save html
         size: str
@@ -1185,7 +1189,7 @@ Optional. if None - generate default dif table.</dd>
         dif_table = self.gen_diftable()
 
     if brutto_name:
-        spec = spec.calc_brutto()
+        spec = spec.calculate_brutto()
         brutto = spec.table[&#39;brutto&#39;].to_list()
         massl = spec.table[&#39;calculated_mass&#39;].to_list()
         nods = dict(zip(massl, brutto))
@@ -1223,10 +1227,13 @@ Optional. if None - generate default dif table.</dd>
 </code></dt>
 <dd>
 <div class="desc"><p>Generate html with graph</p>
-<p>filename: str
-file to save html
-size: str
-optional, default 800px. Size of graph</p></div>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>filename</code></strong> :&ensp;<code>str</code></dt>
+<dd>file to save html</dd>
+<dt><strong><code>size</code></strong> :&ensp;<code>str</code></dt>
+<dd>optional, default 800px. Size of graph</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1235,6 +1242,8 @@ optional, default 800px. Size of graph</p></div>
     &#34;&#34;&#34;
     Generate html with graph
 
+    Parameters
+    ----------
     filename: str
         file to save html
     size: str

@@ -160,8 +160,8 @@ class Metric(object):
         dif: diff_mass
             diff-mass inm rounded by 6
         
-        Retun
-        -----
+        Return
+        ------
         tuple of characteristics
         'nodes', 'chains', 'max_chain', 'median chain'
         """
@@ -224,7 +224,7 @@ class Vis(object):
 
     Atributes
     ---------
-    Networkx Graph
+    G: Networkx Graph
     """
 
     def __init__(self, G:nx.Graph=None) -> None:
@@ -256,7 +256,7 @@ class Vis(object):
             dif_table = self.gen_diftable()
 
         if brutto_name:
-            spec = spec.calc_brutto()
+            spec = spec.calculate_brutto()
             brutto = spec.table['brutto'].to_list()
             massl = spec.table['calculated_mass'].to_list()
             nods = dict(zip(massl, brutto))
@@ -292,6 +292,8 @@ class Vis(object):
         """
         Generate html with graph
 
+        Parameters
+        ----------
         filename: str
             file to save html
         size: str

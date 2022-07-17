@@ -1,4 +1,3 @@
-#    Copyright 2019-2021 Rukhovich Gleb
 #    Copyright 2022 Volikov Alexander <ab.volikov@gmail.com>
 #
 #    This file is part of nhsmasslib. 

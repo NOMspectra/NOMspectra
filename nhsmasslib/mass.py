@@ -344,7 +344,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(table)
 
-    def calc_brutto(self) -> 'MassSpectrum':
+    def calculate_brutto(self) -> 'MassSpectrum':
         """
         Calculate brutto formulas from assign table
 
@@ -879,7 +879,7 @@ class MassSpectrum(object):
             if how == 'assign':
                 if "assign" not in self.table:
                     raise SpectrumIsNotAssigned()
-                error_table = ErrorTable().assign_error(self)
+                error_table = ErrorTable().assign_error(self).zeroshift(self)
             elif how == 'mdm':
                 error_table = ErrorTable().massdiff_error(self)
             else:
@@ -1423,7 +1423,7 @@ class ErrorTable(object):
         err['ppm'] = - err['ppm']
         err['mass'] = np.linspace(error_table['mass'].min(), error_table['mass'].max(),len(err))
 
-        return ErrorTable(err)  
+        return ErrorTable(err)
 
     def massdiff_error(
         self,
@@ -1537,7 +1537,7 @@ class ErrorTable(object):
             ax.plot(err['m/z'], err['ppm'])
             ax.set_xlabel('m/z, Da')
             ax.set_ylabel('Error, ppm')
-        
+
         return ErrorTable(err)
 
     def extrapolate(self, ranges:Tuple[float, float] = None) -> "ErrorTable":
@@ -1575,6 +1575,24 @@ class ErrorTable(object):
         ax.plot(self.table['mass'], self.table['ppm'])
         ax.set_xlabel('m/z, Da')
         ax.set_ylabel('error, ppm')
+
+    def zeroshift(self, spec:"MassSpectrum") -> "ErrorTable":
+        """
+        Shift error so mean eror will be zero
+
+        Parameters
+        ----------
+        spec: MassSpectrum object
+            income massspec
+
+        Return
+        ------
+        ErrorTable object with shifted ppm error
+        """
+        err = copy.deepcopy(self)
+        mean_error = spec.drop_unassigned().calculate_error()['rel_error'].mean()
+        err.table['ppm'] = err.table['ppm'] - mean_error
+        return ErrorTable(err.table)       
 
 
 class MassSpectrumList(object):
@@ -1705,7 +1723,7 @@ class MassSpectrumList(object):
         
         x_axis_labels = self.names
         y_axis_labels = self.names
-        sns.heatmap(np.array(values), vmin=0, vmax=1, annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
+        sns.heatmap(np.array(values), vmin=0, vmax=1, cmap="viridis", annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
         plt.title(mode)
 
 

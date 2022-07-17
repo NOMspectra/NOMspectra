@@ -372,7 +372,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(table)
 
-    def calc_brutto(self) -&gt; &#39;MassSpectrum&#39;:
+    def calculate_brutto(self) -&gt; &#39;MassSpectrum&#39;:
         &#34;&#34;&#34;
         Calculate brutto formulas from assign table
 
@@ -907,7 +907,7 @@ class MassSpectrum(object):
             if how == &#39;assign&#39;:
                 if &#34;assign&#34; not in self.table:
                     raise SpectrumIsNotAssigned()
-                error_table = ErrorTable().assign_error(self)
+                error_table = ErrorTable().assign_error(self).zeroshift(self)
             elif how == &#39;mdm&#39;:
                 error_table = ErrorTable().massdiff_error(self)
             else:
@@ -1451,7 +1451,7 @@ class ErrorTable(object):
         err[&#39;ppm&#39;] = - err[&#39;ppm&#39;]
         err[&#39;mass&#39;] = np.linspace(error_table[&#39;mass&#39;].min(), error_table[&#39;mass&#39;].max(),len(err))
 
-        return ErrorTable(err)  
+        return ErrorTable(err)
 
     def massdiff_error(
         self,
@@ -1565,7 +1565,7 @@ class ErrorTable(object):
             ax.plot(err[&#39;m/z&#39;], err[&#39;ppm&#39;])
             ax.set_xlabel(&#39;m/z, Da&#39;)
             ax.set_ylabel(&#39;Error, ppm&#39;)
-        
+
         return ErrorTable(err)
 
     def extrapolate(self, ranges:Tuple[float, float] = None) -&gt; &#34;ErrorTable&#34;:
@@ -1603,6 +1603,24 @@ class ErrorTable(object):
         ax.plot(self.table[&#39;mass&#39;], self.table[&#39;ppm&#39;])
         ax.set_xlabel(&#39;m/z, Da&#39;)
         ax.set_ylabel(&#39;error, ppm&#39;)
+
+    def zeroshift(self, spec:&#34;MassSpectrum&#34;) -&gt; &#34;ErrorTable&#34;:
+        &#34;&#34;&#34;
+        Shift error so mean eror will be zero
+
+        Parameters
+        ----------
+        spec: MassSpectrum object
+            income massspec
+
+        Return
+        ------
+        ErrorTable object with shifted ppm error
+        &#34;&#34;&#34;
+        err = copy.deepcopy(self)
+        mean_error = spec.drop_unassigned().calculate_error()[&#39;rel_error&#39;].mean()
+        err.table[&#39;ppm&#39;] = err.table[&#39;ppm&#39;] - mean_error
+        return ErrorTable(err.table)       
 
 
 class MassSpectrumList(object):
@@ -1733,7 +1751,7 @@ class MassSpectrumList(object):
         
         x_axis_labels = self.names
         y_axis_labels = self.names
-        sns.heatmap(np.array(values), vmin=0, vmax=1, annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
+        sns.heatmap(np.array(values), vmin=0, vmax=1, cmap=&#34;viridis&#34;, annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
         plt.title(mode)
 
 
@@ -2501,7 +2519,7 @@ if __name__ == &#39;__main__&#39;:
         err[&#39;ppm&#39;] = - err[&#39;ppm&#39;]
         err[&#39;mass&#39;] = np.linspace(error_table[&#39;mass&#39;].min(), error_table[&#39;mass&#39;].max(),len(err))
 
-        return ErrorTable(err)  
+        return ErrorTable(err)
 
     def massdiff_error(
         self,
@@ -2615,7 +2633,7 @@ if __name__ == &#39;__main__&#39;:
             ax.plot(err[&#39;m/z&#39;], err[&#39;ppm&#39;])
             ax.set_xlabel(&#39;m/z, Da&#39;)
             ax.set_ylabel(&#39;Error, ppm&#39;)
-        
+
         return ErrorTable(err)
 
     def extrapolate(self, ranges:Tuple[float, float] = None) -&gt; &#34;ErrorTable&#34;:
@@ -2652,7 +2670,25 @@ if __name__ == &#39;__main__&#39;:
         fig, ax = plt.subplots(figsize=(4,4), dpi=75)
         ax.plot(self.table[&#39;mass&#39;], self.table[&#39;ppm&#39;])
         ax.set_xlabel(&#39;m/z, Da&#39;)
-        ax.set_ylabel(&#39;error, ppm&#39;)</code></pre>
+        ax.set_ylabel(&#39;error, ppm&#39;)
+
+    def zeroshift(self, spec:&#34;MassSpectrum&#34;) -&gt; &#34;ErrorTable&#34;:
+        &#34;&#34;&#34;
+        Shift error so mean eror will be zero
+
+        Parameters
+        ----------
+        spec: MassSpectrum object
+            income massspec
+
+        Return
+        ------
+        ErrorTable object with shifted ppm error
+        &#34;&#34;&#34;
+        err = copy.deepcopy(self)
+        mean_error = spec.drop_unassigned().calculate_error()[&#39;rel_error&#39;].mean()
+        err.table[&#39;ppm&#39;] = err.table[&#39;ppm&#39;] - mean_error
+        return ErrorTable(err.table)       </code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -2728,7 +2764,7 @@ for correct recallibration we need to mark mode
     err[&#39;ppm&#39;] = - err[&#39;ppm&#39;]
     err[&#39;mass&#39;] = np.linspace(error_table[&#39;mass&#39;].min(), error_table[&#39;mass&#39;].max(),len(err))
 
-    return ErrorTable(err)  </code></pre>
+    return ErrorTable(err)</code></pre>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.ErrorTable.dif_mass"><code class="name flex">
@@ -2873,7 +2909,7 @@ permissible relative error in ppm for seak peak in etalon</dd>
         ax.plot(err[&#39;m/z&#39;], err[&#39;ppm&#39;])
         ax.set_xlabel(&#39;m/z, Da&#39;)
         ax.set_ylabel(&#39;Error, ppm&#39;)
-    
+
     return ErrorTable(err)</code></pre>
 </details>
 </dd>
@@ -3220,6 +3256,41 @@ Show error in ppm versus mass</dd>
     ax.set_ylabel(&#39;error, ppm&#39;)</code></pre>
 </details>
 </dd>
+<dt id="nhsmasslib.mass.ErrorTable.zeroshift"><code class="name flex">
+<span>def <span class="ident">zeroshift</span></span>(<span>self, spec: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>) ‑> <a title="nhsmasslib.mass.ErrorTable" href="#nhsmasslib.mass.ErrorTable">ErrorTable</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Shift error so mean eror will be zero</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>spec</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dd>income massspec</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>ErrorTable object with shifted ppm error</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def zeroshift(self, spec:&#34;MassSpectrum&#34;) -&gt; &#34;ErrorTable&#34;:
+    &#34;&#34;&#34;
+    Shift error so mean eror will be zero
+
+    Parameters
+    ----------
+    spec: MassSpectrum object
+        income massspec
+
+    Return
+    ------
+    ErrorTable object with shifted ppm error
+    &#34;&#34;&#34;
+    err = copy.deepcopy(self)
+    mean_error = spec.drop_unassigned().calculate_error()[&#39;rel_error&#39;].mean()
+    err.table[&#39;ppm&#39;] = err.table[&#39;ppm&#39;] - mean_error
+    return ErrorTable(err.table)       </code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 <dt id="nhsmasslib.mass.MassSpectrum"><code class="flex name class">
@@ -3552,7 +3623,7 @@ can be finded by class method find_elems()</dd>
 
         return MassSpectrum(table)
 
-    def calc_brutto(self) -&gt; &#39;MassSpectrum&#39;:
+    def calculate_brutto(self) -&gt; &#39;MassSpectrum&#39;:
         &#34;&#34;&#34;
         Calculate brutto formulas from assign table
 
@@ -4087,7 +4158,7 @@ can be finded by class method find_elems()</dd>
             if how == &#39;assign&#39;:
                 if &#34;assign&#34; not in self.table:
                     raise SpectrumIsNotAssigned()
-                error_table = ErrorTable().assign_error(self)
+                error_table = ErrorTable().assign_error(self).zeroshift(self)
             elif how == &#39;mdm&#39;:
                 error_table = ErrorTable().massdiff_error(self)
             else:
@@ -4392,8 +4463,33 @@ Relative probability coefficient for treshold tmds spectrum</dd>
     return MassSpectrum(out2)</code></pre>
 </details>
 </dd>
-<dt id="nhsmasslib.mass.MassSpectrum.calc_brutto"><code class="name flex">
-<span>def <span class="ident">calc_brutto</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_ai"><code class="name flex">
+<span>def <span class="ident">calculate_ai</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate AI</p>
+<h2 id="return">Return</h2>
+<p>MassSpectrum object with calculated AI</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_ai(self) -&gt; &#39;MassSpectrum&#39;:
+    &#34;&#34;&#34;
+    Calculate AI
+
+    Return
+    ------
+    MassSpectrum object with calculated AI
+    &#34;&#34;&#34;
+    table = self.calculate_cai().calculate_dbe().table
+    table[&#34;AI&#34;] = table[&#34;DBE&#34;] / table[&#34;CAI&#34;]
+
+    return MassSpectrum(table)</code></pre>
+</details>
+</dd>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_brutto"><code class="name flex">
+<span>def <span class="ident">calculate_brutto</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate brutto formulas from assign table</p>
@@ -4403,7 +4499,7 @@ Relative probability coefficient for treshold tmds spectrum</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def calc_brutto(self) -&gt; &#39;MassSpectrum&#39;:
+<pre><code class="python">def calculate_brutto(self) -&gt; &#39;MassSpectrum&#39;:
     &#34;&#34;&#34;
     Calculate brutto formulas from assign table
 
@@ -4426,31 +4522,6 @@ Relative probability coefficient for treshold tmds spectrum</dd>
         out.append(s)
     
     table[&#39;brutto&#39;] = out
-
-    return MassSpectrum(table)</code></pre>
-</details>
-</dd>
-<dt id="nhsmasslib.mass.MassSpectrum.calculate_ai"><code class="name flex">
-<span>def <span class="ident">calculate_ai</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate AI</p>
-<h2 id="return">Return</h2>
-<p>MassSpectrum object with calculated AI</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def calculate_ai(self) -&gt; &#39;MassSpectrum&#39;:
-    &#34;&#34;&#34;
-    Calculate AI
-
-    Return
-    ------
-    MassSpectrum object with calculated AI
-    &#34;&#34;&#34;
-    table = self.calculate_cai().calculate_dbe().table
-    table[&#34;AI&#34;] = table[&#34;DBE&#34;] / table[&#34;CAI&#34;]
 
     return MassSpectrum(table)</code></pre>
 </details>
@@ -4703,7 +4774,7 @@ Mode can be: "tanimoto", "jaccard", "cosine"</dd>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.MassSpectrum.draw"><code class="name flex">
-<span>def <span class="ident">draw</span></span>(<span>self, xlim: Tuple[Optional[float], Optional[float]] = (None, None), ylim: Tuple[Optional[float], Optional[float]] = (None, None), color: str = 'black', ax: <function axes at 0x7f81b914d5e0> = None) ‑> None</span>
+<span>def <span class="ident">draw</span></span>(<span>self, xlim: Tuple[Optional[float], Optional[float]] = (None, None), ylim: Tuple[Optional[float], Optional[float]] = (None, None), color: str = 'black', ax: <function axes at 0x7fc570a3b5e0> = None) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw mass spectrum</p>
@@ -5176,7 +5247,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
         if how == &#39;assign&#39;:
             if &#34;assign&#34; not in self.table:
                 raise SpectrumIsNotAssigned()
-            error_table = ErrorTable().assign_error(self)
+            error_table = ErrorTable().assign_error(self).zeroshift(self)
         elif how == &#39;mdm&#39;:
             error_table = ErrorTable().massdiff_error(self)
         else:
@@ -5445,7 +5516,7 @@ filename - path to etalon spectrum, treated and saved by masslib</dd>
         
         x_axis_labels = self.names
         y_axis_labels = self.names
-        sns.heatmap(np.array(values), vmin=0, vmax=1, annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
+        sns.heatmap(np.array(values), vmin=0, vmax=1, cmap=&#34;viridis&#34;, annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
         plt.title(mode)</code></pre>
 </details>
 <h3>Methods</h3>
@@ -5530,7 +5601,7 @@ Mode can be: "tanimoto", "jaccard", "cosine"</dd>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.MassSpectrumList.draw_similarity"><code class="name flex">
-<span>def <span class="ident">draw_similarity</span></span>(<span>self, mode: str = 'cosine', values: numpy.ndarray = None, ax: <function axes at 0x7f81b914d5e0> = None, annot=True) ‑> None</span>
+<span>def <span class="ident">draw_similarity</span></span>(<span>self, mode: str = 'cosine', values: numpy.ndarray = None, ax: <function axes at 0x7fc570a3b5e0> = None, annot=True) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw similarity matrix by using seaborn</p>
@@ -5584,7 +5655,7 @@ Mode can be: "tanimoto", "jaccard", "cosine"</dd>
     
     x_axis_labels = self.names
     y_axis_labels = self.names
-    sns.heatmap(np.array(values), vmin=0, vmax=1, annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
+    sns.heatmap(np.array(values), vmin=0, vmax=1, cmap=&#34;viridis&#34;, annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
     plt.title(mode)</code></pre>
 </details>
 </dd>
@@ -5726,7 +5797,7 @@ mass spectrum of product</p>
 <h3>Methods</h3>
 <dl>
 <dt id="nhsmasslib.mass.Reaction.draw_modification"><code class="name flex">
-<span>def <span class="ident">draw_modification</span></span>(<span>self, ax: <function axes at 0x7f81b914d5e0> = None, sourse: bool = True, product: bool = True, sourse_color: str = 'red', product_color: str = 'blue', volume: float = 5) ‑> None</span>
+<span>def <span class="ident">draw_modification</span></span>(<span>self, ax: <function axes at 0x7fc570a3b5e0> = None, sourse: bool = True, product: bool = True, sourse_color: str = 'red', product_color: str = 'blue', volume: float = 5) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot Van-Krevelen for modifed peaks in product and sourse</p>
@@ -6918,7 +6989,7 @@ Must contain elements 'C', 'H', 'N'</dd>
 <h3>Methods</h3>
 <dl>
 <dt id="nhsmasslib.mass.VanKrevelen.draw_density"><code class="name flex">
-<span>def <span class="ident">draw_density</span></span>(<span>self, cmap: str = 'Blues', ax: <function axes at 0x7f81b914d5e0> = None, shade: bool = True) ‑> None</span>
+<span>def <span class="ident">draw_density</span></span>(<span>self, cmap: str = 'Blues', ax: <function axes at 0x7fc570a3b5e0> = None, shade: bool = True) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw Van-Krevelen density</p>
@@ -6960,7 +7031,7 @@ Must contain elements 'C', 'H', 'N'</dd>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.VanKrevelen.draw_scatter"><code class="name flex">
-<span>def <span class="ident">draw_scatter</span></span>(<span>self, ax: <function axes at 0x7f81b914d5e0> = None, volumes: float = None, color: str = 'blue', nitrogen: bool = False, sulphur: bool = False, alpha: float = 0.3, mark_elem: str = None, **kwargs) ‑> None</span>
+<span>def <span class="ident">draw_scatter</span></span>(<span>self, ax: <function axes at 0x7fc570a3b5e0> = None, volumes: float = None, color: str = 'blue', nitrogen: bool = False, sulphur: bool = False, alpha: float = 0.3, mark_elem: str = None, **kwargs) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>plot Van-Krevelen diagramm</p>
@@ -7142,6 +7213,7 @@ Optional, default True. Draw heatmap for squares</p>
 <li><code><a title="nhsmasslib.mass.ErrorTable.massdiff_error" href="#nhsmasslib.mass.ErrorTable.massdiff_error">massdiff_error</a></code></li>
 <li><code><a title="nhsmasslib.mass.ErrorTable.md_error_map" href="#nhsmasslib.mass.ErrorTable.md_error_map">md_error_map</a></code></li>
 <li><code><a title="nhsmasslib.mass.ErrorTable.show_error" href="#nhsmasslib.mass.ErrorTable.show_error">show_error</a></code></li>
+<li><code><a title="nhsmasslib.mass.ErrorTable.zeroshift" href="#nhsmasslib.mass.ErrorTable.zeroshift">zeroshift</a></code></li>
 </ul>
 </li>
 <li>
@@ -7149,8 +7221,8 @@ Optional, default True. Draw heatmap for squares</p>
 <ul class="">
 <li><code><a title="nhsmasslib.mass.MassSpectrum.assign" href="#nhsmasslib.mass.MassSpectrum.assign">assign</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.assign_by_tmds" href="#nhsmasslib.mass.MassSpectrum.assign_by_tmds">assign_by_tmds</a></code></li>
-<li><code><a title="nhsmasslib.mass.MassSpectrum.calc_brutto" href="#nhsmasslib.mass.MassSpectrum.calc_brutto">calc_brutto</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_ai" href="#nhsmasslib.mass.MassSpectrum.calculate_ai">calculate_ai</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_brutto" href="#nhsmasslib.mass.MassSpectrum.calculate_brutto">calculate_brutto</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_cai" href="#nhsmasslib.mass.MassSpectrum.calculate_cai">calculate_cai</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_dbe" href="#nhsmasslib.mass.MassSpectrum.calculate_dbe">calculate_dbe</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_error" href="#nhsmasslib.mass.MassSpectrum.calculate_error">calculate_error</a></code></li>
