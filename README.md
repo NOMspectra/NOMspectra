@@ -1,8 +1,8 @@
 # nhsmasslib
 
-version 0.1.0
+version 0.1.1
 
-small lib for working with high resolution mass spectrums
+Lib for working with high resolution mass spectrums
 
 This lib supports
 
@@ -11,6 +11,7 @@ This lib supports
 - Recallibrate spectrum by etalon, asssigment error or dif-mass map
 - Working with spectra as with sets (intersection, union, etc)
 - Calculate and plot simmilarity map of spectrums
+- Calculate and plot graph based on mass-difference
 
 ## Installation
 

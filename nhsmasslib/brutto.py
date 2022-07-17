@@ -77,6 +77,7 @@ def brutto_gen(elems = {'C':(0, 41),'H':(0, 81),'O':(0,41), 'N':(0,3)},
     #calculate mass
     masses = np.array(list(elems_dict.values()))
     gdf['mass'] = gdf.multiply(masses).sum(axis=1)
+    gdf['mass'] = np.round(gdf['mass'], 6)
 
     gdf = gdf.sort_values("mass").reset_index(drop=True)
 
@@ -108,6 +109,28 @@ def get_elements_masses(elems:Sequence[str]) -> np.array :
             elems_masses.append(temp.loc[0,'mass'])
 
     return np.array(elems_masses)
+
+def gen_from_brutto(table:pd.DataFrame) -> pd.DataFrame:
+    """
+    Generate mass from brutto table
+
+    Parameters
+    ----------
+    table: pd.DataFrame
+        table with elemnt contnent
+
+    Return
+    ------
+    pd.DataFrame
+        with element content and calculated mass (round 6)    
+    """
+    masses = get_elements_masses(table.columns)
+
+    table["calculated_mass"] = table.multiply(masses).sum(axis=1)
+    table["calculated_mass"] = np.round(table["calculated_mass"], 6)
+    table.loc[table["calculated_mass"] == 0, "calculated_mass"] = np.NaN
+
+    return table
 
 def elements_table() -> pd.DataFrame: 
     """
@@ -406,3 +429,6 @@ def elements_table() -> pd.DataFrame:
             ["Zr",91.90504,17.15,91,"Zr_91"],
             ["Zr",93.906316,17.38,93,"Zr_93"],
             ["Zr",95.908276,2.8,95,"Zr_95"]])
+
+if __name__ == '__main__':
+    print(brutto_gen())

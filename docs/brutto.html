@@ -105,6 +105,7 @@ def brutto_gen(elems = {&#39;C&#39;:(0, 41),&#39;H&#39;:(0, 81),&#39;O&#39;:(0,4
     #calculate mass
     masses = np.array(list(elems_dict.values()))
     gdf[&#39;mass&#39;] = gdf.multiply(masses).sum(axis=1)
+    gdf[&#39;mass&#39;] = np.round(gdf[&#39;mass&#39;], 6)
 
     gdf = gdf.sort_values(&#34;mass&#34;).reset_index(drop=True)
 
@@ -136,6 +137,28 @@ def get_elements_masses(elems:Sequence[str]) -&gt; np.array :
             elems_masses.append(temp.loc[0,&#39;mass&#39;])
 
     return np.array(elems_masses)
+
+def gen_from_brutto(table:pd.DataFrame) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Generate mass from brutto table
+
+    Parameters
+    ----------
+    table: pd.DataFrame
+        table with elemnt contnent
+
+    Return
+    ------
+    pd.DataFrame
+        with element content and calculated mass (round 6)    
+    &#34;&#34;&#34;
+    masses = get_elements_masses(table.columns)
+
+    table[&#34;calculated_mass&#34;] = table.multiply(masses).sum(axis=1)
+    table[&#34;calculated_mass&#34;] = np.round(table[&#34;calculated_mass&#34;], 6)
+    table.loc[table[&#34;calculated_mass&#34;] == 0, &#34;calculated_mass&#34;] = np.NaN
+
+    return table
 
 def elements_table() -&gt; pd.DataFrame: 
     &#34;&#34;&#34;
@@ -433,7 +456,10 @@ def elements_table() -&gt; pd.DataFrame:
             [&#34;Zr&#34;,90.905645,11.22,90,&#34;Zr_90&#34;],
             [&#34;Zr&#34;,91.90504,17.15,91,&#34;Zr_91&#34;],
             [&#34;Zr&#34;,93.906316,17.38,93,&#34;Zr_93&#34;],
-            [&#34;Zr&#34;,95.908276,2.8,95,&#34;Zr_95&#34;]])</code></pre>
+            [&#34;Zr&#34;,95.908276,2.8,95,&#34;Zr_95&#34;]])
+
+if __name__ == &#39;__main__&#39;:
+    print(brutto_gen())</code></pre>
 </details>
 </section>
 <section>
@@ -524,6 +550,7 @@ with exast masses</dd>
     #calculate mass
     masses = np.array(list(elems_dict.values()))
     gdf[&#39;mass&#39;] = gdf.multiply(masses).sum(axis=1)
+    gdf[&#39;mass&#39;] = np.round(gdf[&#39;mass&#39;], 6)
 
     gdf = gdf.sort_values(&#34;mass&#34;).reset_index(drop=True)
 
@@ -840,6 +867,46 @@ with exast masses</dd>
             [&#34;Zr&#34;,95.908276,2.8,95,&#34;Zr_95&#34;]])</code></pre>
 </details>
 </dd>
+<dt id="nhsmasslib.brutto.gen_from_brutto"><code class="name flex">
+<span>def <span class="ident">gen_from_brutto</span></span>(<span>table: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate mass from brutto table</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>table</code></strong> :&ensp;<code>pd.DataFrame</code></dt>
+<dd>table with elemnt contnent</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>pd.DataFrame
+with element content and calculated mass (round 6)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_from_brutto(table:pd.DataFrame) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Generate mass from brutto table
+
+    Parameters
+    ----------
+    table: pd.DataFrame
+        table with elemnt contnent
+
+    Return
+    ------
+    pd.DataFrame
+        with element content and calculated mass (round 6)    
+    &#34;&#34;&#34;
+    masses = get_elements_masses(table.columns)
+
+    table[&#34;calculated_mass&#34;] = table.multiply(masses).sum(axis=1)
+    table[&#34;calculated_mass&#34;] = np.round(table[&#34;calculated_mass&#34;], 6)
+    table.loc[table[&#34;calculated_mass&#34;] == 0, &#34;calculated_mass&#34;] = np.NaN
+
+    return table</code></pre>
+</details>
+</dd>
 <dt id="nhsmasslib.brutto.get_elements_masses"><code class="name flex">
 <span>def <span class="ident">get_elements_masses</span></span>(<span>elems: Sequence[str]) ‑> <built-in function array></span>
 </code></dt>
@@ -904,6 +971,7 @@ with exast masses</dd>
 <ul class="">
 <li><code><a title="nhsmasslib.brutto.brutto_gen" href="#nhsmasslib.brutto.brutto_gen">brutto_gen</a></code></li>
 <li><code><a title="nhsmasslib.brutto.elements_table" href="#nhsmasslib.brutto.elements_table">elements_table</a></code></li>
+<li><code><a title="nhsmasslib.brutto.gen_from_brutto" href="#nhsmasslib.brutto.gen_from_brutto">gen_from_brutto</a></code></li>
 <li><code><a title="nhsmasslib.brutto.get_elements_masses" href="#nhsmasslib.brutto.get_elements_masses">get_elements_masses</a></code></li>
 </ul>
 </li>
