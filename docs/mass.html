@@ -46,26 +46,25 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmasslib.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-from logging import raiseExceptions
 from pathlib import Path
-from typing import Sequence, Union, Optional, Mapping, Tuple, Dict
+from typing import Sequence, Union, Optional, Mapping, Tuple
 import copy
 
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from scipy.signal import savgol_filter
+from scipy.signal import savgol_filter, find_peaks
 from scipy.interpolate import interp1d
-from scipy.signal import find_peaks
 import scipy.stats as st
 from scipy import spatial
+from scipy.optimize import curve_fit
 
 from tqdm import tqdm
 
-from .brutto import brutto_gen
-from .brutto import elements_table, get_elements_masses
+from .brutto import brutto_gen, elements_table, get_elements_masses
 
 class SpectrumIsNotAssigned(Exception):
     pass
@@ -633,6 +632,39 @@ class MassSpectrum(object):
 
         return MassSpectrum(res)
 
+    def intens_sub(self, other:&#34;MassSpectrum&#34;) -&gt; &#34;MassSpectrum&#34;:
+        &#34;&#34;&#34;
+        Calculate substruction by intensivity
+
+        Parameters
+        ----------
+        other: MassSpectrum object
+            other mass-scpectrum
+
+        Return
+        ------
+        MassSpectrum object contain only that peak
+        that higher than in other. And intensity of this peaks
+        is substraction of self and other.
+        &#34;&#34;&#34;
+        #find common masses
+        m = self &amp; other
+        msc = m.table[&#39;calculated_mass&#39;].values
+
+        #extract table with common masses
+        massE = self.table[&#39;calculated_mass&#39;].values
+        rE = self.table[np.isin(massE, msc)]
+        massL = other.table[&#39;calculated_mass&#39;].values
+        rL = other.table[np.isin(massL, msc)]
+
+        #substract intensity each others
+        rE = rE.copy()
+        rE[&#39;intensity&#39;] = rE[&#39;intensity&#39;] - rL[&#39;intensity&#39;]
+        rE = rE.loc[rE[&#39;intensity&#39;] &gt; 0]
+        
+        #and add only own molecules
+        return (self - other) + MassSpectrum(rE)  
+
     def __len__(self) -&gt; int:
         &#34;&#34;&#34;
         Length of Mass-Spectrum table
@@ -716,6 +748,57 @@ class MassSpectrum(object):
         else:
             raise Exception(f&#34;There is no such mode: {mode}&#34;)
 
+    def calculate_cram(self) -&gt; &#34;MassSpectrum&#34;:
+        &#34;&#34;&#34;
+        Calculate if include into CRAM
+        (carboxylic-rich alicyclic molecules)
+
+        Return
+        ------
+        MassSpectrun object with check CRAM (bool)
+
+        Reference
+        ---------
+        Hertkorn, N. et al. Characterization of a major 
+        refractory component of marine dissolved organic matter.
+        Geochimica et. Cosmochimica Acta 70, 2990-3010 (2006)
+        &#34;&#34;&#34;
+        spec = self.copy()
+        if &#34;DBE&#34; not in spec.table:
+            spec = spec.calculate_dbe()
+
+        def check(row):
+            if row[&#39;DBE&#39;]/row[&#39;C&#39;] &lt; 0.3 or row[&#39;DBE&#39;]/row[&#39;C&#39;] &gt; 0.68:
+                return False
+            if row[&#39;DBE&#39;]/row[&#39;H&#39;] &lt; 0.2 or row[&#39;DBE&#39;]/row[&#39;H&#39;] &gt; 0.95:
+                return False
+            if row[&#39;O&#39;] == 0:
+                False
+            elif row[&#39;DBE&#39;]/row[&#39;O&#39;] &lt; 0.77 or row[&#39;DBE&#39;]/row[&#39;O&#39;] &gt; 1.75:
+                return False
+            return True
+
+        spec.table[&#39;CRAM&#39;] = spec.table.apply(check, axis=1)
+
+        return spec
+
+    def get_cram_value(self) -&gt; int:
+        &#34;&#34;&#34;
+        Calculate percent of CRAM molecules
+        (carboxylic-rich alicyclic molecules)
+
+        Return
+        ------
+        int. percent of CRAM molecules in mass-spec
+        weight by intensity
+        &#34;&#34;&#34;
+        spec = self.copy()
+        if &#34;CRAM&#34; not in spec.table:
+            spec = spec.calculate_cram().drop_unassigned()
+
+        value = spec.table.loc[spec.table[&#39;CRAM&#39;] == True, &#39;intensity&#39;].sum()/spec.table[&#39;intensity&#39;].sum()
+        return int(value*100)
+
     def calculate_ai(self) -&gt; &#39;MassSpectrum&#39;:
         &#34;&#34;&#34;
         Calculate AI
@@ -724,8 +807,8 @@ class MassSpectrum(object):
         ------
         MassSpectrum object with calculated AI
         &#34;&#34;&#34;
-        table = self.calculate_cai().calculate_dbe().table
-        table[&#34;AI&#34;] = table[&#34;DBE&#34;] / table[&#34;CAI&#34;]
+        table = self.calculate_cai().calculate_dbe_ai().table
+        table[&#34;AI&#34;] = table[&#34;DBE_AI&#34;] / table[&#34;CAI&#34;]
 
         return MassSpectrum(table)
 
@@ -749,9 +832,30 @@ class MassSpectrum(object):
             if element not in table:
                 table[element] = 0
 
-        table[&#39;CAI&#39;] = table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;N&#34;] - table[&#34;S&#34;] - table[&#34;P&#34;]
+        self.table[&#39;CAI&#39;] = table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;N&#34;] - table[&#34;S&#34;] - table[&#34;P&#34;]
 
-        return MassSpectrum(table)
+        return self
+
+    def calculate_dbe_ai(self) -&gt; &#39;MassSpectrum&#39;:
+        &#34;&#34;&#34;
+        Calculate DBE
+
+        Return
+        ------
+        MassSpectrum object with calculated DBE
+        &#34;&#34;&#34;
+        if &#34;assign&#34; not in self.table:
+            raise SpectrumIsNotAssigned()
+
+        table = copy.deepcopy(self.table)
+
+        for element in &#34;CHONPS&#34;:
+            if element not in table:
+                table[element] = 0
+
+        self.table[&#39;DBE_AI&#39;] = 1.0 + table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;S&#34;] - 0.5 * (table[&#34;H&#34;] + table[&#39;N&#39;] + table[&#34;P&#34;])
+
+        return self
 
     def calculate_dbe(self) -&gt; &#39;MassSpectrum&#39;:
         &#34;&#34;&#34;
@@ -766,13 +870,13 @@ class MassSpectrum(object):
 
         table = copy.deepcopy(self.table)
 
-        for element in &#34;COSH&#34;:
+        for element in &#34;CHON&#34;:
             if element not in table:
                 table[element] = 0
 
-        table[&#39;DBE&#39;] = 1.0 + table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;S&#34;] - 0.5 * table[&#34;H&#34;]
+        self.table[&#39;DBE&#39;] = 1.0 + table[&#34;C&#34;] - 0.5 * (table[&#34;H&#34;] - table[&#39;N&#39;])
 
-        return MassSpectrum(table)
+        return self
 
     def normalize(self) -&gt; &#39;MassSpectrum&#39;:
         &#34;&#34;&#34;
@@ -1011,6 +1115,64 @@ class MassSpectrum(object):
         
         return MassSpectrum(out2)
 
+    def calculate_DBEvsO(self, ax=None, olim=None, **kwargs) -&gt; None:
+        &#34;&#34;&#34;
+        DBE by nO
+        
+        Paramters
+        ---------
+        ax: matplotlib axes
+            ax fo outer plot. Default None
+        olim: tuple of two int
+            limit for nO. Deafult None
+        **kwargs: dict
+            dict for additional condition to scatter method 
+
+        References
+        ----------
+        Bae, E., Yeo, I. J., Jeong, B., Shin, Y., Shin, K. H., &amp; Kim, S. (2011). 
+        Study of double bond equivalents and the numbers of carbon and oxygen 
+        atom distribution of dissolved organic matter with negative-mode FT-ICR MS.
+        Analytical chemistry, 83(11), 4193-4199.
+        
+        &#34;&#34;&#34;
+
+        spec = self.copy().calculate_dbe().drop_unassigned()
+        if olim is None:
+            no = list(range(5, int(spec.table[&#39;O&#39;].max())-4))
+        else:
+            no = list(range(olim[0],olim[1]))
+
+        dbe_o = []
+        
+        for i in no:
+            dbes = spec.table.loc[spec.table[&#39;O&#39;] == i, &#39;DBE&#39;]
+            intens = spec.table.loc[spec.table[&#39;O&#39;] == i, &#39;intensity&#39;]
+            dbe_o.append((dbes*intens).sum()/intens.sum())
+    
+        def linear(x, a, b):
+            return a*x + b
+
+        x = np.array(no)
+        y = np.array(dbe_o)
+
+        popt, pcov = curve_fit(linear, x, y)
+        residuals = y- linear(x, *popt)
+        ss_res = np.sum(residuals**2)
+        ss_tot = np.sum((y-np.mean(y))**2)
+        r_squared = 1 - (ss_res / ss_tot)
+
+        if ax is None:
+            fig,ax = plt.subplots(figsize=(3,3), dpi=100)
+        
+        ax.scatter(x, y, **kwargs)
+        ax.plot(x, linear(x, *popt), label=f&#39;y={round(popt[0],2)}x + {round(popt[1],1)} R2={round(r_squared, 4)}&#39;, **kwargs)
+        ax.set_xlim(4)
+        ax.set_ylim(5)
+        ax.set_xlabel(&#39;number of oxygen&#39;)
+        ax.set_ylabel(&#39;DBE average&#39;)
+        ax.legend()
+
 
 class CanNotCreateVanKrevelen(Exception):
     pass
@@ -1126,6 +1288,7 @@ class VanKrevelen(object):
         self.table[&#39;color&#39;] = color
 
         if mark_elem is not None:
+            
             self.table.loc[self.table[mark_elem] &gt; 0, &#39;color&#39;] = &#39;purple&#39;
 
         if nitrogen and &#39;N&#39; in self.table.columns:
@@ -1134,8 +1297,16 @@ class VanKrevelen(object):
         if sulphur and &#39;S&#39; in self.table.columns:
             self.table.loc[(self.table[&#39;C&#39;] &gt; 0) &amp; (self.table[&#39;H&#39;] &gt; 0) &amp;(self.table[&#39;O&#39;] &gt; 0) &amp; (self.table[&#39;N&#39;] &lt; 1) &amp; (self.table[&#39;S&#39;] &gt; 0), &#39;color&#39;] = &#39;green&#39;
             self.table.loc[(self.table[&#39;C&#39;] &gt; 0) &amp; (self.table[&#39;H&#39;] &gt; 0) &amp;(self.table[&#39;O&#39;] &gt; 0) &amp; (self.table[&#39;N&#39;] &gt; 0) &amp; (self.table[&#39;S&#39;] &gt; 0), &#39;color&#39;] = &#39;red&#39;
-
-        ax.scatter(self.table[&#34;O/C&#34;], self.table[&#34;H/C&#34;], s=self.table[&#39;volume&#39;], c=self.table[&#39;color&#39;], alpha=alpha, **kwargs)
+        
+        if mark_elem is not None:
+            ax.scatter(self.table.loc[self.table[mark_elem] &gt; 0, &#39;O/C&#39;], 
+                        self.table.loc[self.table[mark_elem] &gt; 0, &#39;H/C&#39;],
+                        s=self.table.loc[self.table[mark_elem] &gt; 0, &#39;volume&#39;], 
+                        c=&#39;red&#39;, 
+                        alpha=alpha, 
+                        **kwargs)
+        else:
+            ax.scatter(self.table[&#34;O/C&#34;], self.table[&#34;H/C&#34;], s=self.table[&#39;volume&#39;], c=self.table[&#39;color&#39;], alpha=alpha, **kwargs)
         ax.set_xlabel(&#34;O/C&#34;)
         ax.set_ylabel(&#34;H/C&#34;)
         ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
@@ -1198,6 +1369,74 @@ class VanKrevelen(object):
         square = pd.DataFrame(data=sq, columns=[&#39;value&#39;], index=[5,10,15,20,   4,9,14,19,   3,8,13,18,    2,7,12,17,   1,6,11,16])
 
         return square.sort_index()
+
+    def scatter_density(self, ax=None, ax_x=None, ax_y=None, color:str=&#39;blue&#39;, alpha:float=0.3, volumes:float=None) -&gt; None:
+        &#34;&#34;&#34;
+        Plot VK scatter with density
+        Same as joinplot in seaborn
+        but you can use external axes
+
+        Parameters
+        ----------
+        ax: matplotlib ax
+            central ax for scatter
+        ax_x: matplotlib ax
+            horizontal ax for density
+        ax_y: matplotlib ax
+            vertical ax for density
+        color: str
+            color for scatter and density
+        alpha: float
+            alpha for scatter
+        &#34;&#34;&#34;
+        if ax is None:
+            fig = plt.figure(figsize=(6,6), dpi=100)
+            gs = GridSpec(4, 4)
+
+            ax = fig.add_subplot(gs[1:4, 0:3])
+            ax_x = fig.add_subplot(gs[0,0:3])
+            ax_y = fig.add_subplot(gs[1:4, 3])
+
+        self.table[&#39;intensity&#39;] = self.table[&#39;intensity&#39;] / self.table[&#39;intensity&#39;].median()
+
+        if volumes is None:
+            self.table[&#39;volume&#39;] = self.table[&#39;intensity&#39;] / self.table[&#39;intensity&#39;].median()
+        else:
+            self.table[&#39;volume&#39;] = volumes
+
+        ax.scatter(self.table[&#39;O/C&#39;],self.table[&#39;H/C&#39;], s=self.table[&#39;volume&#39;], alpha=alpha, c=color)
+        ax.set_ylim(0,2.2)
+        ax.set_xlim(0,1)
+        ax.set_xlabel(&#34;O/C&#34;)
+        ax.set_ylabel(&#34;H/C&#34;)
+        ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
+        ax.xaxis.set_ticks(np.arange(0, 1.1, 0.2))
+
+        oc = self.table[&#39;O/C&#39;]*self.table[&#39;intensity&#39;]
+        hc = self.table[&#39;H/C&#39;]*self.table[&#39;intensity&#39;]
+        total_int = self.table[&#39;intensity&#39;].sum()
+
+        x = np.linspace(self.table[&#39;O/C&#39;].min(), self.table[&#39;O/C&#39;].max(), 100)        
+        oc = np.array([])
+        for i, el in enumerate(x[1:]):
+            s = self.table.loc[(self.table[&#39;O/C&#39;] &gt; x[i-1]) &amp; (self.table[&#39;O/C&#39;] &lt;= el), &#39;intensity&#39;].sum()
+            coun = len(self.table) * s/total_int
+            m = (x[i-1] + x[i])/2
+            oc = np.append(oc, [m]*int(coun))
+        sns.kdeplot(x = oc, ax=ax_x, color=color, fill=True, alpha=0.1, bw_adjust=2)
+        ax_x.set_axis_off()
+        ax_x.set_xlim(0,1)
+        
+        y = np.linspace(self.table[&#39;H/C&#39;].min(), self.table[&#39;H/C&#39;].max(), 100)        
+        hc = np.array([])
+        for i, el in enumerate(y[1:]):
+            s = self.table.loc[(self.table[&#39;H/C&#39;] &gt; y[i-1]) &amp; (self.table[&#39;H/C&#39;] &lt;= el), &#39;intensity&#39;].sum()
+            coun = len(self.table) * s/total_int
+            m = (y[i-1] + y[i])/2
+            hc = np.append(hc, [m]*int(coun))
+        sns.kdeplot(x = hc, ax=ax_y, color=color, vertical=True, fill=True, alpha=0.1, bw_adjust=2)
+        ax_y.set_axis_off()
+        ax_y.set_ylim(0,2.2)
 
 
 class ErrorTable(object):
@@ -3884,6 +4123,39 @@ can be finded by class method find_elems()</dd>
 
         return MassSpectrum(res)
 
+    def intens_sub(self, other:&#34;MassSpectrum&#34;) -&gt; &#34;MassSpectrum&#34;:
+        &#34;&#34;&#34;
+        Calculate substruction by intensivity
+
+        Parameters
+        ----------
+        other: MassSpectrum object
+            other mass-scpectrum
+
+        Return
+        ------
+        MassSpectrum object contain only that peak
+        that higher than in other. And intensity of this peaks
+        is substraction of self and other.
+        &#34;&#34;&#34;
+        #find common masses
+        m = self &amp; other
+        msc = m.table[&#39;calculated_mass&#39;].values
+
+        #extract table with common masses
+        massE = self.table[&#39;calculated_mass&#39;].values
+        rE = self.table[np.isin(massE, msc)]
+        massL = other.table[&#39;calculated_mass&#39;].values
+        rL = other.table[np.isin(massL, msc)]
+
+        #substract intensity each others
+        rE = rE.copy()
+        rE[&#39;intensity&#39;] = rE[&#39;intensity&#39;] - rL[&#39;intensity&#39;]
+        rE = rE.loc[rE[&#39;intensity&#39;] &gt; 0]
+        
+        #and add only own molecules
+        return (self - other) + MassSpectrum(rE)  
+
     def __len__(self) -&gt; int:
         &#34;&#34;&#34;
         Length of Mass-Spectrum table
@@ -3967,6 +4239,57 @@ can be finded by class method find_elems()</dd>
         else:
             raise Exception(f&#34;There is no such mode: {mode}&#34;)
 
+    def calculate_cram(self) -&gt; &#34;MassSpectrum&#34;:
+        &#34;&#34;&#34;
+        Calculate if include into CRAM
+        (carboxylic-rich alicyclic molecules)
+
+        Return
+        ------
+        MassSpectrun object with check CRAM (bool)
+
+        Reference
+        ---------
+        Hertkorn, N. et al. Characterization of a major 
+        refractory component of marine dissolved organic matter.
+        Geochimica et. Cosmochimica Acta 70, 2990-3010 (2006)
+        &#34;&#34;&#34;
+        spec = self.copy()
+        if &#34;DBE&#34; not in spec.table:
+            spec = spec.calculate_dbe()
+
+        def check(row):
+            if row[&#39;DBE&#39;]/row[&#39;C&#39;] &lt; 0.3 or row[&#39;DBE&#39;]/row[&#39;C&#39;] &gt; 0.68:
+                return False
+            if row[&#39;DBE&#39;]/row[&#39;H&#39;] &lt; 0.2 or row[&#39;DBE&#39;]/row[&#39;H&#39;] &gt; 0.95:
+                return False
+            if row[&#39;O&#39;] == 0:
+                False
+            elif row[&#39;DBE&#39;]/row[&#39;O&#39;] &lt; 0.77 or row[&#39;DBE&#39;]/row[&#39;O&#39;] &gt; 1.75:
+                return False
+            return True
+
+        spec.table[&#39;CRAM&#39;] = spec.table.apply(check, axis=1)
+
+        return spec
+
+    def get_cram_value(self) -&gt; int:
+        &#34;&#34;&#34;
+        Calculate percent of CRAM molecules
+        (carboxylic-rich alicyclic molecules)
+
+        Return
+        ------
+        int. percent of CRAM molecules in mass-spec
+        weight by intensity
+        &#34;&#34;&#34;
+        spec = self.copy()
+        if &#34;CRAM&#34; not in spec.table:
+            spec = spec.calculate_cram().drop_unassigned()
+
+        value = spec.table.loc[spec.table[&#39;CRAM&#39;] == True, &#39;intensity&#39;].sum()/spec.table[&#39;intensity&#39;].sum()
+        return int(value*100)
+
     def calculate_ai(self) -&gt; &#39;MassSpectrum&#39;:
         &#34;&#34;&#34;
         Calculate AI
@@ -3975,8 +4298,8 @@ can be finded by class method find_elems()</dd>
         ------
         MassSpectrum object with calculated AI
         &#34;&#34;&#34;
-        table = self.calculate_cai().calculate_dbe().table
-        table[&#34;AI&#34;] = table[&#34;DBE&#34;] / table[&#34;CAI&#34;]
+        table = self.calculate_cai().calculate_dbe_ai().table
+        table[&#34;AI&#34;] = table[&#34;DBE_AI&#34;] / table[&#34;CAI&#34;]
 
         return MassSpectrum(table)
 
@@ -4000,9 +4323,30 @@ can be finded by class method find_elems()</dd>
             if element not in table:
                 table[element] = 0
 
-        table[&#39;CAI&#39;] = table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;N&#34;] - table[&#34;S&#34;] - table[&#34;P&#34;]
+        self.table[&#39;CAI&#39;] = table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;N&#34;] - table[&#34;S&#34;] - table[&#34;P&#34;]
 
-        return MassSpectrum(table)
+        return self
+
+    def calculate_dbe_ai(self) -&gt; &#39;MassSpectrum&#39;:
+        &#34;&#34;&#34;
+        Calculate DBE
+
+        Return
+        ------
+        MassSpectrum object with calculated DBE
+        &#34;&#34;&#34;
+        if &#34;assign&#34; not in self.table:
+            raise SpectrumIsNotAssigned()
+
+        table = copy.deepcopy(self.table)
+
+        for element in &#34;CHONPS&#34;:
+            if element not in table:
+                table[element] = 0
+
+        self.table[&#39;DBE_AI&#39;] = 1.0 + table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;S&#34;] - 0.5 * (table[&#34;H&#34;] + table[&#39;N&#39;] + table[&#34;P&#34;])
+
+        return self
 
     def calculate_dbe(self) -&gt; &#39;MassSpectrum&#39;:
         &#34;&#34;&#34;
@@ -4017,13 +4361,13 @@ can be finded by class method find_elems()</dd>
 
         table = copy.deepcopy(self.table)
 
-        for element in &#34;COSH&#34;:
+        for element in &#34;CHON&#34;:
             if element not in table:
                 table[element] = 0
 
-        table[&#39;DBE&#39;] = 1.0 + table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;S&#34;] - 0.5 * table[&#34;H&#34;]
+        self.table[&#39;DBE&#39;] = 1.0 + table[&#34;C&#34;] - 0.5 * (table[&#34;H&#34;] - table[&#39;N&#39;])
 
-        return MassSpectrum(table)
+        return self
 
     def normalize(self) -&gt; &#39;MassSpectrum&#39;:
         &#34;&#34;&#34;
@@ -4260,7 +4604,65 @@ can be finded by class method find_elems()</dd>
 
         out2 = pd.merge(out_true, out_false, how=&#39;outer&#39;).reset_index(drop=True).sort_values(by=&#39;mass&#39;).reset_index(drop=True)
         
-        return MassSpectrum(out2)</code></pre>
+        return MassSpectrum(out2)
+
+    def calculate_DBEvsO(self, ax=None, olim=None, **kwargs) -&gt; None:
+        &#34;&#34;&#34;
+        DBE by nO
+        
+        Paramters
+        ---------
+        ax: matplotlib axes
+            ax fo outer plot. Default None
+        olim: tuple of two int
+            limit for nO. Deafult None
+        **kwargs: dict
+            dict for additional condition to scatter method 
+
+        References
+        ----------
+        Bae, E., Yeo, I. J., Jeong, B., Shin, Y., Shin, K. H., &amp; Kim, S. (2011). 
+        Study of double bond equivalents and the numbers of carbon and oxygen 
+        atom distribution of dissolved organic matter with negative-mode FT-ICR MS.
+        Analytical chemistry, 83(11), 4193-4199.
+        
+        &#34;&#34;&#34;
+
+        spec = self.copy().calculate_dbe().drop_unassigned()
+        if olim is None:
+            no = list(range(5, int(spec.table[&#39;O&#39;].max())-4))
+        else:
+            no = list(range(olim[0],olim[1]))
+
+        dbe_o = []
+        
+        for i in no:
+            dbes = spec.table.loc[spec.table[&#39;O&#39;] == i, &#39;DBE&#39;]
+            intens = spec.table.loc[spec.table[&#39;O&#39;] == i, &#39;intensity&#39;]
+            dbe_o.append((dbes*intens).sum()/intens.sum())
+    
+        def linear(x, a, b):
+            return a*x + b
+
+        x = np.array(no)
+        y = np.array(dbe_o)
+
+        popt, pcov = curve_fit(linear, x, y)
+        residuals = y- linear(x, *popt)
+        ss_res = np.sum(residuals**2)
+        ss_tot = np.sum((y-np.mean(y))**2)
+        r_squared = 1 - (ss_res / ss_tot)
+
+        if ax is None:
+            fig,ax = plt.subplots(figsize=(3,3), dpi=100)
+        
+        ax.scatter(x, y, **kwargs)
+        ax.plot(x, linear(x, *popt), label=f&#39;y={round(popt[0],2)}x + {round(popt[1],1)} R2={round(r_squared, 4)}&#39;, **kwargs)
+        ax.set_xlim(4)
+        ax.set_ylim(5)
+        ax.set_xlabel(&#39;number of oxygen&#39;)
+        ax.set_ylabel(&#39;DBE average&#39;)
+        ax.legend()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -4463,6 +4865,86 @@ Relative probability coefficient for treshold tmds spectrum</dd>
     return MassSpectrum(out2)</code></pre>
 </details>
 </dd>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_DBEvsO"><code class="name flex">
+<span>def <span class="ident">calculate_DBEvsO</span></span>(<span>self, ax=None, olim=None, **kwargs) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>DBE by nO</p>
+<h2 id="paramters">Paramters</h2>
+<p>ax: matplotlib axes
+ax fo outer plot. Default None
+olim: tuple of two int
+limit for nO. Deafult None
+**kwargs: dict
+dict for additional condition to scatter method </p>
+<h2 id="references">References</h2>
+<p>Bae, E., Yeo, I. J., Jeong, B., Shin, Y., Shin, K. H., &amp; Kim, S. (2011).
+Study of double bond equivalents and the numbers of carbon and oxygen
+atom distribution of dissolved organic matter with negative-mode FT-ICR MS.
+Analytical chemistry, 83(11), 4193-4199.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_DBEvsO(self, ax=None, olim=None, **kwargs) -&gt; None:
+    &#34;&#34;&#34;
+    DBE by nO
+    
+    Paramters
+    ---------
+    ax: matplotlib axes
+        ax fo outer plot. Default None
+    olim: tuple of two int
+        limit for nO. Deafult None
+    **kwargs: dict
+        dict for additional condition to scatter method 
+
+    References
+    ----------
+    Bae, E., Yeo, I. J., Jeong, B., Shin, Y., Shin, K. H., &amp; Kim, S. (2011). 
+    Study of double bond equivalents and the numbers of carbon and oxygen 
+    atom distribution of dissolved organic matter with negative-mode FT-ICR MS.
+    Analytical chemistry, 83(11), 4193-4199.
+    
+    &#34;&#34;&#34;
+
+    spec = self.copy().calculate_dbe().drop_unassigned()
+    if olim is None:
+        no = list(range(5, int(spec.table[&#39;O&#39;].max())-4))
+    else:
+        no = list(range(olim[0],olim[1]))
+
+    dbe_o = []
+    
+    for i in no:
+        dbes = spec.table.loc[spec.table[&#39;O&#39;] == i, &#39;DBE&#39;]
+        intens = spec.table.loc[spec.table[&#39;O&#39;] == i, &#39;intensity&#39;]
+        dbe_o.append((dbes*intens).sum()/intens.sum())
+
+    def linear(x, a, b):
+        return a*x + b
+
+    x = np.array(no)
+    y = np.array(dbe_o)
+
+    popt, pcov = curve_fit(linear, x, y)
+    residuals = y- linear(x, *popt)
+    ss_res = np.sum(residuals**2)
+    ss_tot = np.sum((y-np.mean(y))**2)
+    r_squared = 1 - (ss_res / ss_tot)
+
+    if ax is None:
+        fig,ax = plt.subplots(figsize=(3,3), dpi=100)
+    
+    ax.scatter(x, y, **kwargs)
+    ax.plot(x, linear(x, *popt), label=f&#39;y={round(popt[0],2)}x + {round(popt[1],1)} R2={round(r_squared, 4)}&#39;, **kwargs)
+    ax.set_xlim(4)
+    ax.set_ylim(5)
+    ax.set_xlabel(&#39;number of oxygen&#39;)
+    ax.set_ylabel(&#39;DBE average&#39;)
+    ax.legend()</code></pre>
+</details>
+</dd>
 <dt id="nhsmasslib.mass.MassSpectrum.calculate_ai"><code class="name flex">
 <span>def <span class="ident">calculate_ai</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
 </code></dt>
@@ -4482,8 +4964,8 @@ Relative probability coefficient for treshold tmds spectrum</dd>
     ------
     MassSpectrum object with calculated AI
     &#34;&#34;&#34;
-    table = self.calculate_cai().calculate_dbe().table
-    table[&#34;AI&#34;] = table[&#34;DBE&#34;] / table[&#34;CAI&#34;]
+    table = self.calculate_cai().calculate_dbe_ai().table
+    table[&#34;AI&#34;] = table[&#34;DBE_AI&#34;] / table[&#34;CAI&#34;]
 
     return MassSpectrum(table)</code></pre>
 </details>
@@ -4557,9 +5039,60 @@ Relative probability coefficient for treshold tmds spectrum</dd>
         if element not in table:
             table[element] = 0
 
-    table[&#39;CAI&#39;] = table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;N&#34;] - table[&#34;S&#34;] - table[&#34;P&#34;]
+    self.table[&#39;CAI&#39;] = table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;N&#34;] - table[&#34;S&#34;] - table[&#34;P&#34;]
 
-    return MassSpectrum(table)</code></pre>
+    return self</code></pre>
+</details>
+</dd>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_cram"><code class="name flex">
+<span>def <span class="ident">calculate_cram</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate if include into CRAM
+(carboxylic-rich alicyclic molecules)</p>
+<h2 id="return">Return</h2>
+<p>MassSpectrun object with check CRAM (bool)</p>
+<h2 id="reference">Reference</h2>
+<p>Hertkorn, N. et al. Characterization of a major
+refractory component of marine dissolved organic matter.
+Geochimica et. Cosmochimica Acta 70, 2990-3010 (2006)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_cram(self) -&gt; &#34;MassSpectrum&#34;:
+    &#34;&#34;&#34;
+    Calculate if include into CRAM
+    (carboxylic-rich alicyclic molecules)
+
+    Return
+    ------
+    MassSpectrun object with check CRAM (bool)
+
+    Reference
+    ---------
+    Hertkorn, N. et al. Characterization of a major 
+    refractory component of marine dissolved organic matter.
+    Geochimica et. Cosmochimica Acta 70, 2990-3010 (2006)
+    &#34;&#34;&#34;
+    spec = self.copy()
+    if &#34;DBE&#34; not in spec.table:
+        spec = spec.calculate_dbe()
+
+    def check(row):
+        if row[&#39;DBE&#39;]/row[&#39;C&#39;] &lt; 0.3 or row[&#39;DBE&#39;]/row[&#39;C&#39;] &gt; 0.68:
+            return False
+        if row[&#39;DBE&#39;]/row[&#39;H&#39;] &lt; 0.2 or row[&#39;DBE&#39;]/row[&#39;H&#39;] &gt; 0.95:
+            return False
+        if row[&#39;O&#39;] == 0:
+            False
+        elif row[&#39;DBE&#39;]/row[&#39;O&#39;] &lt; 0.77 or row[&#39;DBE&#39;]/row[&#39;O&#39;] &gt; 1.75:
+            return False
+        return True
+
+    spec.table[&#39;CRAM&#39;] = spec.table.apply(check, axis=1)
+
+    return spec</code></pre>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.MassSpectrum.calculate_dbe"><code class="name flex">
@@ -4586,13 +5119,46 @@ Relative probability coefficient for treshold tmds spectrum</dd>
 
     table = copy.deepcopy(self.table)
 
-    for element in &#34;COSH&#34;:
+    for element in &#34;CHON&#34;:
         if element not in table:
             table[element] = 0
 
-    table[&#39;DBE&#39;] = 1.0 + table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;S&#34;] - 0.5 * table[&#34;H&#34;]
+    self.table[&#39;DBE&#39;] = 1.0 + table[&#34;C&#34;] - 0.5 * (table[&#34;H&#34;] - table[&#39;N&#39;])
 
-    return MassSpectrum(table)</code></pre>
+    return self</code></pre>
+</details>
+</dd>
+<dt id="nhsmasslib.mass.MassSpectrum.calculate_dbe_ai"><code class="name flex">
+<span>def <span class="ident">calculate_dbe_ai</span></span>(<span>self) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate DBE</p>
+<h2 id="return">Return</h2>
+<p>MassSpectrum object with calculated DBE</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_dbe_ai(self) -&gt; &#39;MassSpectrum&#39;:
+    &#34;&#34;&#34;
+    Calculate DBE
+
+    Return
+    ------
+    MassSpectrum object with calculated DBE
+    &#34;&#34;&#34;
+    if &#34;assign&#34; not in self.table:
+        raise SpectrumIsNotAssigned()
+
+    table = copy.deepcopy(self.table)
+
+    for element in &#34;CHONPS&#34;:
+        if element not in table:
+            table[element] = 0
+
+    self.table[&#39;DBE_AI&#39;] = 1.0 + table[&#34;C&#34;] - table[&#34;O&#34;] - table[&#34;S&#34;] - 0.5 * (table[&#34;H&#34;] + table[&#39;N&#39;] + table[&#34;P&#34;])
+
+    return self</code></pre>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.MassSpectrum.calculate_error"><code class="name flex">
@@ -4774,7 +5340,7 @@ Mode can be: "tanimoto", "jaccard", "cosine"</dd>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.MassSpectrum.draw"><code class="name flex">
-<span>def <span class="ident">draw</span></span>(<span>self, xlim: Tuple[Optional[float], Optional[float]] = (None, None), ylim: Tuple[Optional[float], Optional[float]] = (None, None), color: str = 'black', ax: <function axes at 0x7fc570a3b5e0> = None) ‑> None</span>
+<span>def <span class="ident">draw</span></span>(<span>self, xlim: Tuple[Optional[float], Optional[float]] = (None, None), ylim: Tuple[Optional[float], Optional[float]] = (None, None), color: str = 'black', ax: <function axes at 0x7f7f08d865e0> = None) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw mass spectrum</p>
@@ -5001,6 +5567,37 @@ For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
     return elems</code></pre>
 </details>
 </dd>
+<dt id="nhsmasslib.mass.MassSpectrum.get_cram_value"><code class="name flex">
+<span>def <span class="ident">get_cram_value</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate percent of CRAM molecules
+(carboxylic-rich alicyclic molecules)</p>
+<h2 id="return">Return</h2>
+<p>int. percent of CRAM molecules in mass-spec
+weight by intensity</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_cram_value(self) -&gt; int:
+    &#34;&#34;&#34;
+    Calculate percent of CRAM molecules
+    (carboxylic-rich alicyclic molecules)
+
+    Return
+    ------
+    int. percent of CRAM molecules in mass-spec
+    weight by intensity
+    &#34;&#34;&#34;
+    spec = self.copy()
+    if &#34;CRAM&#34; not in spec.table:
+        spec = spec.calculate_cram().drop_unassigned()
+
+    value = spec.table.loc[spec.table[&#39;CRAM&#39;] == True, &#39;intensity&#39;].sum()/spec.table[&#39;intensity&#39;].sum()
+    return int(value*100)</code></pre>
+</details>
+</dd>
 <dt id="nhsmasslib.mass.MassSpectrum.head"><code class="name flex">
 <span>def <span class="ident">head</span></span>(<span>self, num: int = None) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
@@ -5034,6 +5631,58 @@ For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
         return self.table.head()
     else:
         return self.table.head(num)</code></pre>
+</details>
+</dd>
+<dt id="nhsmasslib.mass.MassSpectrum.intens_sub"><code class="name flex">
+<span>def <span class="ident">intens_sub</span></span>(<span>self, other: <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a>) ‑> <a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate substruction by intensivity</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>other</code></strong> :&ensp;<code><a title="nhsmasslib.mass.MassSpectrum" href="#nhsmasslib.mass.MassSpectrum">MassSpectrum</a> object</code></dt>
+<dd>other mass-scpectrum</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>MassSpectrum object contain only that peak
+that higher than in other. And intensity of this peaks
+is substraction of self and other.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def intens_sub(self, other:&#34;MassSpectrum&#34;) -&gt; &#34;MassSpectrum&#34;:
+    &#34;&#34;&#34;
+    Calculate substruction by intensivity
+
+    Parameters
+    ----------
+    other: MassSpectrum object
+        other mass-scpectrum
+
+    Return
+    ------
+    MassSpectrum object contain only that peak
+    that higher than in other. And intensity of this peaks
+    is substraction of self and other.
+    &#34;&#34;&#34;
+    #find common masses
+    m = self &amp; other
+    msc = m.table[&#39;calculated_mass&#39;].values
+
+    #extract table with common masses
+    massE = self.table[&#39;calculated_mass&#39;].values
+    rE = self.table[np.isin(massE, msc)]
+    massL = other.table[&#39;calculated_mass&#39;].values
+    rL = other.table[np.isin(massL, msc)]
+
+    #substract intensity each others
+    rE = rE.copy()
+    rE[&#39;intensity&#39;] = rE[&#39;intensity&#39;] - rL[&#39;intensity&#39;]
+    rE = rE.loc[rE[&#39;intensity&#39;] &gt; 0]
+    
+    #and add only own molecules
+    return (self - other) + MassSpectrum(rE)  </code></pre>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.MassSpectrum.load"><code class="name flex">
@@ -5601,7 +6250,7 @@ Mode can be: "tanimoto", "jaccard", "cosine"</dd>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.MassSpectrumList.draw_similarity"><code class="name flex">
-<span>def <span class="ident">draw_similarity</span></span>(<span>self, mode: str = 'cosine', values: numpy.ndarray = None, ax: <function axes at 0x7fc570a3b5e0> = None, annot=True) ‑> None</span>
+<span>def <span class="ident">draw_similarity</span></span>(<span>self, mode: str = 'cosine', values: numpy.ndarray = None, ax: <function axes at 0x7f7f08d865e0> = None, annot=True) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw similarity matrix by using seaborn</p>
@@ -5797,7 +6446,7 @@ mass spectrum of product</p>
 <h3>Methods</h3>
 <dl>
 <dt id="nhsmasslib.mass.Reaction.draw_modification"><code class="name flex">
-<span>def <span class="ident">draw_modification</span></span>(<span>self, ax: <function axes at 0x7fc570a3b5e0> = None, sourse: bool = True, product: bool = True, sourse_color: str = 'red', product_color: str = 'blue', volume: float = 5) ‑> None</span>
+<span>def <span class="ident">draw_modification</span></span>(<span>self, ax: <function axes at 0x7f7f08d865e0> = None, sourse: bool = True, product: bool = True, sourse_color: str = 'red', product_color: str = 'blue', volume: float = 5) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot Van-Krevelen for modifed peaks in product and sourse</p>
@@ -6913,6 +7562,7 @@ Must contain elements 'C', 'H', 'N'</dd>
         self.table[&#39;color&#39;] = color
 
         if mark_elem is not None:
+            
             self.table.loc[self.table[mark_elem] &gt; 0, &#39;color&#39;] = &#39;purple&#39;
 
         if nitrogen and &#39;N&#39; in self.table.columns:
@@ -6921,8 +7571,16 @@ Must contain elements 'C', 'H', 'N'</dd>
         if sulphur and &#39;S&#39; in self.table.columns:
             self.table.loc[(self.table[&#39;C&#39;] &gt; 0) &amp; (self.table[&#39;H&#39;] &gt; 0) &amp;(self.table[&#39;O&#39;] &gt; 0) &amp; (self.table[&#39;N&#39;] &lt; 1) &amp; (self.table[&#39;S&#39;] &gt; 0), &#39;color&#39;] = &#39;green&#39;
             self.table.loc[(self.table[&#39;C&#39;] &gt; 0) &amp; (self.table[&#39;H&#39;] &gt; 0) &amp;(self.table[&#39;O&#39;] &gt; 0) &amp; (self.table[&#39;N&#39;] &gt; 0) &amp; (self.table[&#39;S&#39;] &gt; 0), &#39;color&#39;] = &#39;red&#39;
-
-        ax.scatter(self.table[&#34;O/C&#34;], self.table[&#34;H/C&#34;], s=self.table[&#39;volume&#39;], c=self.table[&#39;color&#39;], alpha=alpha, **kwargs)
+        
+        if mark_elem is not None:
+            ax.scatter(self.table.loc[self.table[mark_elem] &gt; 0, &#39;O/C&#39;], 
+                        self.table.loc[self.table[mark_elem] &gt; 0, &#39;H/C&#39;],
+                        s=self.table.loc[self.table[mark_elem] &gt; 0, &#39;volume&#39;], 
+                        c=&#39;red&#39;, 
+                        alpha=alpha, 
+                        **kwargs)
+        else:
+            ax.scatter(self.table[&#34;O/C&#34;], self.table[&#34;H/C&#34;], s=self.table[&#39;volume&#39;], c=self.table[&#39;color&#39;], alpha=alpha, **kwargs)
         ax.set_xlabel(&#34;O/C&#34;)
         ax.set_ylabel(&#34;H/C&#34;)
         ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
@@ -6984,12 +7642,80 @@ Must contain elements 'C', 'H', 'N'</dd>
         # just for proper naming of squars. bad solution
         square = pd.DataFrame(data=sq, columns=[&#39;value&#39;], index=[5,10,15,20,   4,9,14,19,   3,8,13,18,    2,7,12,17,   1,6,11,16])
 
-        return square.sort_index()</code></pre>
+        return square.sort_index()
+
+    def scatter_density(self, ax=None, ax_x=None, ax_y=None, color:str=&#39;blue&#39;, alpha:float=0.3, volumes:float=None) -&gt; None:
+        &#34;&#34;&#34;
+        Plot VK scatter with density
+        Same as joinplot in seaborn
+        but you can use external axes
+
+        Parameters
+        ----------
+        ax: matplotlib ax
+            central ax for scatter
+        ax_x: matplotlib ax
+            horizontal ax for density
+        ax_y: matplotlib ax
+            vertical ax for density
+        color: str
+            color for scatter and density
+        alpha: float
+            alpha for scatter
+        &#34;&#34;&#34;
+        if ax is None:
+            fig = plt.figure(figsize=(6,6), dpi=100)
+            gs = GridSpec(4, 4)
+
+            ax = fig.add_subplot(gs[1:4, 0:3])
+            ax_x = fig.add_subplot(gs[0,0:3])
+            ax_y = fig.add_subplot(gs[1:4, 3])
+
+        self.table[&#39;intensity&#39;] = self.table[&#39;intensity&#39;] / self.table[&#39;intensity&#39;].median()
+
+        if volumes is None:
+            self.table[&#39;volume&#39;] = self.table[&#39;intensity&#39;] / self.table[&#39;intensity&#39;].median()
+        else:
+            self.table[&#39;volume&#39;] = volumes
+
+        ax.scatter(self.table[&#39;O/C&#39;],self.table[&#39;H/C&#39;], s=self.table[&#39;volume&#39;], alpha=alpha, c=color)
+        ax.set_ylim(0,2.2)
+        ax.set_xlim(0,1)
+        ax.set_xlabel(&#34;O/C&#34;)
+        ax.set_ylabel(&#34;H/C&#34;)
+        ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
+        ax.xaxis.set_ticks(np.arange(0, 1.1, 0.2))
+
+        oc = self.table[&#39;O/C&#39;]*self.table[&#39;intensity&#39;]
+        hc = self.table[&#39;H/C&#39;]*self.table[&#39;intensity&#39;]
+        total_int = self.table[&#39;intensity&#39;].sum()
+
+        x = np.linspace(self.table[&#39;O/C&#39;].min(), self.table[&#39;O/C&#39;].max(), 100)        
+        oc = np.array([])
+        for i, el in enumerate(x[1:]):
+            s = self.table.loc[(self.table[&#39;O/C&#39;] &gt; x[i-1]) &amp; (self.table[&#39;O/C&#39;] &lt;= el), &#39;intensity&#39;].sum()
+            coun = len(self.table) * s/total_int
+            m = (x[i-1] + x[i])/2
+            oc = np.append(oc, [m]*int(coun))
+        sns.kdeplot(x = oc, ax=ax_x, color=color, fill=True, alpha=0.1, bw_adjust=2)
+        ax_x.set_axis_off()
+        ax_x.set_xlim(0,1)
+        
+        y = np.linspace(self.table[&#39;H/C&#39;].min(), self.table[&#39;H/C&#39;].max(), 100)        
+        hc = np.array([])
+        for i, el in enumerate(y[1:]):
+            s = self.table.loc[(self.table[&#39;H/C&#39;] &gt; y[i-1]) &amp; (self.table[&#39;H/C&#39;] &lt;= el), &#39;intensity&#39;].sum()
+            coun = len(self.table) * s/total_int
+            m = (y[i-1] + y[i])/2
+            hc = np.append(hc, [m]*int(coun))
+        sns.kdeplot(x = hc, ax=ax_y, color=color, vertical=True, fill=True, alpha=0.1, bw_adjust=2)
+        ax_y.set_axis_off()
+        ax_y.set_ylim(0,2.2)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="nhsmasslib.mass.VanKrevelen.draw_density"><code class="name flex">
-<span>def <span class="ident">draw_density</span></span>(<span>self, cmap: str = 'Blues', ax: <function axes at 0x7fc570a3b5e0> = None, shade: bool = True) ‑> None</span>
+<span>def <span class="ident">draw_density</span></span>(<span>self, cmap: str = 'Blues', ax: <function axes at 0x7f7f08d865e0> = None, shade: bool = True) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Draw Van-Krevelen density</p>
@@ -7031,7 +7757,7 @@ Must contain elements 'C', 'H', 'N'</dd>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.VanKrevelen.draw_scatter"><code class="name flex">
-<span>def <span class="ident">draw_scatter</span></span>(<span>self, ax: <function axes at 0x7fc570a3b5e0> = None, volumes: float = None, color: str = 'blue', nitrogen: bool = False, sulphur: bool = False, alpha: float = 0.3, mark_elem: str = None, **kwargs) ‑> None</span>
+<span>def <span class="ident">draw_scatter</span></span>(<span>self, ax: <function axes at 0x7f7f08d865e0> = None, volumes: float = None, color: str = 'blue', nitrogen: bool = False, sulphur: bool = False, alpha: float = 0.3, mark_elem: str = None, **kwargs) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>plot Van-Krevelen diagramm</p>
@@ -7109,6 +7835,7 @@ By default calc by median intensity of spectrum</dd>
     self.table[&#39;color&#39;] = color
 
     if mark_elem is not None:
+        
         self.table.loc[self.table[mark_elem] &gt; 0, &#39;color&#39;] = &#39;purple&#39;
 
     if nitrogen and &#39;N&#39; in self.table.columns:
@@ -7117,8 +7844,16 @@ By default calc by median intensity of spectrum</dd>
     if sulphur and &#39;S&#39; in self.table.columns:
         self.table.loc[(self.table[&#39;C&#39;] &gt; 0) &amp; (self.table[&#39;H&#39;] &gt; 0) &amp;(self.table[&#39;O&#39;] &gt; 0) &amp; (self.table[&#39;N&#39;] &lt; 1) &amp; (self.table[&#39;S&#39;] &gt; 0), &#39;color&#39;] = &#39;green&#39;
         self.table.loc[(self.table[&#39;C&#39;] &gt; 0) &amp; (self.table[&#39;H&#39;] &gt; 0) &amp;(self.table[&#39;O&#39;] &gt; 0) &amp; (self.table[&#39;N&#39;] &gt; 0) &amp; (self.table[&#39;S&#39;] &gt; 0), &#39;color&#39;] = &#39;red&#39;
-
-    ax.scatter(self.table[&#34;O/C&#34;], self.table[&#34;H/C&#34;], s=self.table[&#39;volume&#39;], c=self.table[&#39;color&#39;], alpha=alpha, **kwargs)
+    
+    if mark_elem is not None:
+        ax.scatter(self.table.loc[self.table[mark_elem] &gt; 0, &#39;O/C&#39;], 
+                    self.table.loc[self.table[mark_elem] &gt; 0, &#39;H/C&#39;],
+                    s=self.table.loc[self.table[mark_elem] &gt; 0, &#39;volume&#39;], 
+                    c=&#39;red&#39;, 
+                    alpha=alpha, 
+                    **kwargs)
+    else:
+        ax.scatter(self.table[&#34;O/C&#34;], self.table[&#34;H/C&#34;], s=self.table[&#39;volume&#39;], c=self.table[&#39;color&#39;], alpha=alpha, **kwargs)
     ax.set_xlabel(&#34;O/C&#34;)
     ax.set_ylabel(&#34;H/C&#34;)
     ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
@@ -7128,6 +7863,99 @@ By default calc by median intensity of spectrum</dd>
     
     num_formules = self.table[&#39;C&#39;].count()
     ax.set_title(f&#39;{num_formules} formulas&#39;, size=10)</code></pre>
+</details>
+</dd>
+<dt id="nhsmasslib.mass.VanKrevelen.scatter_density"><code class="name flex">
+<span>def <span class="ident">scatter_density</span></span>(<span>self, ax=None, ax_x=None, ax_y=None, color: str = 'blue', alpha: float = 0.3, volumes: float = None) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot VK scatter with density
+Same as joinplot in seaborn
+but you can use external axes</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ax</code></strong> :&ensp;<code>matplotlib ax</code></dt>
+<dd>central ax for scatter</dd>
+<dt><strong><code>ax_x</code></strong> :&ensp;<code>matplotlib ax</code></dt>
+<dd>horizontal ax for density</dd>
+<dt><strong><code>ax_y</code></strong> :&ensp;<code>matplotlib ax</code></dt>
+<dd>vertical ax for density</dd>
+<dt><strong><code>color</code></strong> :&ensp;<code>str</code></dt>
+<dd>color for scatter and density</dd>
+<dt><strong><code>alpha</code></strong> :&ensp;<code>float</code></dt>
+<dd>alpha for scatter</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def scatter_density(self, ax=None, ax_x=None, ax_y=None, color:str=&#39;blue&#39;, alpha:float=0.3, volumes:float=None) -&gt; None:
+    &#34;&#34;&#34;
+    Plot VK scatter with density
+    Same as joinplot in seaborn
+    but you can use external axes
+
+    Parameters
+    ----------
+    ax: matplotlib ax
+        central ax for scatter
+    ax_x: matplotlib ax
+        horizontal ax for density
+    ax_y: matplotlib ax
+        vertical ax for density
+    color: str
+        color for scatter and density
+    alpha: float
+        alpha for scatter
+    &#34;&#34;&#34;
+    if ax is None:
+        fig = plt.figure(figsize=(6,6), dpi=100)
+        gs = GridSpec(4, 4)
+
+        ax = fig.add_subplot(gs[1:4, 0:3])
+        ax_x = fig.add_subplot(gs[0,0:3])
+        ax_y = fig.add_subplot(gs[1:4, 3])
+
+    self.table[&#39;intensity&#39;] = self.table[&#39;intensity&#39;] / self.table[&#39;intensity&#39;].median()
+
+    if volumes is None:
+        self.table[&#39;volume&#39;] = self.table[&#39;intensity&#39;] / self.table[&#39;intensity&#39;].median()
+    else:
+        self.table[&#39;volume&#39;] = volumes
+
+    ax.scatter(self.table[&#39;O/C&#39;],self.table[&#39;H/C&#39;], s=self.table[&#39;volume&#39;], alpha=alpha, c=color)
+    ax.set_ylim(0,2.2)
+    ax.set_xlim(0,1)
+    ax.set_xlabel(&#34;O/C&#34;)
+    ax.set_ylabel(&#34;H/C&#34;)
+    ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
+    ax.xaxis.set_ticks(np.arange(0, 1.1, 0.2))
+
+    oc = self.table[&#39;O/C&#39;]*self.table[&#39;intensity&#39;]
+    hc = self.table[&#39;H/C&#39;]*self.table[&#39;intensity&#39;]
+    total_int = self.table[&#39;intensity&#39;].sum()
+
+    x = np.linspace(self.table[&#39;O/C&#39;].min(), self.table[&#39;O/C&#39;].max(), 100)        
+    oc = np.array([])
+    for i, el in enumerate(x[1:]):
+        s = self.table.loc[(self.table[&#39;O/C&#39;] &gt; x[i-1]) &amp; (self.table[&#39;O/C&#39;] &lt;= el), &#39;intensity&#39;].sum()
+        coun = len(self.table) * s/total_int
+        m = (x[i-1] + x[i])/2
+        oc = np.append(oc, [m]*int(coun))
+    sns.kdeplot(x = oc, ax=ax_x, color=color, fill=True, alpha=0.1, bw_adjust=2)
+    ax_x.set_axis_off()
+    ax_x.set_xlim(0,1)
+    
+    y = np.linspace(self.table[&#39;H/C&#39;].min(), self.table[&#39;H/C&#39;].max(), 100)        
+    hc = np.array([])
+    for i, el in enumerate(y[1:]):
+        s = self.table.loc[(self.table[&#39;H/C&#39;] &gt; y[i-1]) &amp; (self.table[&#39;H/C&#39;] &lt;= el), &#39;intensity&#39;].sum()
+        coun = len(self.table) * s/total_int
+        m = (y[i-1] + y[i])/2
+        hc = np.append(hc, [m]*int(coun))
+    sns.kdeplot(x = hc, ax=ax_y, color=color, vertical=True, fill=True, alpha=0.1, bw_adjust=2)
+    ax_y.set_axis_off()
+    ax_y.set_ylim(0,2.2)</code></pre>
 </details>
 </dd>
 <dt id="nhsmasslib.mass.VanKrevelen.squares"><code class="name flex">
@@ -7221,10 +8049,13 @@ Optional, default True. Draw heatmap for squares</p>
 <ul class="">
 <li><code><a title="nhsmasslib.mass.MassSpectrum.assign" href="#nhsmasslib.mass.MassSpectrum.assign">assign</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.assign_by_tmds" href="#nhsmasslib.mass.MassSpectrum.assign_by_tmds">assign_by_tmds</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_DBEvsO" href="#nhsmasslib.mass.MassSpectrum.calculate_DBEvsO">calculate_DBEvsO</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_ai" href="#nhsmasslib.mass.MassSpectrum.calculate_ai">calculate_ai</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_brutto" href="#nhsmasslib.mass.MassSpectrum.calculate_brutto">calculate_brutto</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_cai" href="#nhsmasslib.mass.MassSpectrum.calculate_cai">calculate_cai</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_cram" href="#nhsmasslib.mass.MassSpectrum.calculate_cram">calculate_cram</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_dbe" href="#nhsmasslib.mass.MassSpectrum.calculate_dbe">calculate_dbe</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_dbe_ai" href="#nhsmasslib.mass.MassSpectrum.calculate_dbe_ai">calculate_dbe_ai</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_error" href="#nhsmasslib.mass.MassSpectrum.calculate_error">calculate_error</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_mass" href="#nhsmasslib.mass.MassSpectrum.calculate_mass">calculate_mass</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.calculate_simmilarity" href="#nhsmasslib.mass.MassSpectrum.calculate_simmilarity">calculate_simmilarity</a></code></li>
@@ -7233,7 +8064,9 @@ Optional, default True. Draw heatmap for squares</p>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.drop_unassigned" href="#nhsmasslib.mass.MassSpectrum.drop_unassigned">drop_unassigned</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.filter_by_C13" href="#nhsmasslib.mass.MassSpectrum.filter_by_C13">filter_by_C13</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.find_elems" href="#nhsmasslib.mass.MassSpectrum.find_elems">find_elems</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.get_cram_value" href="#nhsmasslib.mass.MassSpectrum.get_cram_value">get_cram_value</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.head" href="#nhsmasslib.mass.MassSpectrum.head">head</a></code></li>
+<li><code><a title="nhsmasslib.mass.MassSpectrum.intens_sub" href="#nhsmasslib.mass.MassSpectrum.intens_sub">intens_sub</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.load" href="#nhsmasslib.mass.MassSpectrum.load">load</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.normalize" href="#nhsmasslib.mass.MassSpectrum.normalize">normalize</a></code></li>
 <li><code><a title="nhsmasslib.mass.MassSpectrum.recallibrate" href="#nhsmasslib.mass.MassSpectrum.recallibrate">recallibrate</a></code></li>
@@ -7277,6 +8110,7 @@ Optional, default True. Draw heatmap for squares</p>
 <ul class="">
 <li><code><a title="nhsmasslib.mass.VanKrevelen.draw_density" href="#nhsmasslib.mass.VanKrevelen.draw_density">draw_density</a></code></li>
 <li><code><a title="nhsmasslib.mass.VanKrevelen.draw_scatter" href="#nhsmasslib.mass.VanKrevelen.draw_scatter">draw_scatter</a></code></li>
+<li><code><a title="nhsmasslib.mass.VanKrevelen.scatter_density" href="#nhsmasslib.mass.VanKrevelen.scatter_density">scatter_density</a></code></li>
 <li><code><a title="nhsmasslib.mass.VanKrevelen.squares" href="#nhsmasslib.mass.VanKrevelen.squares">squares</a></code></li>
 </ul>
 </li>

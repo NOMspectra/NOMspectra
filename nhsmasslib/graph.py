@@ -24,7 +24,6 @@ import numpy as np
 import pandas as pd
 import copy
 import networkx as nx
-from pyvis.network import Network
 from tqdm import tqdm
 import matplotlib.cm as cm
 from matplotlib.colors import rgb2hex
@@ -249,7 +248,7 @@ class Vis(object):
             Optional. Default True. Replace mass for brutto in graph
         """
         spec = copy.deepcopy(spec)
-        spec = spec.drop_unassigned().calculate_mass()
+        spec = spec.drop_unassigned().calculate_mass().calculate_dbe().calculate_cai()
         mass = spec.table['calculated_mass'].values
 
         if dif_table is None:
@@ -258,10 +257,14 @@ class Vis(object):
         if brutto_name:
             spec = spec.calculate_brutto()
             brutto = spec.table['brutto'].to_list()
+            dbe = spec.table['DBE'].to_list()
+            cai = spec.table['CAI'].to_list()
             massl = spec.table['calculated_mass'].to_list()
             nods = dict(zip(massl, brutto))
+            dbe = dict(zip(massl, dbe))
+            cai = dict(zip(massl, cai))
         
-        G = nx.Graph()
+        G = nx.DiGraph()
 
         for i, dif_row in dif_table.iterrows():
             dif = dif_row['calculated_mass']
@@ -279,31 +282,25 @@ class Vis(object):
                 res = np.round(item + dif,6)
                 if res in mass:
                     if brutto_name:
-                        G.add_node(nods[item])
-                        G.add_node(nods[res])
-                        G.add_edge(nods[item], nods[res], weight=dif_name, color=dif_color)
+                        G.add_node(nods[item], ms=item, dbe=dbe[item], cai=cai[item])
+                        G.add_node(nods[res], ms=res, dbe=dbe[res], cai=cai[res])
+                        G.add_edge(nods[item], nods[res], weight=dif, name=dif_name, color=dif_color)
                     else:
-                        G.add_node(str(item))
-                        G.add_node(str(res))
-                        G.add_edge(str(item), str(res), weight=dif_name, color=dif_color)
+                        G.add_node(str(item), ms=item)
+                        G.add_node(str(res), ms=res)
+                        G.add_edge(str(item), str(res), weight=dif, name=dif_name, color=dif_color)
         return Vis(G)
 
-    def to_html(self, filename:str, size:str ='800px') -> None :
+    def to_gml(self, filename:str) -> None :
         """
-        Generate html with graph
+        Generate gml file, that can be open in other programm such as Cytosacpe
 
         Parameters
         ----------
         filename: str
             file to save html
-        size: str
-            optional, default 800px. Size of graph        
         """
-
-        net = Network(size, size)
-        net.from_nx(self.G)
-        net.show_buttons(filter_=['physics'])
-        net.show(f'{filename}')
+        nx.write_gml(self.G, filename)
 
     def gen_diftable(self, el = None, count = None, colors=True) -> pd.DataFrame:
         """
@@ -330,18 +327,13 @@ class Vis(object):
         ------
         pd.DataFrame with most usual diffmass        
         """
-        default = False
 
         if el is None:
             el = ['C','H','O']
         if count is None:
-            default = True
             count = [[1,2,0],
                     [1,0,1],
-                    [0,2,0],
-                    [1,2,1],
-                    [1,0,2],
-                    [0,2,1]]
+                    [1,0,2]]
 
         dif_table = pd.DataFrame(data=count, columns=el)
         dif_table = gen_from_brutto(dif_table)
@@ -352,7 +344,7 @@ class Vis(object):
             for i, e in enumerate(el):
                 if row[i] == 1:
                     c = c + f'{e}'
-                elif row[i] > 0:
+                elif row[i] != 0:
                     c = c + f'{e}{int(row[i])}'
             col.append(c)
         dif_table['names'] = col

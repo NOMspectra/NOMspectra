@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='nhsmasslib',
-    version='0.1.1',
+    version='0.1.2',
     packages=['nhsmasslib',],
     license='GPLv3',
     description='A small lib for treatment high-resolution mass spectrum',
@@ -16,7 +16,6 @@ setup(
         'scipy>=1.4.1',
         'seaborn>=0.10.0',
         'tqdm>=4.43.0',
-	'networkx>=2.5',
-	'pyvis>=0.2.1'
+	    'networkx>=2.5'
 	],
 )

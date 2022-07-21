@@ -45,11 +45,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmasslib.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
+from this import d
 from typing import Sequence
 import numpy as np
 import pandas as pd
+import copy
 
-def brutto_gen(elems = {&#39;C&#39;:(0, 41),&#39;H&#39;:(0, 81),&#39;O&#39;:(0,41), &#39;N&#39;:(0,3)}, 
+def brutto_gen(elems = {&#39;C&#39;:(4, 51),&#39;H&#39;:(4, 101),&#39;O&#39;:(0,26), &#39;N&#39;:(0,4)}, 
                rules = True):
     &#34;&#34;&#34;
     Generete brutto formulas
@@ -62,7 +64,7 @@ def brutto_gen(elems = {&#39;C&#39;:(0, 41),&#39;H&#39;:(0, 81),&#39;O&#39;:(0,4
         &#39;C&#39;:(1,60) - content of carbon (main isotope) from 1 to 59 (60-1)
         &#39;O_18&#39;:(0,3) - conent of isotope 18 oxygen from 0 to 2
     rules: bool
-        Rules: 0.25&lt;H/C&lt;2.2, O/C &lt; 1, nitogen parity
+        Rules: 0.25&lt;H/C&lt;2.2, O/C &lt; 1, nitogen parity DBE &lt;= 10
         By default it is on, but for tmds should be off
 
     Returns
@@ -90,16 +92,29 @@ def brutto_gen(elems = {&#39;C&#39;:(0, 41),&#39;H&#39;:(0, 81),&#39;O&#39;:(0,4
     gdf = pd.DataFrame(t,columns=list(elems_dict.keys()))
 
     #do rules H/C, O/C, and parity
-    if &#39;H&#39; in gdf.columns and &#39;C&#39; in gdf.columns and rules:
-        gdf[&#39;H/C&#39;] = gdf[&#39;H&#39;]/gdf[&#39;C&#39;]
-        gdf[&#39;O/C&#39;] = gdf[&#39;O&#39;]/gdf[&#39;C&#39;]
-        gdf = gdf.loc[(gdf[&#39;H/C&#39;] &lt; 2.2) &amp; (gdf[&#39;H/C&#39;] &gt; 0.25) &amp; (gdf[&#39;O/C&#39;] &lt; 1)]
-        gdf = gdf.drop(columns=[&#39;H/C&#39;,&#39;O/C&#39;])
-    
-    if &#39;N&#39; in gdf.columns and &#39;H&#39; in gdf.columns and rules:
-        gdf[&#39;parity&#39;] = (gdf[&#39;H&#39;] + gdf[&#39;N&#39;])%2
-        gdf = gdf.loc[gdf[&#39;parity&#39;]==0]
-        gdf = gdf.drop(columns=[&#39;parity&#39;])
+    if rules:
+
+        temp = copy.deepcopy(gdf)
+        if &#39;H_2&#39; in temp.columns:
+            temp[&#39;H&#39;] = temp[&#39;H&#39;] + temp[&#39;H_2&#39;]
+        if &#39;C_13&#39; in temp.columns:
+            temp[&#39;C&#39;] = temp[&#39;C&#39;] + temp[&#39;C_13&#39;]
+        if &#39;O_18&#39; in temp.columns:
+            temp[&#39;O&#39;] = temp[&#39;O&#39;] + temp[&#39;O_18&#39;]
+        
+        temp[&#39;H/C&#39;] = temp[&#39;H&#39;]/temp[&#39;C&#39;]
+        temp[&#39;O/C&#39;] = temp[&#39;O&#39;]/temp[&#39;C&#39;]
+        gdf = gdf.loc[(temp[&#39;H/C&#39;] &lt; 2.2) &amp; (temp[&#39;H/C&#39;] &gt; 0.25) &amp; (temp[&#39;O/C&#39;] &lt; 1)]
+
+        if &#39;N&#39; not in gdf.columns:
+            temp[&#39;N&#39;] = 0
+        
+        temp[&#39;DBE-O&#39;] = 1.0 + temp[&#34;C&#34;] - 0.5 * temp[&#34;H&#34;] + 0.5 * temp[&#39;N&#39;] - temp[&#39;O&#39;]
+        gdf = gdf.loc[temp[&#39;DBE-O&#39;] &lt;= 10]
+        
+        if &#39;N&#39; in gdf.columns and &#39;H&#39; in gdf.columns:
+            temp[&#39;parity&#39;] = (gdf[&#39;H&#39;] + gdf[&#39;N&#39;])%2
+            gdf = gdf.loc[temp[&#39;parity&#39;]==0]
 
     #calculate mass
     masses = np.array(list(elems_dict.values()))
@@ -469,7 +484,7 @@ if __name__ == &#39;__main__&#39;:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="nhsmasslib.brutto.brutto_gen"><code class="name flex">
-<span>def <span class="ident">brutto_gen</span></span>(<span>elems={'C': (0, 41), 'H': (0, 81), 'O': (0, 41), 'N': (0, 3)}, rules=True)</span>
+<span>def <span class="ident">brutto_gen</span></span>(<span>elems={'C': (4, 51), 'H': (4, 101), 'O': (0, 26), 'N': (0, 4)}, rules=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generete brutto formulas</p>
@@ -481,7 +496,7 @@ Examples
 'C':(1,60) - content of carbon (main isotope) from 1 to 59 (60-1)
 'O_18':(0,3) - conent of isotope 18 oxygen from 0 to 2</dd>
 <dt><strong><code>rules</code></strong> :&ensp;<code>bool</code></dt>
-<dd>Rules: 0.25&lt;H/C&lt;2.2, O/C &lt; 1, nitogen parity
+<dd>Rules: 0.25&lt;H/C&lt;2.2, O/C &lt; 1, nitogen parity DBE &lt;= 10
 By default it is on, but for tmds should be off</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -494,7 +509,7 @@ with exast masses</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def brutto_gen(elems = {&#39;C&#39;:(0, 41),&#39;H&#39;:(0, 81),&#39;O&#39;:(0,41), &#39;N&#39;:(0,3)}, 
+<pre><code class="python">def brutto_gen(elems = {&#39;C&#39;:(4, 51),&#39;H&#39;:(4, 101),&#39;O&#39;:(0,26), &#39;N&#39;:(0,4)}, 
                rules = True):
     &#34;&#34;&#34;
     Generete brutto formulas
@@ -507,7 +522,7 @@ with exast masses</dd>
         &#39;C&#39;:(1,60) - content of carbon (main isotope) from 1 to 59 (60-1)
         &#39;O_18&#39;:(0,3) - conent of isotope 18 oxygen from 0 to 2
     rules: bool
-        Rules: 0.25&lt;H/C&lt;2.2, O/C &lt; 1, nitogen parity
+        Rules: 0.25&lt;H/C&lt;2.2, O/C &lt; 1, nitogen parity DBE &lt;= 10
         By default it is on, but for tmds should be off
 
     Returns
@@ -535,16 +550,29 @@ with exast masses</dd>
     gdf = pd.DataFrame(t,columns=list(elems_dict.keys()))
 
     #do rules H/C, O/C, and parity
-    if &#39;H&#39; in gdf.columns and &#39;C&#39; in gdf.columns and rules:
-        gdf[&#39;H/C&#39;] = gdf[&#39;H&#39;]/gdf[&#39;C&#39;]
-        gdf[&#39;O/C&#39;] = gdf[&#39;O&#39;]/gdf[&#39;C&#39;]
-        gdf = gdf.loc[(gdf[&#39;H/C&#39;] &lt; 2.2) &amp; (gdf[&#39;H/C&#39;] &gt; 0.25) &amp; (gdf[&#39;O/C&#39;] &lt; 1)]
-        gdf = gdf.drop(columns=[&#39;H/C&#39;,&#39;O/C&#39;])
-    
-    if &#39;N&#39; in gdf.columns and &#39;H&#39; in gdf.columns and rules:
-        gdf[&#39;parity&#39;] = (gdf[&#39;H&#39;] + gdf[&#39;N&#39;])%2
-        gdf = gdf.loc[gdf[&#39;parity&#39;]==0]
-        gdf = gdf.drop(columns=[&#39;parity&#39;])
+    if rules:
+
+        temp = copy.deepcopy(gdf)
+        if &#39;H_2&#39; in temp.columns:
+            temp[&#39;H&#39;] = temp[&#39;H&#39;] + temp[&#39;H_2&#39;]
+        if &#39;C_13&#39; in temp.columns:
+            temp[&#39;C&#39;] = temp[&#39;C&#39;] + temp[&#39;C_13&#39;]
+        if &#39;O_18&#39; in temp.columns:
+            temp[&#39;O&#39;] = temp[&#39;O&#39;] + temp[&#39;O_18&#39;]
+        
+        temp[&#39;H/C&#39;] = temp[&#39;H&#39;]/temp[&#39;C&#39;]
+        temp[&#39;O/C&#39;] = temp[&#39;O&#39;]/temp[&#39;C&#39;]
+        gdf = gdf.loc[(temp[&#39;H/C&#39;] &lt; 2.2) &amp; (temp[&#39;H/C&#39;] &gt; 0.25) &amp; (temp[&#39;O/C&#39;] &lt; 1)]
+
+        if &#39;N&#39; not in gdf.columns:
+            temp[&#39;N&#39;] = 0
+        
+        temp[&#39;DBE-O&#39;] = 1.0 + temp[&#34;C&#34;] - 0.5 * temp[&#34;H&#34;] + 0.5 * temp[&#39;N&#39;] - temp[&#39;O&#39;]
+        gdf = gdf.loc[temp[&#39;DBE-O&#39;] &lt;= 10]
+        
+        if &#39;N&#39; in gdf.columns and &#39;H&#39; in gdf.columns:
+            temp[&#39;parity&#39;] = (gdf[&#39;H&#39;] + gdf[&#39;N&#39;])%2
+            gdf = gdf.loc[temp[&#39;parity&#39;]==0]
 
     #calculate mass
     masses = np.array(list(elems_dict.values()))

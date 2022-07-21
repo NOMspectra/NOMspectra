@@ -1,6 +1,6 @@
 # nhsmasslib
 
-version 0.1.1
+version 0.1.2
 
 Lib for working with high resolution mass spectrums
 
@@ -12,6 +12,7 @@ This lib supports
 - Working with spectra as with sets (intersection, union, etc)
 - Calculate and plot simmilarity map of spectrums
 - Calculate and plot graph based on mass-difference
+- and many other usefull calculation
 
 ## Installation
 
