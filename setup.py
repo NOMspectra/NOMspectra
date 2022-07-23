@@ -1,15 +1,27 @@
-from distutils.core import setup
+from setuptools import setup
+from setuptools import find_packages
+
+import os
+here = os.path.abspath(os.path.dirname(__file__))
+
+version = {}
+with open(os.path.join(here, "nhsmasslib", "__version__.py")) as f:
+    exec(f.read(), version)
+
+with open("README.md") as readme_file:
+    readme = readme_file.read()
 
 setup(
     name='nhsmasslib',
-    version='0.1.4',
-    packages=['nhsmasslib',],
+    version=version["__version__"],
     license='GPLv3',
-    description='A small lib for treatment high-resolution mass spectrum',
-    long_description=open('README.md').read(),
+    long_description=readme,
+    long_description_content_type='text/markdown',
     author='Volikov Alexander, Rukhovich Gleb',
     url = 'https://github.com/nhsmasslib/nhsmasslib',
-    download_url = 'https://github.com/nhsmasslib/nhsmasslib/archive/refs/tags/v0.1.3.tar.gz',
+    packages=find_packages(),
+    include_package_data=True,
+    python_requires='>=3.7',
     install_requires=[
         'matplotlib>=3.1.2',
         'numpy>=1.18.1',

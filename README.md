@@ -1,6 +1,6 @@
-# nhsmasslib
+[![PyPI](https://img.shields.io/pypi/v/nhsmasslib/)](https://pypi.org/project/nhsmasslib/)
 
-version 0.1.4
+# nhsmasslib
 
 Lib for working with high resolution mass spectrums
 
@@ -19,12 +19,6 @@ By pip:
 
 ```console
 pip install nhsmasslib
-```
-
-Anytime after installation by pip you can delete it by comand
-
-```console
-pip uninstall nhsmasslib
 ```
 
 ## Documentation
