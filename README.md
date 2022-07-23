@@ -1,4 +1,4 @@
-[![PyPI](https://img.shields.io/pypi/v/nhsmasslib.svg/)](https://pypi.org/project/nhsmasslib/)
+![https://img.shields.io/pypi/v/nhsmasslib](https://pypi.org/project/nhsmasslib/)
 
 # nhsmasslib
 
