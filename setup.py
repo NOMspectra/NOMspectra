@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='nhsmasslib',
-    version='0.1.3',
+    version='0.1.4',
     packages=['nhsmasslib',],
     license='GPLv3',
     description='A small lib for treatment high-resolution mass spectrum',
@@ -18,4 +18,9 @@ setup(
         'seaborn>=0.10.0',
         'tqdm>=4.43.0',
 	],
+    classifiers=[
+        'Development Status :: 2 - Pre-Alpha',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Programming Language :: Python :: 3.8',
+  ],
 )

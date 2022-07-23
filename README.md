@@ -1,6 +1,6 @@
 # nhsmasslib
 
-version 0.1.3
+version 0.1.4
 
 Lib for working with high resolution mass spectrums
 
@@ -15,14 +15,10 @@ This lib supports
 
 ## Installation
 
-There is few options now:
-
-- download nhsmasslib by clone this repository and place nhsmasslib folder near code script
-
-- download nhsmasslib by clone this repository and install localy by pip:
+By pip:
 
 ```console
-pip install .
+pip install nhsmasslib
 ```
 
 Anytime after installation by pip you can delete it by comand
@@ -45,7 +41,7 @@ There are few jupyter notebook that explain how to use nhsmasslib. It is lockate
 
 There is script for graphical interface lockated here
 
-https://github.com/nhslab/nhsmasslibPQ
+https://github.com/nhsmasslib/nhsmasslibPQ
 
 It is support all main operation under spectrum
 
