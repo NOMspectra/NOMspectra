@@ -23,13 +23,11 @@ pip install nhsmasslib
 
 ## Documentation
 
-Automaticaly generated documentation is placed in docs folder. Opens index.html to read it.
-
-Genereated by [pdoc3](https://pdoc3.github.io/pdoc/)
+Automaticaly generated documentation is placed [here](https://nhsmasslib.github.io/docs/index.html)
 
 ## Examples of usage
 
-There are few jupyter notebook that explain how to use nhsmasslib. It is lockated in folder "ipynb examples"
+There are few jupyter notebook that explain how to use nhsmasslib. It is lockated in folder "notebooks"
 
 ## Graphical interface
 
