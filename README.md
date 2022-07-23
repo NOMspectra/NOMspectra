@@ -1,4 +1,4 @@
-[![PyPI](https://img.shields.io/pypi/v/nhsmasslib/)](https://pypi.org/project/nhsmasslib/)
+[![PyPI](https://img.shields.io/pypi/v/nhsmasslib.svg/)](https://pypi.org/project/nhsmasslib/)
 
 # nhsmasslib
 
@@ -31,16 +31,16 @@ There are few jupyter notebook that explain how to use nhsmasslib. It is lockate
 
 ## Graphical interface
 
-There is script for graphical interface lockated here
+Simple GIU lockated here
 
 https://github.com/nhsmasslib/nhsmasslibPQ
 
-It is support all main operation under spectrum
+It is support all main operation.
 
 ## How to contribute
 
 You can contribute by writing code. Firstly unitteset.
 
-It also supports the creation of issues, forks, pull rquests, developing any new ideas.
+It also supports the creation of issues, forks, pull rquests, bugreports, developing any new ideas.
 
-You can also help by check the documentation and creating new examples
+You can also help by check the documentation and creating new examples.
