@@ -21,7 +21,7 @@ setup(
     url = 'https://github.com/nhsmasslib/nhsmasslib',
     packages=find_packages(),
     include_package_data=True,
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=[
         'matplotlib>=3.1.2',
         'numpy>=1.18.1',

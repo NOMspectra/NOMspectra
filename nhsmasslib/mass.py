@@ -667,10 +667,12 @@ class MassSpectrum(object):
         Danger of lose data - with these operation we exclude data that can be usefull
         """
 
-        if "assign" not in self.table:
+        spec = self.copy()
+
+        if "assign" not in spec.table:
             raise Exception("Spectrum is not assigned")
 
-        return MassSpectrum(self.table.loc[self.table["assign"] == True].reset_index(drop=True))
+        return MassSpectrum(spec.table.loc[spec.table["assign"] == True].reset_index(drop=True))
 
     def calculate_simmilarity(self, other:"MassSpectrum", mode:str='cosine') -> float:
         """
