@@ -868,8 +868,12 @@ class MassSpectrum(object):
             table['intensity'] /= table['intensity'].max()
         elif how=='sum':
             table['intensity'] /= table['intensity'].sum()
+        elif how=='median':
+            table['intensity'] /= table['intensity'].median()
+        elif how=='mean':
+            table['intensity'] /= table['intensity'].mean()
         else:
-            Exception(f"There is no such mode: {how}")
+            raise Exception(f"There is no such mode: {how}")
 
         return MassSpectrum(table)
 
