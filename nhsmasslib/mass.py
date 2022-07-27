@@ -355,10 +355,14 @@ class MassSpectrum(object):
         for i, row in table.iterrows():
             s = ''
             for el in elems:
+                if len(el.split('_')) == 2:
+                    ele = f'({el})'
+                else:
+                    ele = el
                 if row[el] == 1:
-                    s = s + f'{el}'
+                    s = s + f'{ele}'
                 elif row[el] > 0:
-                    s = s + f'{el}{int(row[el])}'
+                    s = s + f'{ele}{int(row[el])}'
             out.append(s)
         
         table['brutto'] = out
@@ -674,7 +678,27 @@ class MassSpectrum(object):
 
         return MassSpectrum(spec.table.loc[spec.table["assign"] == True].reset_index(drop=True))
 
-    def calculate_simmilarity(self, other:"MassSpectrum", mode:str='cosine') -> float:
+    def sum_isotopes(self) -> "MassSpectrum":
+        """
+        All isotopes will be sum and title as main.
+        Table must contain main isotope.
+
+        Return
+        ------
+        MassSpectrum object without minor isotopes        
+        """
+
+        spec = self.copy()
+        elems = spec.find_elems()
+        for el in elems:
+            res = el.split('_')
+            if len(res) == 2:
+                spec.table[res[0]] = spec.table[res[0]] + spec.table[el]
+                spec.table = spec.table.drop(columns=[el]) 
+
+        return MassSpectrum(spec.table)
+
+    def calculate_simmilarity(self, other:"MassSpectrum", mode:str='tanimoto') -> float:
         """
         Calculate Simmilarity
 
@@ -692,29 +716,34 @@ class MassSpectrum(object):
         float Simmilarity index
         """
 
-        if 'calculated_mass' not in self.table:
-            self = self.calculate_mass()
-        if 'calculated_mass' not in other.table:
-            other = other.calculate_mass()
+        s1 = self.copy().drop_unassigned().calculate_mass().normalize(how='sum')
+        s2 = other.copy().drop_unassigned().calculate_mass().normalize(how='sum')
 
-        a = self.table['calculated_mass'].dropna().values
-        b = other.table['calculated_mass'].dropna().values
-        c = np.union1d(a, b)
+        df1 = pd.DataFrame()
+        df1['cmass'] = s1.drop_unassigned().table['calculated_mass']
+        df1['intens'] = s1.drop_unassigned().table['intensity']
 
-        A = np.zeros(len(c), dtype=bool)
-        B = np.zeros(len(c), dtype=bool)
-        for i, el in enumerate(c):
-            if el in a:
-                A[i] = True
-            if el in b:
-                B[i] = True
+        df2 = pd.DataFrame()
+        df2['cmass'] = s2.drop_unassigned().table['calculated_mass']
+        df2['intens'] = s2.drop_unassigned().table['intensity']
+
+        res = df1.merge(df2, how='outer', on='cmass')
+        res.fillna(0, inplace=True)
+
+        a = res['intens_x'].values
+        b = res['intens_y'].values
+
+        a = a/np.sum(a)
+        b = b/np.sum(b)      
 
         if mode == "jaccard":
-            return 1 - spatial.distance.jaccard(A, B)
+            m1 = set(df1['cmass'].to_list())
+            m2 = set(df2['cmass'].to_list())
+            return len(m1 & m2)/len(m1 | m2)
         elif mode == "tanimoto":
-            return 1 - spatial.distance.rogerstanimoto(A, B)
+            return np.dot(a, b)/(np.dot(a, a) + np.dot(b, b) - np.dot(a, b))
         elif mode == 'cosine':
-            return 1 - spatial.distance.cosine(A, B)
+            return 1 - spatial.distance.cosine(a, b)
         else:
             raise Exception(f"There is no such mode: {mode}")
 
@@ -734,8 +763,9 @@ class MassSpectrum(object):
         Geochimica et. Cosmochimica Acta 70, 2990-3010 (2006)
         """
         spec = self.copy()
+
         if "DBE" not in spec.table:
-            spec = spec.calculate_dbe()
+            spec = spec.calculate_dbe()        
 
         def check(row):
             if row['DBE']/row['C'] < 0.3 or row['DBE']/row['C'] > 0.68:
@@ -748,7 +778,8 @@ class MassSpectrum(object):
                 return False
             return True
 
-        spec.table['CRAM'] = spec.table.apply(check, axis=1)
+        table = spec.copy().sum_isotopes().table
+        spec.table['CRAM'] = table.apply(check, axis=1)
 
         return spec
 
@@ -790,21 +821,21 @@ class MassSpectrum(object):
         ------
         MassSpectrum object with calculated CAI
         """
+
+        spec = self.copy()
         
-        if "assign" not in self.table:
+        if "assign" not in spec.table:
             raise Exception("Spectrum is not assigned")
 
-        table = copy.deepcopy(self.table)
+        table = spec.copy().sum_isotopes().table
 
-        # very careful
-        # anyway it's necessary to have at least column with C?
         for element in "CONSP":
             if element not in table:
                 table[element] = 0
 
-        self.table['CAI'] = table["C"] - table["O"] - table["N"] - table["S"] - table["P"]
+        spec.table['CAI'] = table["C"] - table["O"] - table["N"] - table["S"] - table["P"]
 
-        return self
+        return MassSpectrum(spec.table)
 
     def calculate_dbe_ai(self) -> 'MassSpectrum':
         """
@@ -817,15 +848,16 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        table = copy.deepcopy(self.table)
+        spec = self.copy()
+        table = spec.copy().sum_isotopes().table
 
         for element in "CHONPS":
             if element not in table:
                 table[element] = 0
 
-        self.table['DBE_AI'] = 1.0 + table["C"] - table["O"] - table["S"] - 0.5 * (table["H"] + table['N'] + table["P"])
+        spec.table['DBE_AI'] = 1.0 + table["C"] - table["O"] - table["S"] - 0.5 * (table["H"] + table['N'] + table["P"])
 
-        return self
+        return MassSpectrum(spec.table)
 
     def calculate_dbe(self) -> 'MassSpectrum':
         """
@@ -838,15 +870,231 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        table = copy.deepcopy(self.table)
+        spec = self.copy()
+        table = spec.copy().sum_isotopes().table
 
         for element in "CHON":
             if element not in table:
                 table[element] = 0
 
-        self.table['DBE'] = 1.0 + table["C"] - 0.5 * (table["H"] - table['N'])
+        spec.table['DBE'] = 1.0 + table["C"] - 0.5 * (table["H"] - table['N'])
 
-        return self
+        return MassSpectrum(spec.table)
+
+    def calculate_dbe_o(self) -> 'MassSpectrum':
+        """
+        Calculate DBE-O
+
+        Return
+        ------
+        MassSpectrum object with calculated DBE-O
+        """
+        if "assign" not in self.table:
+            raise Exception("Spectrum is not assigned")
+
+        spec = self.copy().calculate_dbe()
+        table = spec.copy().sum_isotopes().table
+        spec.table['DBE-O'] = table['DBE'] - table['O']
+
+        return MassSpectrum(spec.table)
+
+    def calculate_dbe_oc(self) -> 'MassSpectrum':
+        """
+        Calculate DBE-O/C
+
+        Return
+        ------
+        MassSpectrum object with calculated DBE-O/C
+        """
+        if "assign" not in self.table:
+            raise Exception("Spectrum is not assigned")
+
+        spec = self.copy().calculate_dbe()
+        table = spec.copy().sum_isotopes().table
+        spec.table['DBE-OC'] = (table['DBE'] - table['O'])/table['C']
+
+        return MassSpectrum(spec.table)
+
+    def calculate_hc_oc(self) -> 'MassSpectrum':
+        """
+        Calculate H/C and O/C
+
+        Return
+        ------
+        MassSpectrum object with calculated H/C O/C
+        """
+        if "assign" not in self.table:
+            raise Exception("Spectrum is not assigned")
+
+        spec = self.copy()
+        table = spec.copy().sum_isotopes().table
+        spec.table['H/C'] = table['H']/table['C']
+        spec.table['O/C'] = table['O']/table['C']
+
+        return MassSpectrum(spec.table)
+
+    def calculate_nosc(self) -> 'MassSpectrum':
+        """
+        Calculate Normal oxidation state of carbon (NOSC).
+
+        Notes
+        -----
+        >0 - oxidate state.
+        <0 - reduce state.
+        0 - neutral state
+
+        Return
+        ------
+        MassSpectrum object with calculated DBE
+
+        Reference
+        ---------
+        Boye, Kristin, et al. "Thermodynamically 
+        controlled preservation of organic carbon 
+        in floodplains."
+        Nature Geoscience 10.6 (2017): 415-419.
+        """
+        if "assign" not in self.table:
+            raise Exception("Spectrum is not assigned")
+
+        spec = self.copy()
+        table = spec.copy().sum_isotopes().table
+
+        for element in "CHONS":
+            if element not in table:
+                table[element] = 0
+
+        spec.table['NOSC'] = 4.0 - (table["C"] * 4 + table["H"] - table['O'] * 2 - table['N'] * 3 - table['S'] * 2)/table['C']
+
+        return MassSpectrum(spec.table)
+
+    def calculate_mol_class_zones(self) -> "MassSpectrum":
+        """
+        Assign molecular class for formulas
+
+        Return
+        ------
+        MassSpectrum object with assigned zones
+        """
+
+        spec = self.copy().calculate_ai()
+        table = spec.copy().sum_isotopes().table
+
+        for element in "CHON":
+            if element not in table:
+                table[element] = 0
+
+        table['H/C'] = table['H']/table['C']
+        table['O/C'] = table['O']/table['C']
+
+        def get_zone(row):
+
+            if row['H/C'] >= 1.5:
+                if row['O/C'] < 0.3 and row['N'] == 0:
+                    return 'lipids'
+                elif row['N'] >= 1:
+                    return 'N-satureted'
+                else:
+                    return 'aliphatics'
+            elif row['H/C'] < 1.5 and row['AI'] < 0.5:
+                if row['O/C'] <= 0.5:
+                    return 'unsat_lowOC'
+                else:
+                    return 'unsat_highOC'
+            elif row['AI'] > 0.5 and row['AI'] <= 0.67:
+                if row['O/C'] <= 0.5:
+                    return 'aromatic_lowOC'
+                else:
+                    return 'aromatic_highOC'
+            elif row['AI'] > 0.67:
+                if row['O/C'] <= 0.5:
+                    return 'condensed_lowOC'
+                else:
+                    return 'condensed_highOC'
+            else:
+                return 'undefinded'
+                
+        spec.table['kzone'] = table.apply(get_zone, axis=1)
+
+        return MassSpectrum(spec.table)
+
+    def get_mol_class_density(self, weight: str = "intensity") -> dict:
+        """
+        get molercular classes
+
+        Parameters
+        ----------
+        weight: str
+            how calculate density. Default "intensity".
+            Also can be "count".
+
+        Return
+        ------
+        Dict. mol_class:density
+        
+        References
+        ----------
+        Zherebker, Alexander, et al. "Interlaboratory comparison of 
+        humic substances compositional space as measured by Fourier 
+        transform ion cyclotron resonance mass spectrometry 
+        (IUPAC Technical Report)." 
+        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
+        """
+
+        ans = {}
+        spec = self.copy()
+        spec = spec.drop_unassigned().calculate_mol_class_zones()
+        count_density = len(spec.table)
+        sum_density = spec.table["intensity"].sum()
+
+        for zone in ['unsat_lowOC',
+                    'unsat_highOC',
+                    'condensed_lowOC',
+                    'condensed_highOC',
+                    'aromatic_lowOC',
+                    'aromatic_highOC',
+                    'aliphatics',            
+                    'lipids',
+                    'N-satureted',
+                    'undefinded']:
+
+            if weight == "count":
+                ans[zone] = len(spec.table.loc[spec.table['kzone'] == zone])/count_density
+
+            elif weight == "intensity":
+                ans[zone] = spec.table.loc[spec.table['kzone'] == zone, 'intensity'].sum()/sum_density
+
+            else:
+                raise ValueError(f"weight should be count or intensity not {weight}")
+        
+        return ans
+
+    def calculate_all(self) -> "MassSpectrum":
+        """
+        Calculated all avaible in this lib metrics
+
+        Return
+        ------
+        MassSpectrum object with calculated metrics
+        """
+
+        spec = self.copy()
+
+        spec = spec.calculate_ai()
+        spec = spec.calculate_mol_class_zones()
+        spec = spec.calculate_dbe()
+        spec = spec.calculate_dbe_ai()
+        spec = spec.calculate_dbe_o()
+        spec = spec.calculate_dbe_oc()
+        spec = spec.calculate_hc_oc()
+        spec = spec.calculate_cai()
+        spec = spec.calculate_cram()
+        spec = spec.calculate_nosc()
+        spec = spec.calculate_brutto()
+        spec = spec.calculate_error()
+        spec = spec.calculate_mass()
+
+        return MassSpectrum(spec.table)
 
     def normalize(self, how:str='sum') -> 'MassSpectrum':
         """
@@ -973,6 +1221,80 @@ class MassSpectrum(object):
 
         return
 
+    def draw_scatter(self, 
+                    x:str, 
+                    y:str,
+                    volume:str='intensity',
+                    color:str="blue", 
+                    alpha:float=0.3, 
+                    size:float=None,
+                    ax=None) -> None:
+        """
+        Draw scatter of different columns in mass-spectrum
+
+        Parameters
+        ----------
+        x: str
+            Name for x ordiante - columns in spec table
+        y: str
+            Name for y ordinate - columns in spec table
+        volume: str
+            Name for z ordinate - columns in spec table.
+            If size is none. size of dots will calculate by median of it parameter
+        ax: plt.axes
+            Optional, external ax
+        color: str
+            Optional. default blue. Color for scatter.
+        alpha: float
+            Optional, default 0.3. Alpha for scatter
+        size: float
+            Optional. default None - normalize by intensivity to median.
+        """
+
+        if size is None:
+            s = self.table[volume]/self.table[volume].median()
+        else:
+            s = size
+
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(4,4), dpi=75)
+        
+        ax.scatter(x=self.table[x], y=self.table[y], c=color, alpha=alpha, s=s)
+        ax.set_xlabel(x)
+        ax.set_ylabel(y)
+
+    def draw_density(self, col:str, color:str='blue', ax=None) -> None:
+        """
+        Draw KDE density for values
+
+        Parameters
+        ----------
+        x: str
+            Column name for draw density
+        color: str
+            Optional, default blue. Color of density plot
+        ax: plt.axes
+            Optional. External axes.
+        """
+
+        spec = self.copy().drop_unassigned()
+        total_int = spec.table['intensity'].sum()
+
+        x = np.linspace(self.table[col].min(), self.table[col].max(), 100)        
+        oc = np.array([])
+        
+        for i, el in enumerate(x[1:]):
+            s = self.table.loc[(self.table[col] > x[i-1]) & (self.table[col] <= el), 'intensity'].sum()
+            coun = len(self.table) * s/total_int
+            m = (x[i-1] + x[i])/2
+            oc = np.append(oc, [m]*int(coun))
+
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(4,4), dpi=75)
+        
+        sns.kdeplot(x = oc, ax=ax, color=color, fill=True, alpha=0.1, bw_adjust=2)
+        ax.set_xlabel(col)
+        
     def recallibrate(self, error_table: "ErrorTable" = None, how = 'assign') -> "MassSpectrum":
         '''
         Recallibrate data by error-table
@@ -1186,19 +1508,9 @@ class VanKrevelen(object):
             return
 
         if isinstance(table, MassSpectrum):
-            table = table.table
+            table = table.copy().table
 
-        if not (("C" in table and "H" in table and "O" in table) or ("O/C" in table or "H/C" in table)):
-            raise Exception("There are not H, C, O in table")
-
-        table = table.loc[table["C"] > 0]
-
-        self.table = table
-        if "O/C" not in self.table:
-            self.table["O/C"] = self.table["O"] / self.table["C"]
-
-        if "H/C" not in self.table:
-            self.table["H/C"] = self.table["H"] / self.table["C"]
+        self.table = MassSpectrum(table).drop_unassigned().calculate_hc_oc().table
 
     def draw_density(
         self, 
@@ -1300,16 +1612,18 @@ class VanKrevelen(object):
         num_formules = self.table['C'].count()
         ax.set_title(f'{num_formules} formulas', size=10)
 
-    def _plot_heatmap(self, df:pd.DataFrame) -> None:
+    def _plot_heatmap(self, df:pd.DataFrame, ax:None) -> None:
         """Plot density map for VK
 
         Parameters
         ----------
         df: pd.DataFrame
-            dataframe with density        
+            dataframe with density
+        ax: matplotlib ax
+            external ax        
         """
-
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
         sns.heatmap(df.round(4),cmap='coolwarm',annot=True, linewidths=.5, ax=ax)
         bottom, top = ax.get_ylim()
         plt.yticks(rotation=0)
@@ -1319,14 +1633,14 @@ class VanKrevelen(object):
         ax.set_xlabel('O/C')
         ax.set_ylabel('H/C')
 
-    def squares(self, draw:bool = True) -> pd.DataFrame:
+    def squares(self, ax:None) -> pd.DataFrame:
         """
         Calculate density  in VK divided into 20 squares
 
         Parameters
         ----------
-        draw: bool
-            Optional, default True. Draw heatmap for squares
+        ax: matplotlib ax
+            Optional. external ax 
 
         Return
         ------
@@ -1347,7 +1661,7 @@ class VanKrevelen(object):
                 sq.append(temp_i/total_i)
             d_table.append(hc)
         out = pd.DataFrame(data = d_table, columns=['0-0.25', '0,25-0.5','0.5-0.75','0.75-1'], index=['1.8-2.2', '1.4-1.8', '1-1.4', '0.6-1', '0-0.6'])
-        self._plot_heatmap(out)
+        self._plot_heatmap(out, ax=ax)
 
         # just for proper naming of squars. bad solution
         square = pd.DataFrame(data=sq, columns=['value'], index=[5,10,15,20,   4,9,14,19,   3,8,13,18,    2,7,12,17,   1,6,11,16])
@@ -1938,7 +2252,7 @@ class MassSpectrumList(object):
             for j in self.spectra:
                 if 'calculated_mass' not in j.table:
                     j = j.calculate_mass()
-                values[-1].append(similarity_func(i.table['calculated_mass'].dropna().values, j.table['calculated_mass'].dropna().values))
+                values[-1].append(i.calculate_simmilarity(j, mode=mode))
 
         return np.array(values)
 
