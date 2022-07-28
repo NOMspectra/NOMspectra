@@ -949,7 +949,8 @@ class MassSpectrum(object):
         if 'calculated_mass' not in spec.table:
             spec = spec.calculate_mass()
         spec.table['Ke'] = spec.table['calculated_mass'] * 14/14.01565
-        spec.table['KMD'] = np.ceil(spec.table['calculated_mass'].values) - np.array(spec.table['Ke'].values)
+        spec.table['KMD'] = np.floor(spec.table['calculated_mass'].values) - np.array(spec.table['Ke'].values)
+        spec.table.loc[spec.table['KMD']<=0, 'KMD'] = spec.table.loc[spec.table['KMD']<=0, 'KMD'] + 1
 
         return MassSpectrum(spec.table)
 
@@ -1272,10 +1273,15 @@ class MassSpectrum(object):
             Optional. default None - normalize by intensivity to median.
         """
 
-        if size is None:
-            s = self.table[volume]/self.table[volume].median()
-        else:
+        if volume == 'None':
+            if size is None:
+                raise Exception("when wolume is 'None' there must be size value")
             s = size
+        else:
+            if size is None:
+                s = self.table[volume]/self.table[volume].median()
+            else:
+                s = self.table[volume]/self.table[volume].median() * size
 
         if ax is None:
             fig, ax = plt.subplots(figsize=(4,4), dpi=75)
