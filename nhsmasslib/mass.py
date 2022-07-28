@@ -933,6 +933,26 @@ class MassSpectrum(object):
 
         return MassSpectrum(spec.table)
 
+    def calculate_kendrick(self) -> 'MassSpectrum':
+        """
+        Calculate Kendrick mass and Kendrick mass defect
+
+        Return
+        ------
+        MassSpectrum object with calculated Ke and KMD
+        """
+        if "assign" not in self.table:
+            raise Exception("Spectrum is not assigned")
+
+        spec = self.copy()
+
+        if 'calculated_mass' not in spec.table:
+            spec = spec.calculate_mass()
+        spec.table['Ke'] = spec.table['calculated_mass'] * 14/14.01565
+        spec.table['KMD'] = np.ceil(spec.table['calculated_mass'].values) - np.array(spec.table['Ke'].values)
+
+        return MassSpectrum(spec.table)
+
     def calculate_nosc(self) -> 'MassSpectrum':
         """
         Calculate Normal oxidation state of carbon (NOSC).
@@ -1093,6 +1113,7 @@ class MassSpectrum(object):
         spec = spec.calculate_brutto()
         spec = spec.calculate_error()
         spec = spec.calculate_mass()
+        spec = spec.calculate_kendrick()
 
         return MassSpectrum(spec.table)
 
