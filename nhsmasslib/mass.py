@@ -46,15 +46,11 @@ class MassSpectrum(object):
     table : pandas Datarame
         Optional. consist spectrum (mass and intensity of peaks) and all calculated parameters
         like brutto formulas, calculated mass, relative errorr
-    elems : list
-        Optional. Consist elements that used for mass spectrum treatment
-        can be finded by class method find_elems()
     """
 
     def __init__(
                 self,
-                table: pd.DataFrame = None,
-                elems: Sequence[str] = None,
+                table: pd.DataFrame = None
                 ) -> pd.DataFrame:
         """
         Parameters
@@ -62,9 +58,6 @@ class MassSpectrum(object):
         table : pandas Datarame
             Optional. Consist spectrum (mass and intensity of peaks) and all calculated 
             parameters like brutto formulas, calculated mass, relative errorr
-        elems : list
-            Optional. Consist elements that used for mass spectrum treatment
-            can be finded by class method find_elems()
         """
 
         self.features = ["mass", "calculated_mass", 'intensity', "abs_error", "rel_error"]
@@ -73,11 +66,6 @@ class MassSpectrum(object):
             self.table = table
         else:
             self.table = pd.DataFrame(columns=['intensity', "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
-
-        if elems is not None:
-            self.elems = elems
-        else:
-            self.elems = self.find_elems()
 
     def find_elems(self) -> Sequence[str]:
         """ 
@@ -118,6 +106,7 @@ class MassSpectrum(object):
         intens_max: float = None,
         mass_min: float =  None,
         mass_max: float = None,
+        assign_mark: bool = False
     ) -> "MassSpectrum":
         """
         Load mass pectrum table to MassSpectrum object
@@ -156,6 +145,9 @@ class MassSpectrum(object):
         mass_max: numeric
             upper limit for m/z.
             by default None and don't restrict by this
+        assign_mark: bool
+            default False. Mark peaks as assigned if they have elements
+            need for load mass-list treated by external software
 
         Return
         ------
@@ -187,9 +179,7 @@ class MassSpectrum(object):
         if mass_max is not None:
             self.table = self.table.loc[self.table['mass']<mass_max]
 
-        self.elems = self.find_elems()
-
-        if self.elems is not None:
+        if assign_mark:
             self._mark_assigned_by_brutto()
 
         self.table = self.table.reset_index(drop=True)
@@ -205,9 +195,10 @@ class MassSpectrum(object):
         """
 
         assign = []
+        elems = self.find_elems()
         for i, row in self.table.iterrows():
             flag = False
-            for el in self.elems:
+            for el in elems:
                 if row[el] > 0:
                     flag = True
             assign.append(flag) 
@@ -288,7 +279,7 @@ class MassSpectrum(object):
 
         res = pd.DataFrame(res)
 
-        return MassSpectrum(table.join(res), elems=elems)
+        return MassSpectrum(table.join(res))
 
     def filter_by_C13(
         self, 
@@ -311,8 +302,8 @@ class MassSpectrum(object):
         ------
         MassSpectra object with cleaned or checked mass-signals
         """
-
-        table = self.table.sort_values(by='mass').reset_index(drop=True)
+        spec = self.copy()
+        table = spec.table.sort_values(by='mass').reset_index(drop=True)
         
         flags = np.zeros(table.shape[0], dtype=bool)
         masses = table["mass"].values
@@ -438,11 +429,11 @@ class MassSpectrum(object):
             raise Exception("Spectrum is not assigned")
         
         table = copy.deepcopy(self.table)
-        self.elems = self.find_elems()
+        elems = self.find_elems()
         
-        table = table.loc[:,self.elems]
+        table = table.loc[:,elems]
         
-        masses = get_elements_masses(self.elems)
+        masses = get_elements_masses(elems)
 
         self.table["calculated_mass"] = table.multiply(masses).sum(axis=1)
         self.table["calculated_mass"] = np.round(self.table["calculated_mass"], 6)
@@ -1413,7 +1404,7 @@ class MassSpectrum(object):
 
         tmds = tmds_spec.table.sort_values(by='probability', ascending=False).reset_index(drop=True)
         tmds = tmds.loc[tmds['probability'] > p]
-        elem = tmds_spec.elems
+        elem = tmds_spec.find_elems()
 
         spec = copy.deepcopy(self)
         
@@ -1661,7 +1652,7 @@ class VanKrevelen(object):
         ax.set_xlabel('O/C')
         ax.set_ylabel('H/C')
 
-    def squares(self, ax:None) -> pd.DataFrame:
+    def squares(self, ax=None) -> pd.DataFrame:
         """
         Calculate density  in VK divided into 20 squares
 
@@ -2297,31 +2288,23 @@ class Tmds(object):
     ----------
     table: pandas Datarame
         tmds spectrum - mass_dif, probability and caclulatedd parameters
-    elems: Sequence[str]
-        elements in brutto formulas
     """
 
     def __init__(
         self,
-        table: pd.DataFrame = None,
-        elems: Sequence[str] = None
+        table: pd.DataFrame = None
         ) -> None:
         """
         Parameters
         ----------
         table: pandas Datarame
             Optional. tmds spectrum - mass_dif, probability and caclulatedd parameters
-        elems: Sequence[str]
-            Optional. elements in brutto formulas
         """
-
-        self.elems = elems
 
         if table is None:
             self.table = pd.DataFrame()
         else:
             self.table = table
-            self.elems = self.find_elems()
 
     def calc(
         self,
@@ -2506,7 +2489,7 @@ class Tmds(object):
             res = res.loc[:max_num].reset_index(drop=True)
             res = res.sort_values(by='mass_dif').reset_index(drop=True)
         
-        return Tmds(table=res, elems=elems)
+        return Tmds(table=res)
 
     def find_elems(self):
         """
@@ -2543,17 +2526,17 @@ class Tmds(object):
         """
         
         table = copy.deepcopy(self.table)
-        self.elems = self.find_elems()
+        elems = self.find_elems()
         
-        table = table.loc[:,self.elems]
+        table = table.loc[:,elems]
 
-        masses = get_elements_masses(self.elems)
+        masses = get_elements_masses(elems)
 
         self.table["calculated_mass"] = table.multiply(masses).sum(axis=1)
         self.table["calculated_mass"] = np.round(self.table["calculated_mass"], 6)
         self.table.loc[self.table["calculated_mass"] == 0, "calculated_mass"] = np.NaN
 
-        return Tmds(self.table, elems=self.elems)
+        return Tmds(self.table)
 
     def draw(
         self,

@@ -76,7 +76,6 @@ def brutto_gen(elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3
 
         temp = copy.deepcopy(gdf)
         temp=_sum_isotopes(temp)
-        print(temp)
 
         if 'C' not in temp or 'H' not in temp or 'O' not in temp:
             raise Exception('For applying rules in brutto must be CHO elements or their isotopes')
