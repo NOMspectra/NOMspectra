@@ -1817,7 +1817,7 @@ class ErrorTable(object):
         self, 
         spec: "MassSpectrum", 
         ppm: float = 5, 
-        show_map: bool = True
+        show_map: bool = False
         ) -> pd.DataFrame:
         '''
         Calculate mass differnce map
@@ -1830,7 +1830,7 @@ class ErrorTable(object):
             Optional. Default 5.
             Permissible error in ppm
         show_map: bool
-            Optional. Default True.
+            Optional. Default False.
             Show error in ppm versus mass
 
         Return
@@ -1850,7 +1850,7 @@ class ErrorTable(object):
 
         data_error = [] #array for new data
 
-        for index, row in tqdm(data.iterrows(), total=len(data)): #take every mass in list
+        for index, row in data.iterrows(): #take every mass in list
             
             mass = row["mass"]
 
@@ -1874,7 +1874,9 @@ class ErrorTable(object):
     
     def fit_kernel(
         self, 
-        f: np.array, 
+        f: np.array,
+        mass: np.array,
+        err_ppm: float = 3,
         show_map: bool = True) -> pd.DataFrame:
         '''
         Fit max intesity of kernel density map
@@ -1902,11 +1904,15 @@ class ErrorTable(object):
         
         #smooth data
         kde_err['ppm'] = savgol_filter(kde_err['ppm'], 31,5)
+        
+        xmin = min(mass)
+        xmax = max(mass)
+        
+        #FIXME constan 100 maybe not good idea
+        kde_err['mass'] = np.linspace(xmin, xmax, 100)
 
-        xmin = 0
-        xmax = 100
-        ymin = -3
-        ymax = 3
+        ymin = -err_ppm
+        ymax = err_ppm
 
         if show_map:
             fig = plt.figure(figsize=(4,4), dpi=75)
@@ -1914,10 +1920,13 @@ class ErrorTable(object):
             ax.set_xlim(xmin, xmax)
             ax.set_ylim(ymin, ymax)
             ax.imshow(df, extent=[xmin, xmax, ymin, ymax], aspect='auto')
-            ax.plot(kde_err['i'], kde_err['ppm'], c='r')
+            ax.plot(kde_err['mass'], kde_err['ppm'], c='r')
+            ax.set_xlabel('m/z, Da')
+            ax.set_ylabel('error, ppm')      
 
         #lock start at zero
         kde_err['ppm'] = kde_err['ppm'] - kde_err.loc[0,'ppm']
+
         return kde_err
 
     def kernel_density_map(
@@ -1953,6 +1962,7 @@ class ErrorTable(object):
         ymin = -ppm 
         ymax = ppm 
 
+        #FIXME constan 100 maybe not good idea
         xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
 
         positions = np.vstack([xx.ravel(), yy.ravel()])
@@ -1974,7 +1984,6 @@ class ErrorTable(object):
         self, 
         spec:MassSpectrum,
         ppm = 3,
-        sign = '-',
         show_map:bool = True):
         '''
         Recallibrate by assign error
@@ -1986,13 +1995,8 @@ class ErrorTable(object):
         ppm: float
             Optional. Default 3.
             permissible relative error in callibrate error
-        sign: str
-            Optional. Default '-'. 
-            for correct recallibration we need to mark mode
-            '-' for negative
-            '+' for positive
         show_error: bool
-            Optional. Default True. Show process 
+            Optional. Default False. Show process 
 
         Return
         ------
@@ -2000,21 +2004,16 @@ class ErrorTable(object):
 
         '''
         spectr = copy.deepcopy(spec)
-        spectr = spectr.assign(rel_error=ppm) 
-        spectr = spectr.calculate_mass()
-        spectr = spectr.calculate_error(sign=sign)
-        spectr.show_error()
+        spectr = spectr.assign(rel_error=ppm).calculate_mass().calculate_error()
 
         error_table = spectr.table
         error_table = error_table.loc[:,['mass','rel_error']]
         error_table.columns = ['mass', 'ppm']
+        error_table['ppm'] = - error_table['ppm']
         error_table = error_table.dropna()
 
         kde = self.kernel_density_map(df_error = error_table)
-        err = self.fit_kernel(f=kde, show_map=show_map)
-
-        err['ppm'] = - err['ppm']
-        err['mass'] = np.linspace(error_table['mass'].min(), error_table['mass'].max(),len(err))
+        err = self.fit_kernel(f=kde, show_map=show_map, mass=spec.table['mass'].values)
 
         return ErrorTable(err)
 
@@ -2043,12 +2042,11 @@ class ErrorTable(object):
         recalibration of mass spectrometric data in nontargeted metabolomics. 
         Analytical chemistry, 91(5), 3350-3358. 
         '''
-        spec_table = copy.deepcopy(spec)
-        mde = self.md_error_map(spec = spec_table, show_map=show_map)
+        spec = copy.deepcopy(spec)
+        mde = self.md_error_map(spec = spec)
         f = self.kernel_density_map(df_error=mde)
-        err = self.fit_kernel(f=f, show_map=show_map)
-        err['mass'] = np.linspace(spec.table['mass'].min(), spec.table['mass'].max(),len(err))
-
+        err = self.fit_kernel(f=f, show_map=show_map, mass=spec.table['mass'].values)
+        
         return ErrorTable(err)
 
     def etalon_error( self,
@@ -2056,7 +2054,7 @@ class ErrorTable(object):
                     etalon: "MassSpectrum", #etalon massspectr
                     quart: float = 0.9, #treshold by quartile
                     ppm: float = 3,#treshold by ppm
-                    show_error: bool = True
+                    show_map: bool = True
                     ): 
         '''
         Recallibrate by etalon
@@ -2074,7 +2072,7 @@ class ErrorTable(object):
         ppm: float
             Optionaly. Default 3.
             permissible relative error in ppm for seak peak in etalon
-        show_error: bool
+        show_map: bool
             Optional. Default True. Show process 
 
         Return
@@ -2109,27 +2107,13 @@ class ErrorTable(object):
         df = df.loc[df['cal']>0]
         #calc error and mean error
         df['dif'] = df['cal'] - df['mass']
-        mean_e = df['dif'].mean()
+        df['ppm']=df['dif']/df['mass']*1000000
 
-        #make error table
-        cor = []
-        for i in range(0,100):
-            correct = df.loc[(df['mass'] > a[i]) & (df['mass'] < a[i+1])]['dif'].mean()
-            cor.append((a[i], correct))
+        error_table = df.loc[:,['mass','ppm']]
+        error_table = error_table.dropna()
 
-        #out table
-        err = pd.DataFrame(data=cor, columns=['m/z', 'err'])
-        err['err'] = err['err'].fillna(mean_e)
-        err['ppm']=err['err']/err['m/z']*1000000
-
-        err['ppm'] = savgol_filter(err['ppm'], 51,5)
-        err['mass'] = np.linspace(df['mass'].min(), df['mass'].max(),len(err))
-
-        if show_error:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
-            ax.plot(err['m/z'], err['ppm'])
-            ax.set_xlabel('m/z, Da')
-            ax.set_ylabel('Error, ppm')
+        kde = self.kernel_density_map(df_error = error_table)
+        err = self.fit_kernel(f=kde, show_map=show_map, mass=spec.table['mass'].values)
 
         return ErrorTable(err)
 

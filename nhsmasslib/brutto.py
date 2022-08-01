@@ -19,7 +19,18 @@ import numpy as np
 import pandas as pd
 import copy
 from functools import lru_cache
+from frozendict import frozendict
 
+def _freeze(func):
+    """freeze dict
+    """
+    def wrapped(*args, **kwargs):
+        args = tuple([frozendict(arg) if isinstance(arg, dict) else arg for arg in args])
+        kwargs = {k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()}
+        return func(*args, **kwargs)
+    return wrapped
+
+@_freeze
 @lru_cache(maxsize=None)
 def brutto_gen(elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3)}, 
                rules = True):
@@ -60,30 +71,28 @@ def brutto_gen(elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3
     #generate grid with all possible combination of elements in their ranges
     t = np.array(np.meshgrid(*elems_arr)).T.reshape(-1,len(elems_arr))
     gdf = pd.DataFrame(t,columns=list(elems_dict.keys()))
-
     #do rules H/C, O/C, and parity
     if rules:
 
         temp = copy.deepcopy(gdf)
-        if 'H_2' in temp.columns:
-            temp['H'] = temp['H'] + temp['H_2']
-        if 'C_13' in temp.columns:
-            temp['C'] = temp['C'] + temp['C_13']
-        if 'O_18' in temp.columns:
-            temp['O'] = temp['O'] + temp['O_18']
+        temp=_sum_isotopes(temp)
+        print(temp)
+
+        if 'C' not in temp or 'H' not in temp or 'O' not in temp:
+            raise Exception('For applying rules in brutto must be CHO elements or their isotopes')
         
         temp['H/C'] = temp['H']/temp['C']
         temp['O/C'] = temp['O']/temp['C']
         gdf = gdf.loc[(temp['H/C'] < 2.2) & (temp['H/C'] > 0.25) & (temp['O/C'] < 1)]
 
-        if 'N' not in gdf.columns:
+        if 'N' not in temp:
             temp['N'] = 0
         
         temp['DBE-O'] = 1.0 + temp["C"] - 0.5 * temp["H"] + 0.5 * temp['N'] - temp['O']
         gdf = gdf.loc[temp['DBE-O'] <= 10]
         
-        if 'N' in gdf.columns and 'H' in gdf.columns:
-            temp['parity'] = (gdf['H'] + gdf['N'])%2
+        if 'N' in temp:
+            temp['parity'] = (temp['H'] + temp['N'])%2
             gdf = gdf.loc[temp['parity']==0]
 
     #calculate mass
@@ -92,6 +101,25 @@ def brutto_gen(elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3
     gdf['mass'] = np.round(gdf['mass'], 6)
 
     gdf = gdf.sort_values("mass").reset_index(drop=True)
+
+    return gdf
+
+def _sum_isotopes(gdf:pd.DataFrame) -> pd.DataFrame:
+    """
+    All isotopes will be sum and title as main.
+
+    Return
+    ------
+    MassSpectrum object without minor isotopes        
+    """
+
+    for el in gdf:
+        res = el.split('_')
+        if len(res) == 2:
+            if res[0] not in gdf:
+                gdf[res[0]] = 0
+            gdf[res[0]] = gdf[res[0]] + gdf[el]
+            gdf = gdf.drop(columns=[el]) 
 
     return gdf
 
