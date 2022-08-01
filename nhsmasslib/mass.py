@@ -2224,7 +2224,7 @@ class MassSpectrumList(object):
         else:
             self.names = []
 
-    def calculate_similarity(self, mode: str = "cosine") -> np.ndarray:
+    def calculate_similarity(self, mode: str = "cosine", symmetric = True) -> np.ndarray:
         """
         Calculate similarity matrix for all spectra in MassSpectrumList
 
@@ -2234,55 +2234,30 @@ class MassSpectrumList(object):
             Optionaly. Default cosine. 
             one of the similarity functions
             Mode can be: "tanimoto", "jaccard", "cosine"
+        symmetric: bool
+            Optionaly. Default True.
+            If metric is symmtrical ( a(b)==b(a) ) it is enough to calc just half of table
 
         Return
         ------
         similarity matrix, 2d np.ndarray with size [len(names), len(names)]"""
 
-        def get_vector(a, b):
-            # FIXME Probably bad solution
-            c = np.union1d(a, b)
-            A = np.zeros(len(c), dtype=bool)
-            B = np.zeros(len(c), dtype=bool)
-            for i, el in enumerate(c):
-                if el in a:
-                    A[i] = True
-                if el in b:
-                    B[i] = True
-            return A, B
+        
+        spec_num = len(self)
+        values = np.eye(spec_num)
 
-        def jaccard(a, b):
-            A, B = get_vector(a, b)
-            return 1 - spatial.distance.jaccard(A, B)
+        for x in range(spec_num):
+            if symmetric:
+                for y in range(x+1, spec_num):
+                    values[x,y] = self.spectra[x].calculate_simmilarity(self.spectra[y], mode=mode)
+            else:
+                for y in range(spec_num):
+                    values[x,y] = self.spectra[x].calculate_simmilarity(self.spectra[y], mode=mode)
+        
+        if symmetric:
+            values = values + values.T - np.diag(np.diag(values))
 
-        def tanimoto(a, b):
-            A, B = get_vector(a, b)
-            return 1 - spatial.distance.rogerstanimoto(A, B)
-
-        def cosine(a, b):
-            A, B = get_vector(a, b)
-            return 1 - spatial.distance.cosine(A, B)
-
-        if mode == "jaccard":
-            similarity_func = jaccard
-        elif mode == "tanimoto":
-            similarity_func = tanimoto
-        elif mode == 'cosine':
-            similarity_func = cosine
-        else:
-            raise Exception(f"There is no such mode: {mode}")
-
-        values = []
-        for i in self.spectra:
-            if 'calculated_mass' not in i.table:
-                i = i.calculate_mass()
-            values.append([])
-            for j in self.spectra:
-                if 'calculated_mass' not in j.table:
-                    j = j.calculate_mass()
-                values[-1].append(i.calculate_simmilarity(j, mode=mode))
-
-        return np.array(values)
+        return values
 
     def draw_similarity(
         self,
@@ -2318,6 +2293,16 @@ class MassSpectrumList(object):
         y_axis_labels = self.names
         sns.heatmap(np.array(values), vmin=0, vmax=1, cmap="viridis", annot=annot, ax=ax, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
         plt.title(mode)
+
+    def __len__(self) -> int:
+        """
+        Number of spectra in MassSpecList
+
+        Return
+        ------
+        int
+        """
+        return len(self.spectra)
 
 
 class Tmds(object):
