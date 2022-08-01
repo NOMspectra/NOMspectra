@@ -681,7 +681,6 @@ class MassSpectrum(object):
     def sum_isotopes(self) -> "MassSpectrum":
         """
         All isotopes will be sum and title as main.
-        Table must contain main isotope.
 
         Return
         ------
@@ -693,6 +692,8 @@ class MassSpectrum(object):
         for el in elems:
             res = el.split('_')
             if len(res) == 2:
+                if res[0] not in spec.table:
+                    spec.table[res[0]] = 0
                 spec.table[res[0]] = spec.table[res[0]] + spec.table[el]
                 spec.table = spec.table.drop(columns=[el]) 
 

@@ -18,7 +18,9 @@
 import numpy as np
 import pandas as pd
 import copy
+from functools import lru_cache
 
+@lru_cache(maxsize=None)
 def brutto_gen(elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3)}, 
                rules = True):
     """
