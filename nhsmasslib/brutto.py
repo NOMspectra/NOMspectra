@@ -22,7 +22,7 @@ from functools import lru_cache
 from frozendict import frozendict
 
 def _freeze(func):
-    """freeze dict
+    """freeze dict in func
     """
     def wrapped(*args, **kwargs):
         args = tuple([frozendict(arg) if isinstance(arg, dict) else arg for arg in args])
@@ -32,8 +32,7 @@ def _freeze(func):
 
 @_freeze
 @lru_cache(maxsize=None)
-def brutto_gen(elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3)}, 
-               rules = True):
+def brutto_gen(elems:dict = None, rules:bool = True) -> pd.DataFrame:
     """
     Generete brutto formula
 
@@ -54,6 +53,8 @@ def brutto_gen(elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3
         consist all possible brutto formalas restricted by elems dict
         with exast masses
     """
+    if elems is None:
+        elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3)}
 
     #load elements table. Generatete in mass folder
     elems_mass_table = elements_table()

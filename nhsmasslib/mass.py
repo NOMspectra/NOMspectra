@@ -219,6 +219,7 @@ class MassSpectrum(object):
 
     def assign(
             self,
+            brutto_dict: dict = None,
             generated_bruttos_table: pd.DataFrame = None,
             rel_error: float = 0.5,
             sign: str ='-'
@@ -228,6 +229,10 @@ class MassSpectrum(object):
         
         Parameters
         -----------
+        brutto_dict: dict
+            Optional. Deafault None.
+            Custom Dictonary for generate brutto table.
+            Example: {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'C_13':(0,3)}
         generated_bruttos_table: pandas DataFrame 
             Optional. Contain column 'mass' and elements, 
             should be sorted by 'mass'.
@@ -249,7 +254,7 @@ class MassSpectrum(object):
         """
 
         if generated_bruttos_table is None:
-            generated_bruttos_table = brutto_gen()
+            generated_bruttos_table = brutto_gen(brutto_dict)
 
         table = self.table.loc[:,['mass', 'intensity']].copy()
 
