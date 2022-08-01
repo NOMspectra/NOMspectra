@@ -222,6 +222,7 @@ class MassSpectrum(object):
             brutto_dict: dict = None,
             generated_bruttos_table: pd.DataFrame = None,
             rel_error: float = 0.5,
+            abs_error: float = None,
             sign: str ='-'
     ) -> "MassSpectrum":
         """
@@ -241,6 +242,8 @@ class MassSpectrum(object):
             C: 4-50, H 4-100, O 0-25, N 0-3, S 0-2.
         rel_error: float
             Optional. default 0.5, permissible error in ppm for assign mass to brutto formulas
+        abs_error: float
+            Optional. default None, permissible absolute error for assign mass to brutto formulas
         sign: str
             Optional. Deafult '-'.
             Mode in which mass spectrum was gotten. 
@@ -269,6 +272,13 @@ class MassSpectrum(object):
         else:
             raise Exception('Sended sign to assign method is not correct. May be "+","-","0"')
 
+        if rel_error is not None:
+            rel = True
+            if abs_error is not None:
+                raise Exception('one of rel_error or abs_error must be None in assign method')
+        else:
+            rel = False
+
         elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
 
@@ -279,10 +289,16 @@ class MassSpectrum(object):
             if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
                 idx -= 1
 
-            if np.fabs(masses[idx] - mass) / mass * 1e6 <= rel_error:
-                res.append({**dict(zip(elems, bruttos[idx])), "assign": True})
+            if rel:
+                if np.fabs(masses[idx] - mass) / mass * 1e6 <= rel_error:
+                    res.append({**dict(zip(elems, bruttos[idx])), "assign": True})
+                else:
+                    res.append({"assign": False})
             else:
-                res.append({"assign": False})
+                if np.fabs(masses[idx] - mass) <= abs_error:
+                    res.append({**dict(zip(elems, bruttos[idx])), "assign": True})
+                else:
+                    res.append({"assign": False})
 
         res = pd.DataFrame(res)
 
@@ -391,10 +407,8 @@ class MassSpectrum(object):
             return '-'
         elif value > 0.0004 and value < 0.001:
             return '+'
-        elif value >-0.0004 and value<0.0004:
-            return '0'
         else:
-            raise Exception("Can't calculate sign from self. Send sign to method 'calculated mass' directly")
+            return '0'
 
     def calculate_error(self, sign:str=None) -> "MassSpectrum":
         """
@@ -1436,7 +1450,7 @@ class MassSpectrum(object):
         elem = tmds_spec.find_elems()
 
         spec = copy.deepcopy(self)
-        
+
         assign_false = copy.deepcopy(spec.table.loc[spec.table['assign'] == False]).reset_index(drop=True)
         assign_true = copy.deepcopy(spec.table.loc[spec.table['assign'] == True]).reset_index(drop=True)
         masses = assign_true['mass'].values
