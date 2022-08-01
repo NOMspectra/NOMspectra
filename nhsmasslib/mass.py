@@ -221,7 +221,7 @@ class MassSpectrum(object):
             self,
             brutto_dict: dict = None,
             generated_bruttos_table: pd.DataFrame = None,
-            rel_error: float = 0.5,
+            rel_error: float = None,
             abs_error: float = None,
             sign: str ='-'
     ) -> "MassSpectrum":
@@ -274,10 +274,13 @@ class MassSpectrum(object):
 
         if rel_error is not None:
             rel = True
-            if abs_error is not None:
-                raise Exception('one of rel_error or abs_error must be None in assign method')
-        else:
+        if abs_error is not None:
             rel = False
+        if rel_error is not None and abs_error is not None:
+            raise Exception('one of rel_error or abs_error must be None in assign method')
+        if rel_error is None and abs_error is None:
+            rel = True
+            rel_error = 0.5
 
         elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
@@ -427,13 +430,13 @@ class MassSpectrum(object):
         ------
         MassSpectrum object wit calculated error
         """
-        if sign is None:
-            sign = self._calculate_sign()
-
         if "calculated_mass" not in self.table:
             table = self.calculate_mass().table
         else:
             table = copy.deepcopy(self.table)
+
+        if sign is None:
+            sign = self._calculate_sign()
 
         if sign == '-':
             table["abs_error"] = table["mass"] - table["calculated_mass"] + (- 0.00054858 + 1.007825) #-electron + proton
@@ -443,7 +446,6 @@ class MassSpectrum(object):
             table["abs_error"] = table["mass"] - table["calculated_mass"]
         
         table["rel_error"] = table["abs_error"] / table["mass"] * 1e6
-
         return MassSpectrum(table)
 
     def show_error(self) -> None:
@@ -1422,12 +1424,12 @@ class MassSpectrum(object):
         ----------
         tmds_spec: Tmds object
             Optional. if None generate tmds spectr with default parameters
-            Tmds object, include table with most probability mass difference
+            Tmds object, include table with most intensity mass difference
         abs_error: float
             Optional, default 0.001. Error for assign peaks by massdif
         p: float
             Optional. Default 0.2. 
-            Relative probability coefficient for treshold tmds spectrum
+            Relative intensity coefficient for treshold tmds spectrum
         max_num: int
             Optional. Max mass diff numbers
         C13_filter: bool
@@ -1445,8 +1447,8 @@ class MassSpectrum(object):
             tmds_spec = tmds_spec.assign(max_num=max_num)
             tmds_spec = tmds_spec.calculate_mass()
 
-        tmds = tmds_spec.table.sort_values(by='probability', ascending=False).reset_index(drop=True)
-        tmds = tmds.loc[tmds['probability'] > p]
+        tmds = tmds_spec.table.sort_values(by='intensity', ascending=False).reset_index(drop=True)
+        tmds = tmds.loc[tmds['intensity'] > p]
         elem = tmds_spec.find_elems()
 
         spec = copy.deepcopy(self)
@@ -1478,7 +1480,7 @@ class MassSpectrum(object):
 
         out = MassSpectrum(assign_true)
         out = out.calculate_error()
-        
+
         out_false = out.table.loc[out.table['assign'] == False]
         out_true = out.table.loc[out.table['assign'] == True].drop_duplicates(subset="calculated_mass")
 
@@ -2323,26 +2325,17 @@ class MassSpectrumList(object):
         return len(self.spectra)
 
 
-class Tmds(object):
+class Tmds(MassSpectrum):
     """
     A class for calculate TMDS spectrum
 
     Attributes
     ----------
     table: pandas Datarame
-        tmds spectrum - mass_dif, probability and caclulatedd parameters
+        tmds spectrum - mass, intensity and caclulatedd parameters
     """
-
-    def __init__(
-        self,
-        table: pd.DataFrame = None
-        ) -> None:
-        """
-        Parameters
-        ----------
-        table: pandas Datarame
-            Optional. tmds spectrum - mass_dif, probability and caclulatedd parameters
-        """
+    def __init__(self, table: pd.DataFrame = None) -> pd.DataFrame:
+        super().__init__(table)
 
         if table is None:
             self.table = pd.DataFrame()
@@ -2369,7 +2362,7 @@ class Tmds(object):
             Optional. If None, TMDS will call by self.
         p: float
             Optional. Default 0.2. 
-            Minimum relative probability for taking mass-difference
+            Minimum relative intensity for taking mass-difference
         wide: int
             Optional. Default 10.
             Minimum interval in 0.001*wide Da of peaeks.
@@ -2416,22 +2409,22 @@ class Tmds(object):
         counts[0] = 0
 
         tmds_spec = pd.DataFrame()
-        tmds_spec['mass_dif'] = unique
+        tmds_spec['mass'] = unique
         tmds_spec['count'] = counts
-        tmds_spec['probability'] = tmds_spec['count']/mass_num
-        tmds_spec = tmds_spec.sort_values(by='mass_dif').reset_index(drop=True)
+        tmds_spec['intensity'] = tmds_spec['count']/mass_num
+        tmds_spec = tmds_spec.sort_values(by='mass').reset_index(drop=True)
 
         value_zero = set([i/1000 for i in range (0, 300000)]) - set (unique)
         unique = np.append(unique, np.array(list(value_zero)))
         counts = np.append(counts, np.zeros(len(value_zero), dtype=float))
 
-        peaks, properties = find_peaks(tmds_spec['probability'], distance=wide, prominence=p/2)
+        peaks, properties = find_peaks(tmds_spec['intensity'], distance=wide, prominence=p/2)
         prob = []
         for peak in peaks:
-            prob.append(tmds_spec.loc[peak-5:peak+5,'probability'].sum())
+            prob.append(tmds_spec.loc[peak-5:peak+5,'intensity'].sum())
         tmds_spec = tmds_spec.loc[peaks].reset_index(drop=True)
-        tmds_spec['probability'] = prob
-        tmds_spec = tmds_spec.loc[tmds_spec['probability'] > p]
+        tmds_spec['intensity'] = prob
+        tmds_spec = tmds_spec.loc[tmds_spec['intensity'] > p]
 
         if len(tmds_spec) < 0:
             raise Exception(f"There isn't mass diff mass, decrease p-value")
@@ -2468,10 +2461,10 @@ class Tmds(object):
         counts[0] = 0
 
         diff_spec = pd.DataFrame()
-        diff_spec['mass_dif'] = unique
+        diff_spec['mass'] = unique
         diff_spec['count'] = counts
-        diff_spec['probability'] = diff_spec['count']/massl
-        diff_spec = diff_spec.sort_values(by='mass_dif').reset_index(drop=True)
+        diff_spec['intensity'] = diff_spec['count']/massl
+        diff_spec = diff_spec.sort_values(by='mass').reset_index(drop=True)
 
         return Tmds(diff_spec)
 
@@ -2479,7 +2472,7 @@ class Tmds(object):
         self,
         generated_bruttos_table: pd.DataFrame = None,
         error: float = 0.001,
-        gdf:dict = {'C':(-1,20),'H':(-4,40), 'O':(-1,20),'N':(-1,2)},
+        brutto_dict:dict = None,
         max_num: int = None
         ) -> "Tmds":
 
@@ -2493,7 +2486,7 @@ class Tmds(object):
         error: float
             Optional. Default 0.001. 
             absolute error iin Da for assign formulas
-        gdf: dict
+        brutto_dict: dict
             Optional, default {'C':(-1,20),'H':(-4,40), 'O':(-1,20),'N':(-1,2)}
             generate brutto table if generated_bruttos_table is None.
         max_num: int
@@ -2504,164 +2497,21 @@ class Tmds(object):
         Tmds object with assigned signals and elements
         """
 
+        if brutto_dict is None:
+            brutto_dict = {'C':(-1,20),'H':(-4,40), 'O':(-1,20),'N':(-1,2)}
+
         if generated_bruttos_table is None:
-            generated_bruttos_table = brutto_gen(gdf, rules=False)
+            generated_bruttos_table = brutto_gen(brutto_dict, rules=False)
             generated_bruttos_table = generated_bruttos_table.loc[generated_bruttos_table['mass'] > 0]
 
-        table = self.table.copy()
-
-        masses = generated_bruttos_table["mass"].values
-        
-        elems = list(generated_bruttos_table.drop(columns=["mass"]))
-        bruttos = generated_bruttos_table[elems].values.tolist()
-
-        res = []
-        for index, row in table.iterrows():
-            mass = row["mass_dif"]
-            idx = np.searchsorted(masses, mass, side='left')
-            if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
-                idx -= 1
-
-            if np.fabs(masses[idx] - mass)  <= error:
-                res.append({**dict(zip(elems, bruttos[idx])), "assign": True, "mass_dif":mass, "probability":row["probability"], "count":row["count"]})
-
-        res = pd.DataFrame(res)
+        res = super().assign(generated_bruttos_table=generated_bruttos_table, abs_error=error, sign='0').drop_unassigned().table
 
         if max_num is not None and len(res) > max_num:
-            res = res.sort_values(by='count', ascending=False).reset_index(drop=True)
+            res = res.sort_values(by='intensity', ascending=False).reset_index(drop=True)
             res = res.loc[:max_num].reset_index(drop=True)
-            res = res.sort_values(by='mass_dif').reset_index(drop=True)
+            res = res.sort_values(by='mass').reset_index(drop=True)
         
-        return Tmds(table=res)
-
-    def find_elems(self):
-        """
-        Find elems from mass spectrum table.
-
-        Find elements in table columns. Used elems_mass_table with all elements and isotopes.
-        For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
-
-        Returns
-        -------
-        list
-            a list of found elemets. For example: ['C','H','O','N']
-        """
-
-        main_elems = elements_table()['element'].values
-        all_elems = elements_table()['element_isotop'].values
-
-        elems = []
-        for col in self.table.columns:
-            if col in main_elems:
-                elems.append(col)
-            elif col in all_elems:
-                elems.append(col)
-
-        return elems
-
-    def calculate_mass(self) -> "Tmds":
-        """
-        Calculate mass from brutto formulas in tmds table
-
-        Return
-        ------
-        Tmds object with calculated mass for assigned brutto formulas
-        """
-        
-        table = copy.deepcopy(self.table)
-        elems = self.find_elems()
-        
-        table = table.loc[:,elems]
-
-        masses = get_elements_masses(elems)
-
-        self.table["calculated_mass"] = table.multiply(masses).sum(axis=1)
-        self.table["calculated_mass"] = np.round(self.table["calculated_mass"], 6)
-        self.table.loc[self.table["calculated_mass"] == 0, "calculated_mass"] = np.NaN
-
-        return Tmds(self.table)
-
-    def draw(
-        self,
-        xlim: Tuple[float, float] = (None, None),
-        ylim: Tuple[float, float] = (None, None),
-        color: str = 'black',
-        ax = None,
-        ) -> None:
-        """
-        Draw TMDS spectrum
-
-        All parameters is optional
-
-        Parameters
-        ----------
-        xlim: Tuple (float, float)
-            restrict for mass
-        ylim: Tuple (float, float)
-            restrict for probability
-        color: str
-            color of draw
-        ax: matplotlyp axes object
-            send here ax to plot in your own condition
-        """
-
-        df = self.table.sort_values(by="mass_dif")
-
-        mass = df['mass_dif'].values
-        if xlim[0] is None:
-            xlim = (mass.min(), xlim[1])
-        if xlim[1] is None:
-            xlim = (xlim[0], mass.max())
-
-        intensity = df['probability'].values
-        # filter first intensity and only after mass (because we will lose the information)
-        intensity = intensity[(xlim[0] <= mass) & (mass <= xlim[1])]
-        mass = mass[(xlim[0] <= mass) & (mass <= xlim[1])]
-
-        # bas solution, probably it's needed to rewrite this piece
-        M = np.zeros((len(mass), 3))
-        M[:, 0] = mass
-        M[:, 1] = mass
-        M[:, 2] = mass
-        M = M.reshape(-1)
-
-        I = np.zeros((len(intensity), 3))
-        I[:, 1] = intensity
-        I = I.reshape(-1)
-
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(4,4), dpi=75)
-            
-        ax.plot(M, I, color=color, linewidth=0.2)
-        ax.plot([xlim[0], xlim[1]], [0, 0], color=color, linewidth=0.2)
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
-        ax.set_xlabel('mass difference, Da')
-        ax.set_ylabel('P')
-        ax.set_title(f'{len(self.table)} peaks')
-        return
-
-    def save(self, filename:str) -> None:
-        """
-        Save Tmds spectrum as csv
-
-        Parameters
-        ----------
-        filename: str
-            file name with path in which save tmds
-        """
-        self.table.to_csv(filename)
-
-    def load(self, filename:str) -> "Tmds":
-        """
-        Load Tmds spectrum table from csv
-
-        Parameters
-        ----------
-        filename: str
-            file name with path in which load tmds
-        """
-        return Tmds(pd.read_csv(filename))
+        return Tmds(res)
 
 
 if __name__ == '__main__':
