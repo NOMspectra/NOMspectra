@@ -241,7 +241,7 @@ class MassSpectrum(object):
             Mode in which mass spectrum was gotten. 
             '-' for negative mode
             '+' for positive mode
-            None for neutral
+            '0' for neutral
 
         Return
         ------
@@ -259,8 +259,10 @@ class MassSpectrum(object):
             mass_shift = - 0.00054858 + 1.007825  # electron and hydrogen mass
         elif sign == '+':
             mass_shift = 0.00054858  # electron mass
-        else:
+        elif sign == '0':
             mass_shift = 0
+        else:
+            raise Exception('Sended sign to assign method is not correct. May be "+","-","0"')
 
         elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
@@ -370,23 +372,45 @@ class MassSpectrum(object):
         """
         return copy.deepcopy(MassSpectrum(self.table))
 
-    def calculate_error(self, sign: str ='-') -> "MassSpectrum":
+    def _calculate_sign(self) -> str:
+        """
+        Calculate sign from mass and calculated mass
+
+        Return
+        ------
+        str: "-", "+", "0"
+        """
+        value = self.table["calculated_mass"].mean() - self.table["mass"].mean()
+        value = np.round(value,4)
+        if value > 1 and value < 1.01:
+            return '-'
+        elif value > 0.0004 and value < 0.001:
+            return '+'
+        elif value >-0.0004 and value<0.0004:
+            return '0'
+        else:
+            raise Exception("Can't calculate sign from self. Send sign to method 'calculated mass' directly")
+
+    def calculate_error(self, sign:str=None) -> "MassSpectrum":
         """
         Calculate relative and absolute error of assigned peaks
 
         Parameters
         ----------
         sign: str
-            Optional. Default '-'. 
+            Optional. Default None and calculated by self. 
             Mode in which mass spectrum was gotten. 
             '-' for negative mode
             '+' for positive mode
-            None for neutral
+            '0' for neutral
         
         Return
         ------
         MassSpectrum object wit calculated error
         """
+        if sign is None:
+            sign = self._calculate_sign()
+
         if "calculated_mass" not in self.table:
             table = self.calculate_mass().table
         else:
