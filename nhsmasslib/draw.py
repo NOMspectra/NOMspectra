@@ -15,7 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmasslib.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Callable
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -181,7 +181,7 @@ def scatter_density(spec: 'MassSpectrum',
                     alpha: Optional[float] = 0.3, 
                     size: Optional[float] = None,
                     size_power: Optional[float] = None,
-                    axes: Optional[plt.axes] = None,
+                    ax: Optional[plt.axes] = None,
                     **kwargs) -> None:
     """
     Plot VK scatter with density
@@ -192,7 +192,7 @@ def scatter_density(spec: 'MassSpectrum',
     ----------
     spec: MassSpectrum object
         spec for plot
-    axes: list of plt.ax
+    ax: list of 3 plt.ax
         Optional, default None. List of three axes: ax for scatter, and ax_x, ax_y for density plot
     x: str
         Name for x ordiante - columns in spec table
@@ -219,7 +219,7 @@ def scatter_density(spec: 'MassSpectrum',
         additional parameters to scatter method
     """
 
-    if axes is None:
+    if ax is None:
         fig = plt.figure(figsize=(6,6), dpi=100)
         gs = GridSpec(4, 4)
 
@@ -227,7 +227,7 @@ def scatter_density(spec: 'MassSpectrum',
         ax_x = fig.add_subplot(gs[0,0:3])
         ax_y = fig.add_subplot(gs[1:4, 3])
     else:
-        ax, ax_x, ax_y = axes
+        ax, ax_x, ax_y = ax
 
     scatter(spec, x=x, y=y, xlim=xlim, ylim=ylim, volume=volume, color=color, alpha=alpha, size=size, size_power=size_power, ax=ax, **kwargs)
     
@@ -242,7 +242,8 @@ def scatter_density(spec: 'MassSpectrum',
     return
 
 def density(spec: 'MassSpectrum',
-            col: str, 
+            col: str,
+            xlim: Tuple[Optional[float], Optional[float]] = (None, None),
             color: Optional[str] = 'blue', 
             ax: Optional[plt.axes] = None, 
             **kwargs: Optional[dict]) -> None:
@@ -255,6 +256,8 @@ def density(spec: 'MassSpectrum',
         spec for plot
     x: str
         Column name for draw density
+    xlim: Tuple (float, float)
+        restrict for mass
     color: str
         Optional, default blue. Color of density plot
     ax: plt.axes
@@ -278,12 +281,15 @@ def density(spec: 'MassSpectrum',
     
     sns.kdeplot(x = oc, ax=ax, color=color, fill=True, alpha=0.1, bw_adjust=2, **kwargs)
     ax.set_xlabel(col)
+    ax.set_xlim(xlim)
 
     return
 
 def density_2D(spec: 'MassSpectrum', 
                 x: str, 
-                y: str, 
+                y: str,
+                xlim: Tuple[Optional[float], Optional[float]] = (None, None),
+                ylim: Tuple[Optional[float], Optional[float]] = (None, None),
                 cmap: Optional[str] ="YlGnBu", 
                 ax: Optional[plt.axes] = None, 
                 shade: Optional[bool] = True
@@ -301,6 +307,10 @@ def density_2D(spec: 'MassSpectrum',
         Name for x ordiante - columns in spec table
     y: str
         Name for y ordinate - columns in spec table
+    xlim: Tuple (float, float)
+        restrict for mass
+    ylim: Tuple (float, float)
+        restrict for intensity
     cmap: str
         color map
     ax: matplotlib ax
@@ -310,9 +320,14 @@ def density_2D(spec: 'MassSpectrum',
     """
     sns.kdeplot(spec.table[x], spec.table[y], ax=ax, cmap=cmap, shade=shade)
 
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+
     return
 
 def vk(spec: "MassSpectrum",
+       func: Optional[Callable] = None,
+       ax: Optional[plt.axes] = None,
        *args: Optional[list],
        **kwargs: Optional[dict]) -> None:
     """
@@ -322,6 +337,8 @@ def vk(spec: "MassSpectrum",
     ----------
     spec: MassSpectrum object
         Mass-spectrum
+    func: function
+        function for draw vank-krevelen, may be scatter, scatter_density, density_2D
     *args: list
         arguments to send scatter function
     *kwargs: dict
@@ -330,9 +347,13 @@ def vk(spec: "MassSpectrum",
     if 'O/C' or 'H/C' not in spec.table:
         spec = spec.copy().calculate_hc_oc()
 
-    scatter(spec=spec, x='O/C', y='H/C', xlim=(0, 1), ylim=(0, 2.2), *args, **kwargs)
+    if func is None:
+        func = scatter
+
+    func(spec=spec, x='O/C', y='H/C', xlim=(0, 1), ylim=(0, 2.2), ax=ax, *args, **kwargs)
 
     return
+
 
 if __name__ == '__main__':
     pass
