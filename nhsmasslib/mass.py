@@ -66,6 +66,27 @@ class MassSpectrum(object):
         else:
             self.table = pd.DataFrame(columns=['intensity', "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
 
+    def _copy(func):
+        """
+        Decorator for deep copy self before apllying methods
+        
+        Parameters
+        ----------
+        func: method
+            function for decoarate
+        
+        Return
+        ------
+        function with deepcopyed self
+
+        """
+        def wrapped(self, *args, **kwargs):
+            self = copy.deepcopy(self)
+            args = tuple([copy.deepcopy(arg) if isinstance(arg, MassSpectrum) else arg for arg in args])
+            kwargs = {k: copy.deepcopy(v) if isinstance(v, MassSpectrum) else v for k, v in kwargs.items()}
+            return func(self, *args, **kwargs)
+        return wrapped
+
     def find_elems(self) -> Sequence[str]:
         """ 
         Find elems from mass spectrum table.
@@ -306,6 +327,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(table.join(res))
 
+    @_copy
     def filter_by_C13(
         self, 
         rel_error: float = 0.5,
@@ -327,8 +349,8 @@ class MassSpectrum(object):
         ------
         MassSpectra object with cleaned or checked mass-signals
         """
-        spec = self.copy()
-        table = spec.table.sort_values(by='mass').reset_index(drop=True)
+        
+        table = self.table.sort_values(by='mass').reset_index(drop=True)
         
         flags = np.zeros(table.shape[0], dtype=bool)
         masses = table["mass"].values
@@ -355,6 +377,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(table)
 
+    @_copy
     def calculate_brutto(self) -> 'MassSpectrum':
         """
         Calculate brutto formulas from assign table
@@ -364,7 +387,7 @@ class MassSpectrum(object):
         MassSpectrum object wit calculated bruttos
         """
 
-        table = copy.deepcopy(self.table)
+        table = self.table
 
         elems = self.find_elems()
         out = []
@@ -412,6 +435,7 @@ class MassSpectrum(object):
         else:
             return '0'
 
+    @_copy
     def calculate_error(self, sign:str=None) -> "MassSpectrum":
         """
         Calculate relative and absolute error of assigned peaks
@@ -432,7 +456,7 @@ class MassSpectrum(object):
         if "calculated_mass" not in self.table:
             table = self.calculate_mass().table
         else:
-            table = copy.deepcopy(self.table)
+            table = self.table
 
         if sign is None:
             sign = self._calculate_sign()
@@ -447,19 +471,7 @@ class MassSpectrum(object):
         table["rel_error"] = table["abs_error"] / table["mass"] * 1e6
         return MassSpectrum(table)
 
-    def show_error(self) -> None:
-        """
-        Plot relative error of assigned brutto formulas vs mass
-        """
-
-        if "rel_error" not in self.table:
-            self = self.calculate_error()      
-
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
-        ax.scatter(self.table['mass'], self.table['rel_error'], s=0.1)
-        ax.set_xlabel('m/z, Da')
-        ax.set_ylabel('error, ppm')
-
+    @_copy
     def calculate_mass(self) -> "MassSpectrum":
         """
         Calculate mass from assigned brutto formulas
@@ -472,7 +484,7 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
         
-        table = copy.deepcopy(self.table)
+        table = self.table
         elems = self.find_elems()
         
         table = table.loc[:,elems]
@@ -508,6 +520,7 @@ class MassSpectrum(object):
         columns = [column for column in self.features if column in self.table]
         return self.table[columns].__str__()
 
+    @_copy
     def __or__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
         """
         Logic function or for two MassSpectrum object
@@ -520,22 +533,19 @@ class MassSpectrum(object):
         """
         
         if "calculated_mass" not in self.table:
-            e = copy.deepcopy(self.calculate_mass())
-        else:
-            e = copy.deepcopy(self)
+            self = self.calculate_mass().normalize()
         if "calculated_mass" not in other.table:
-            s = copy.deepcopy(other.calculate_mass())
-        else:
-            s = copy.deepcopy(other)
+            other = other.calculate_mass().normalize()
 
-        a = e.table.dropna()
-        b = s.table.dropna()
+        a = self.table.dropna()
+        b = other.table.dropna()
         
         a = a.append(b, ignore_index=True)
         a = a.drop_duplicates(subset=['calculated_mass'])
 
         return MassSpectrum(a)
 
+    @_copy
     def __xor__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
         """
         Logic function xor for two MassSpectrum object
@@ -547,12 +557,12 @@ class MassSpectrum(object):
         MassSpectrum object contain xor assigned brutto formulas from two spectrum
         """
 
-        other2 = copy.deepcopy(self)
         sub1 = self.__sub__(other)
-        sub2 = other.__sub__(other2)
+        sub2 = other.__sub__(self)
         
         return sub1.__or__(sub2)
 
+    @_copy
     def __and__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
         """
         Logic function and for two MassSpectrum object
@@ -565,16 +575,12 @@ class MassSpectrum(object):
         """
 
         if "calculated_mass" not in self.table:
-            e = copy.deepcopy(self.calculate_mass())
-        else:
-            e = copy.deepcopy(self)
+            self = self.calculate_mass().normalize()
         if "calculated_mass" not in other.table:
-            s = copy.deepcopy(other.calculate_mass())
-        else:
-            s = copy.deepcopy(other)
+            other = other.calculate_mass().normalize()
 
-        a = e.table['calculated_mass'].dropna().values
-        b = s.table['calculated_mass'].dropna().values
+        a = self.table['calculated_mass'].dropna().to_list()
+        b = other.table['calculated_mass'].dropna().to_list()
         
         operate = set(a) & set(b)
 
@@ -589,7 +595,7 @@ class MassSpectrum(object):
         res = res.dropna()
 
         return MassSpectrum(res)
-
+    
     def __add__(self: "MassSpectrum", other: "MassSpectrum") -> "MassSpectrum":
         """
         Logic function or for two MassSpectrum object
@@ -602,7 +608,8 @@ class MassSpectrum(object):
         """
         return self.__or__(other)
 
-    def __sub__(self, other):
+    @_copy
+    def __sub__(self, other:"MassSpectrum") -> "MassSpectrum":
         """
         Logic function substraction for two MassSpectrum object
 
@@ -614,16 +621,12 @@ class MassSpectrum(object):
         """
         
         if "calculated_mass" not in self.table:
-            e = copy.deepcopy(self.calculate_mass())
-        else:
-            e = copy.deepcopy(self)
+            self = self.calculate_mass().normalize()
         if "calculated_mass" not in other.table:
-            s = copy.deepcopy(other.calculate_mass())
-        else:
-            s = copy.deepcopy(other)
+            other = other.calculate_mass().normalize()
 
-        a = e.table['calculated_mass'].dropna().values
-        b = s.table['calculated_mass'].dropna().values
+        a = self.table['calculated_mass'].dropna().to_list()
+        b = other.table['calculated_mass'].dropna().to_list()
         
         operate = set(a) - set(b)
 
@@ -639,6 +642,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(res)
 
+    @_copy
     def intens_sub(self, other:"MassSpectrum") -> "MassSpectrum":
         """
         Calculate substruction by intensivity
@@ -654,6 +658,11 @@ class MassSpectrum(object):
         that higher than in other. And intensity of this peaks
         is substraction of self and other.
         """
+        if "calculated_mass" not in self.table:
+            self = self.calculate_mass().normalize()
+        if "calculated_mass" not in other.table:
+            other = other.calculate_mass().normalize()
+
         #find common masses
         m = self & other
         msc = m.table['calculated_mass'].values
@@ -734,6 +743,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(spec.table)
 
+    @_copy
     def calculate_simmilarity(self, other:"MassSpectrum", mode:str='tanimoto') -> float:
         """
         Calculate Simmilarity
@@ -752,8 +762,8 @@ class MassSpectrum(object):
         float Simmilarity index
         """
 
-        s1 = self.copy().drop_unassigned().calculate_mass().normalize(how='sum')
-        s2 = other.copy().drop_unassigned().calculate_mass().normalize(how='sum')
+        s1 = self.drop_unassigned().calculate_mass().normalize(how='sum')
+        s2 = other.drop_unassigned().calculate_mass().normalize(how='sum')
 
         df1 = pd.DataFrame()
         df1['cmass'] = s1.drop_unassigned().table['calculated_mass']
@@ -783,6 +793,7 @@ class MassSpectrum(object):
         else:
             raise Exception(f"There is no such mode: {mode}")
 
+    @_copy
     def calculate_cram(self) -> "MassSpectrum":
         """
         Calculate if include into CRAM
@@ -798,10 +809,8 @@ class MassSpectrum(object):
         refractory component of marine dissolved organic matter.
         Geochimica et. Cosmochimica Acta 70, 2990-3010 (2006)
         """
-        spec = self.copy()
-
-        if "DBE" not in spec.table:
-            spec = spec.calculate_dbe()        
+        if "DBE" not in self.table:
+            self = self.calculate_dbe()        
 
         def check(row):
             if row['DBE']/row['C'] < 0.3 or row['DBE']/row['C'] > 0.68:
@@ -814,11 +823,12 @@ class MassSpectrum(object):
                 return False
             return True
 
-        table = spec.copy().sum_isotopes().table
-        spec.table['CRAM'] = table.apply(check, axis=1)
+        table = self.copy().sum_isotopes().table
+        self.table['CRAM'] = table.apply(check, axis=1)
 
-        return spec
+        return self
 
+    @_copy
     def get_cram_value(self) -> int:
         """
         Calculate percent of CRAM molecules
@@ -829,13 +839,13 @@ class MassSpectrum(object):
         int. percent of CRAM molecules in mass-spec
         weight by intensity
         """
-        spec = self.copy()
-        if "CRAM" not in spec.table:
-            spec = spec.calculate_cram().drop_unassigned()
+        if "CRAM" not in self.table:
+            self = self.calculate_cram().drop_unassigned()
 
-        value = spec.table.loc[spec.table['CRAM'] == True, 'intensity'].sum()/spec.table['intensity'].sum()
+        value = self.table.loc[self.table['CRAM'] == True, 'intensity'].sum()/self.table['intensity'].sum()
         return int(value*100)
 
+    @_copy
     def calculate_ai(self) -> 'MassSpectrum':
         """
         Calculate AI
@@ -849,6 +859,7 @@ class MassSpectrum(object):
 
         return MassSpectrum(table)
 
+    @_copy
     def calculate_cai(self) -> 'MassSpectrum':
         """
         Calculate CAI
@@ -857,22 +868,21 @@ class MassSpectrum(object):
         ------
         MassSpectrum object with calculated CAI
         """
-
-        spec = self.copy()
         
-        if "assign" not in spec.table:
+        if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        table = spec.copy().sum_isotopes().table
+        table = self.copy().sum_isotopes().table
 
         for element in "CONSP":
             if element not in table:
                 table[element] = 0
 
-        spec.table['CAI'] = table["C"] - table["O"] - table["N"] - table["S"] - table["P"]
+        self.table['CAI'] = table["C"] - table["O"] - table["N"] - table["S"] - table["P"]
 
-        return MassSpectrum(spec.table)
+        return MassSpectrum(self.table)
 
+    @_copy
     def calculate_dbe_ai(self) -> 'MassSpectrum':
         """
         Calculate DBE
@@ -884,17 +894,17 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        spec = self.copy()
-        table = spec.copy().sum_isotopes().table
+        table = self.copy().sum_isotopes().table
 
         for element in "CHONPS":
             if element not in table:
                 table[element] = 0
 
-        spec.table['DBE_AI'] = 1.0 + table["C"] - table["O"] - table["S"] - 0.5 * (table["H"] + table['N'] + table["P"])
+        self.table['DBE_AI'] = 1.0 + table["C"] - table["O"] - table["S"] - 0.5 * (table["H"] + table['N'] + table["P"])
 
-        return MassSpectrum(spec.table)
+        return MassSpectrum(self.table)
 
+    @_copy
     def calculate_dbe(self) -> 'MassSpectrum':
         """
         Calculate DBE
@@ -906,17 +916,17 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        spec = self.copy()
-        table = spec.copy().sum_isotopes().table
+        table = self.copy().sum_isotopes().table
 
         for element in "CHON":
             if element not in table:
                 table[element] = 0
 
-        spec.table['DBE'] = 1.0 + table["C"] - 0.5 * (table["H"] - table['N'])
+        self.table['DBE'] = 1.0 + table["C"] - 0.5 * (table["H"] - table['N'])
 
-        return MassSpectrum(spec.table)
+        return MassSpectrum(self.table)
 
+    @_copy
     def calculate_dbe_o(self) -> 'MassSpectrum':
         """
         Calculate DBE-O
@@ -928,12 +938,13 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        spec = self.copy().calculate_dbe()
-        table = spec.copy().sum_isotopes().table
-        spec.table['DBE-O'] = table['DBE'] - table['O']
+        self = self.calculate_dbe()
+        table = self.copy().sum_isotopes().table
+        self.table['DBE-O'] = table['DBE'] - table['O']
 
-        return MassSpectrum(spec.table)
+        return MassSpectrum(self.table)
 
+    @_copy
     def calculate_dbe_oc(self) -> 'MassSpectrum':
         """
         Calculate DBE-O/C
@@ -945,12 +956,13 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        spec = self.copy().calculate_dbe()
-        table = spec.copy().sum_isotopes().table
-        spec.table['DBE-OC'] = (table['DBE'] - table['O'])/table['C']
+        self = self.calculate_dbe()
+        table = self.copy().sum_isotopes().table
+        self.table['DBE-OC'] = (table['DBE'] - table['O'])/table['C']
 
-        return MassSpectrum(spec.table)
+        return MassSpectrum(self.table)
 
+    @_copy
     def calculate_hc_oc(self) -> 'MassSpectrum':
         """
         Calculate H/C and O/C
@@ -962,13 +974,13 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        spec = self.copy()
-        table = spec.copy().sum_isotopes().table
-        spec.table['H/C'] = table['H']/table['C']
-        spec.table['O/C'] = table['O']/table['C']
+        table = self.copy().sum_isotopes().table
+        self.table['H/C'] = table['H']/table['C']
+        self.table['O/C'] = table['O']/table['C']
 
-        return MassSpectrum(spec.table)
+        return MassSpectrum(self.table)
 
+    @_copy
     def calculate_kendrick(self) -> 'MassSpectrum':
         """
         Calculate Kendrick mass and Kendrick mass defect
@@ -980,16 +992,15 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        spec = self.copy()
+        if 'calculated_mass' not in self.table:
+            self = self.calculate_mass()
+        self.table['Ke'] = self.table['calculated_mass'] * 14/14.01565
+        self.table['KMD'] = np.floor(self.table['calculated_mass'].values) - np.array(self.table['Ke'].values)
+        self.table.loc[self.table['KMD']<=0, 'KMD'] = self.table.loc[self.table['KMD']<=0, 'KMD'] + 1
 
-        if 'calculated_mass' not in spec.table:
-            spec = spec.calculate_mass()
-        spec.table['Ke'] = spec.table['calculated_mass'] * 14/14.01565
-        spec.table['KMD'] = np.floor(spec.table['calculated_mass'].values) - np.array(spec.table['Ke'].values)
-        spec.table.loc[spec.table['KMD']<=0, 'KMD'] = spec.table.loc[spec.table['KMD']<=0, 'KMD'] + 1
+        return MassSpectrum(self.table)
 
-        return MassSpectrum(spec.table)
-
+    @_copy
     def calculate_nosc(self) -> 'MassSpectrum':
         """
         Calculate Normal oxidation state of carbon (NOSC).
@@ -1014,17 +1025,17 @@ class MassSpectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        spec = self.copy()
-        table = spec.copy().sum_isotopes().table
+        table = self.copy().sum_isotopes().table
 
         for element in "CHONS":
             if element not in table:
                 table[element] = 0
 
-        spec.table['NOSC'] = 4.0 - (table["C"] * 4 + table["H"] - table['O'] * 2 - table['N'] * 3 - table['S'] * 2)/table['C']
+        self.table['NOSC'] = 4.0 - (table["C"] * 4 + table["H"] - table['O'] * 2 - table['N'] * 3 - table['S'] * 2)/table['C']
 
-        return MassSpectrum(spec.table)
-
+        return MassSpectrum(self.table)
+    
+    @_copy
     def calculate_mol_class_zones(self) -> "MassSpectrum":
         """
         Assign molecular class for formulas
@@ -1034,8 +1045,8 @@ class MassSpectrum(object):
         MassSpectrum object with assigned zones
         """
 
-        spec = self.copy().calculate_ai()
-        table = spec.copy().sum_isotopes().table
+        self = self.calculate_ai()
+        table = self.copy().sum_isotopes().table
 
         for element in "CHON":
             if element not in table:
@@ -1071,10 +1082,11 @@ class MassSpectrum(object):
             else:
                 return 'undefinded'
                 
-        spec.table['kzone'] = table.apply(get_zone, axis=1)
+        self.table['kzone'] = table.apply(get_zone, axis=1)
 
-        return MassSpectrum(spec.table)
+        return MassSpectrum(self.table)
 
+    @_copy
     def get_mol_class_density(self, weight: str = "intensity") -> dict:
         """
         get molercular classes
@@ -1099,10 +1111,9 @@ class MassSpectrum(object):
         """
 
         ans = {}
-        spec = self.copy()
-        spec = spec.drop_unassigned().calculate_mol_class_zones()
-        count_density = len(spec.table)
-        sum_density = spec.table["intensity"].sum()
+        self = self.drop_unassigned().calculate_mol_class_zones()
+        count_density = len(self.table)
+        sum_density = self.table["intensity"].sum()
 
         for zone in ['unsat_lowOC',
                     'unsat_highOC',
@@ -1116,16 +1127,17 @@ class MassSpectrum(object):
                     'undefinded']:
 
             if weight == "count":
-                ans[zone] = len(spec.table.loc[spec.table['kzone'] == zone])/count_density
+                ans[zone] = len(self.table.loc[self.table['kzone'] == zone])/count_density
 
             elif weight == "intensity":
-                ans[zone] = spec.table.loc[spec.table['kzone'] == zone, 'intensity'].sum()/sum_density
+                ans[zone] = self.table.loc[self.table['kzone'] == zone, 'intensity'].sum()/sum_density
 
             else:
                 raise ValueError(f"weight should be count or intensity not {weight}")
         
         return ans
 
+    @_copy
     def calculate_all(self) -> "MassSpectrum":
         """
         Calculated all avaible in this lib metrics
@@ -1135,25 +1147,25 @@ class MassSpectrum(object):
         MassSpectrum object with calculated metrics
         """
 
-        spec = self.copy()
+        self = self.calculate_mass()
+        self = self.calculate_error()
+        self = self.calculate_dbe()
+        self = self.calculate_dbe_o()
+        self = self.calculate_ai()
+        self = self.calculate_dbe_oc()
+        self = self.calculate_dbe_ai()
+        self = self.calculate_mol_class_zones()
+        self = self.calculate_hc_oc()
+        self = self.calculate_cai()
+        self = self.calculate_cram()
+        self = self.calculate_nosc()
+        self = self.calculate_brutto()
+        
+        self = self.calculate_kendrick()
 
-        spec = spec.calculate_ai()
-        spec = spec.calculate_mol_class_zones()
-        spec = spec.calculate_dbe()
-        spec = spec.calculate_dbe_ai()
-        spec = spec.calculate_dbe_o()
-        spec = spec.calculate_dbe_oc()
-        spec = spec.calculate_hc_oc()
-        spec = spec.calculate_cai()
-        spec = spec.calculate_cram()
-        spec = spec.calculate_nosc()
-        spec = spec.calculate_brutto()
-        spec = spec.calculate_error()
-        spec = spec.calculate_mass()
-        spec = spec.calculate_kendrick()
+        return MassSpectrum(self.table)
 
-        return MassSpectrum(spec.table)
-
+    @_copy
     def normalize(self, how:str='sum') -> 'MassSpectrum':
         """
         Intensity normalize by max intensity
@@ -1169,7 +1181,7 @@ class MassSpectrum(object):
         ------
         Intensity normalized MassSpectrum instance
         """
-        table = self.table.copy()
+        table = self.table
         if how=='max':
             table['intensity'] /= table['intensity'].max()
         elif how=='sum':
@@ -1218,7 +1230,8 @@ class MassSpectrum(object):
             return self.table.tail()
         else:
             return self.table.tail(num)
-        
+    
+    @_copy
     def recallibrate(self, error_table: "ErrorTable" = None, how = 'assign') -> "MassSpectrum":
         '''
         Recallibrate data by error-table
@@ -1255,8 +1268,6 @@ class MassSpectrum(object):
         data = self.table.reset_index(drop=True)
         wide = len(err)
 
-        data['old_mass'] = data['mass']
-
         min_mass = err['mass'].min()
         max_mass = err['mass'].max()
         a = np.linspace(min_mass, max_mass, wide+1)
@@ -1269,6 +1280,7 @@ class MassSpectrum(object):
                 
         return MassSpectrum(data)
 
+    @_copy
     def assign_by_tmds (
         self, 
         tmds_spec: "Tmds" = None, 
@@ -1311,10 +1323,8 @@ class MassSpectrum(object):
         tmds = tmds.loc[tmds['intensity'] > p]
         elem = tmds_spec.find_elems()
 
-        spec = copy.deepcopy(self)
-
-        assign_false = copy.deepcopy(spec.table.loc[spec.table['assign'] == False]).reset_index(drop=True)
-        assign_true = copy.deepcopy(spec.table.loc[spec.table['assign'] == True]).reset_index(drop=True)
+        assign_false = copy.deepcopy(self.table.loc[self.table['assign'] == False]).reset_index(drop=True)
+        assign_true = copy.deepcopy(self.table.loc[self.table['assign'] == True]).reset_index(drop=True)
         masses = assign_true['mass'].values
         mass_dif_num = len(tmds)
 
@@ -1348,6 +1358,7 @@ class MassSpectrum(object):
         
         return MassSpectrum(out2)
 
+    @_copy
     def calculate_DBEvsO(self, ax=None, olim=None, **kwargs) -> None:
         """
         Draw plot DBE by nO and calculate linear fit
@@ -1370,17 +1381,17 @@ class MassSpectrum(object):
         
         """
 
-        spec = self.copy().calculate_dbe().drop_unassigned()
+        self = self.calculate_dbe().drop_unassigned()
         if olim is None:
-            no = list(range(5, int(spec.table['O'].max())-4))
+            no = list(range(5, int(self.table['O'].max())-4))
         else:
             no = list(range(olim[0],olim[1]))
 
         dbe_o = []
         
         for i in no:
-            dbes = spec.table.loc[spec.table['O'] == i, 'DBE']
-            intens = spec.table.loc[spec.table['O'] == i, 'intensity']
+            dbes = self.table.loc[self.table['O'] == i, 'DBE']
+            intens = self.table.loc[self.table['O'] == i, 'intensity']
             dbe_o.append((dbes*intens).sum()/intens.sum())
     
         def linear(x, a, b):
@@ -1424,7 +1435,7 @@ class MassSpectrum(object):
 
         d_table = []
         sq = []
-        table = copy.deepcopy(self.table)
+        table = self.table
         total_i = len(table)
         for y in [ (1.8, 2.2), (1.4, 1.8), (1, 1.4), (0.6, 1), (0, 0.6)]:
             hc = []

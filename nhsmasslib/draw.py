@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
 
+
 def spectrum(spec: 'MassSpectrum',
     xlim: Tuple[Optional[float], Optional[float]] = (None, None),
     ylim: Tuple[Optional[float], Optional[float]] = (None, None),
@@ -135,6 +136,10 @@ def scatter(spec: 'MassSpectrum',
     **kwargs: dict
         additional parameters to scatter method
     """
+    if x not in spec.table:
+        raise Exception(f'Value {x} is not in spectrum table. Calculate it before')
+    if y not in spec.table:
+        raise Exception(f'Value {y} is not in spectrum table. Calculate it before')
 
     spec = spec.copy().drop_unassigned()
 
@@ -219,6 +224,11 @@ def scatter_density(spec: 'MassSpectrum',
         additional parameters to scatter method
     """
 
+    if x not in spec.table:
+        raise Exception(f'Value {x} is not in spectrum table. Calculate it before')
+    if y not in spec.table:
+        raise Exception(f'Value {y} is not in spectrum table. Calculate it before')
+
     if ax is None:
         fig = plt.figure(figsize=(6,6), dpi=100)
         gs = GridSpec(4, 4)
@@ -263,6 +273,9 @@ def density(spec: 'MassSpectrum',
     ax: plt.axes
         Optional. External axes.
     """
+
+    if col not in spec.table:
+        raise Exception(f'Value {col} is not in spectrum table. Calculate it before')
 
     spec = spec.copy().drop_unassigned()
     total_int = spec.table['intensity'].sum()
@@ -318,6 +331,11 @@ def density_2D(spec: 'MassSpectrum',
     shade: bool
         show shade
     """
+    if x not in spec.table:
+        raise Exception(f'Value {x} is not in spectrum table. Calculate it before')
+    if y not in spec.table:
+        raise Exception(f'Value {y} is not in spectrum table. Calculate it before')
+
     sns.kdeplot(spec.table[x], spec.table[y], ax=ax, cmap=cmap, shade=shade)
 
     ax.set_xlim(xlim)
@@ -353,6 +371,24 @@ def vk(spec: "MassSpectrum",
     func(spec=spec, x='O/C', y='H/C', xlim=(0, 1), ylim=(0, 2.2), ax=ax, *args, **kwargs)
 
     return
+
+def show_error(spec) -> None:
+    """
+    Plot relative error of assigned brutto formulas vs mass
+
+    Parameters
+    ----------
+    spec: MassSpectrum object
+        mass-spec for plotting relative error
+    """
+
+    if "rel_error" not in spec.table:
+        spec = spec.copy().calculate_error()      
+
+    fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
+    ax.scatter(spec.table['mass'], spec.table['rel_error'], s=0.1)
+    ax.set_xlabel('m/z, Da')
+    ax.set_ylabel('error, ppm')
 
 
 if __name__ == '__main__':
