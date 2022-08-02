@@ -21,7 +21,6 @@ from typing import Sequence, Union, Optional, Mapping, Tuple
 import copy
 
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -182,7 +181,7 @@ class MassSpectrum(object):
         if assign_mark:
             self._mark_assigned_by_brutto()
 
-        self.table = self.table.reset_index(drop=True)
+        self.table = self.table.sort_values(by="mass").reset_index(drop=True)
 
         return self
 
@@ -1219,145 +1218,6 @@ class MassSpectrum(object):
             return self.table.tail()
         else:
             return self.table.tail(num)
-
-    def draw(self,
-        xlim: Tuple[Optional[float], Optional[float]] = (None, None),
-        ylim: Tuple[Optional[float], Optional[float]] = (None, None),
-        color: str = 'black',
-        ax: plt.axes = None,
-        ) -> None:
-        """
-        Draw mass spectrum
-
-        All parameters is optional
-
-        Parameters
-        ----------
-        xlim: Tuple (float, float)
-            restrict for mass
-        ylim: Tuple (float, float)
-            restrict for intensity
-        color: str
-            color of draw
-        ax: matplotlyp axes object
-            send here ax to plot in your own condition
-        """
-
-        df = self.table.sort_values(by="mass")
-
-        mass = df.mass.values
-        if xlim[0] is None:
-            xlim = (mass.min(), xlim[1])
-        if xlim[1] is None:
-            xlim = (xlim[0], mass.max())
-
-        intensity = df['intensity'].values
-        # filter first intensity and only after mass (because we will lose the information)
-        intensity = intensity[(xlim[0] <= mass) & (mass <= xlim[1])]
-        mass = mass[(xlim[0] <= mass) & (mass <= xlim[1])]
-
-        # bas solution, probably it's needed to rewrite this piece
-        M = np.zeros((len(mass), 3))
-        M[:, 0] = mass
-        M[:, 1] = mass
-        M[:, 2] = mass
-        M = M.reshape(-1)
-
-        I = np.zeros((len(intensity), 3))
-        I[:, 1] = intensity
-        I = I.reshape(-1)
-
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(4,4), dpi=75)
-    
-        ax.plot(M, I, color=color, linewidth=0.2)
-        ax.plot([xlim[0], xlim[1]], [0, 0], color=color, linewidth=0.2)
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
-        ax.set_xlabel('m/z, Da')
-        ax.set_ylabel('Intensity')
-        ax.set_title(f'{len(self.table)} peaks')
-
-        return
-
-    def draw_scatter(self, 
-                    x:str, 
-                    y:str,
-                    volume:str='intensity',
-                    color:str="blue", 
-                    alpha:float=0.3, 
-                    size:float=None,
-                    ax=None) -> None:
-        """
-        Draw scatter of different columns in mass-spectrum
-
-        Parameters
-        ----------
-        x: str
-            Name for x ordiante - columns in spec table
-        y: str
-            Name for y ordinate - columns in spec table
-        volume: str
-            Name for z ordinate - columns in spec table.
-            If size is none. size of dots will calculate by median of it parameter
-        ax: plt.axes
-            Optional, external ax
-        color: str
-            Optional. default blue. Color for scatter.
-        alpha: float
-            Optional, default 0.3. Alpha for scatter
-        size: float
-            Optional. default None - normalize by intensivity to median.
-        """
-
-        if volume == 'None':
-            if size is None:
-                raise Exception("when wolume is 'None' there must be size value")
-            s = size
-        else:
-            if size is None:
-                s = self.table[volume]/self.table[volume].median()
-            else:
-                s = self.table[volume]/self.table[volume].median() * size
-
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(4,4), dpi=75)
-        
-        ax.scatter(x=self.table[x], y=self.table[y], c=color, alpha=alpha, s=s)
-        ax.set_xlabel(x)
-        ax.set_ylabel(y)
-
-    def draw_density(self, col:str, color:str='blue', ax=None) -> None:
-        """
-        Draw KDE density for values
-
-        Parameters
-        ----------
-        x: str
-            Column name for draw density
-        color: str
-            Optional, default blue. Color of density plot
-        ax: plt.axes
-            Optional. External axes.
-        """
-
-        spec = self.copy().drop_unassigned()
-        total_int = spec.table['intensity'].sum()
-
-        x = np.linspace(self.table[col].min(), self.table[col].max(), 100)        
-        oc = np.array([])
-        
-        for i, el in enumerate(x[1:]):
-            s = self.table.loc[(self.table[col] > x[i-1]) & (self.table[col] <= el), 'intensity'].sum()
-            coun = len(self.table) * s/total_int
-            m = (x[i-1] + x[i])/2
-            oc = np.append(oc, [m]*int(coun))
-
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(4,4), dpi=75)
-        
-        sns.kdeplot(x = oc, ax=ax, color=color, fill=True, alpha=0.1, bw_adjust=2)
-        ax.set_xlabel(col)
         
     def recallibrate(self, error_table: "ErrorTable" = None, how = 'assign') -> "MassSpectrum":
         '''
@@ -1546,165 +1406,16 @@ class MassSpectrum(object):
         ax.set_ylabel('DBE average')
         ax.legend()
 
-
-class VanKrevelen(object):
-    """
-    A class used to plot Van-Krevelen diagramm
-
-    Attributes
-    ----------
-    table : pandas Datarame or MassSpectrum object
-        consist spectrum (mass and intensity of peaks) and all calculated parameters.
-        Must contain elements 'C', 'H', 'N'
-    """
-
-    def __init__(self, table: Optional[Union[pd.DataFrame, 'MassSpectrum']] = None) -> None:
+    def vk_squares(self, ax=None, draw:bool=True) -> pd.DataFrame:
         """
-        Init and calculate C/H, O/C relatives
-
-        Parameters
-        ----------
-        table : pandas Datarame or MassSpectrum object
-            consist spectrum (mass and intensity of peaks) and all calculated parameters
-            Must contain elements 'C', 'H', 'N'
-        """
-        if table is None:
-            return
-
-        if isinstance(table, MassSpectrum):
-            table = table.copy().table
-
-        self.table = MassSpectrum(table).drop_unassigned().calculate_hc_oc().table
-
-    def draw_density(
-        self, 
-        cmap:str ="Blues", 
-        ax: plt.axes = None, 
-        shade: bool = True
-        ) -> None:
-        """
-        Draw Van-Krevelen density
-
-        All parameters is optional
-
-        Parameters
-        ----------
-        cmap: str
-            color map
-        ax: matplotlib ax
-            external ax
-        shade: bool
-            show shade
-        """
-        sns.kdeplot(self.table["O/C"], self.table["H/C"], ax=ax, cmap=cmap, shade=shade)
-
-    def draw_scatter(
-        self, 
-        ax:plt.axes = None, 
-        volumes:float = None,
-        color:str = 'blue',
-        nitrogen:bool = False,
-        sulphur:bool = False,
-        alpha:float = 0.3, 
-        mark_elem:str = None, 
-        **kwargs) -> None:
-        """
-        plot Van-Krevelen diagramm
-
-        All parameters is optional.
-
-        Parameters
-        ----------
-        ax: Matplotlyb axes object
-            send here ax if you want plot special graph
-        volumes: float
-            size of dot at diagram.
-            By default calc by median intensity of spectrum
-        color: str
-            color of VK. Default blue
-        nitrogen: bool
-            mark nitrogen in brutto-formulas as orange
-        sulphur: bool
-            mark sulphur in brutto-formulas as green for CHOS and red for CHONS
-        alpha: float
-            transparency of dot at the scatter from 0 to 1
-        mark_elem: str
-            mark element in brutto-formulas by pink color
-        **kwargs: dict
-            dict for additional condition to scatter method        
-        """
-        
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
-        else:
-            ax=ax
-        
-        if volumes is None:
-            self.table['volume'] = self.table['intensity'] / self.table['intensity'].median()
-        else:
-            self.table['volume'] = volumes
-
-        self.table['color'] = color
-
-        if mark_elem is not None:
-            
-            self.table.loc[self.table[mark_elem] > 0, 'color'] = 'purple'
-
-        if nitrogen and 'N' in self.table.columns:
-            self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0), 'color'] = 'orange'
-
-        if sulphur and 'S' in self.table.columns:
-            self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] < 1) & (self.table['S'] > 0), 'color'] = 'green'
-            self.table.loc[(self.table['C'] > 0) & (self.table['H'] > 0) &(self.table['O'] > 0) & (self.table['N'] > 0) & (self.table['S'] > 0), 'color'] = 'red'
-        
-        if mark_elem is not None:
-            ax.scatter(self.table.loc[self.table[mark_elem] > 0, 'O/C'], 
-                        self.table.loc[self.table[mark_elem] > 0, 'H/C'],
-                        s=self.table.loc[self.table[mark_elem] > 0, 'volume'], 
-                        c='red', 
-                        alpha=alpha, 
-                        **kwargs)
-        else:
-            ax.scatter(self.table["O/C"], self.table["H/C"], s=self.table['volume'], c=self.table['color'], alpha=alpha, **kwargs)
-        ax.set_xlabel("O/C")
-        ax.set_ylabel("H/C")
-        ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
-        ax.xaxis.set_ticks(np.arange(0, 1.1, 0.2))
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 2.2)
-        
-        num_formules = self.table['C'].count()
-        ax.set_title(f'{num_formules} formulas', size=10)
-
-    def _plot_heatmap(self, df:pd.DataFrame, ax:None) -> None:
-        """Plot density map for VK
-
-        Parameters
-        ----------
-        df: pd.DataFrame
-            dataframe with density
-        ax: matplotlib ax
-            external ax        
-        """
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
-        sns.heatmap(df.round(4),cmap='coolwarm',annot=True, linewidths=.5, ax=ax)
-        bottom, top = ax.get_ylim()
-        plt.yticks(rotation=0)
-        plt.xticks(rotation=90) 
-        ax.set_ylim(bottom + 0.5, top - 0.5)
-
-        ax.set_xlabel('O/C')
-        ax.set_ylabel('H/C')
-
-    def squares(self, ax=None) -> pd.DataFrame:
-        """
-        Calculate density  in VK divided into 20 squares
+        Calculate density in Van Krevelen diagram divided into 20 squares
 
         Parameters
         ----------
         ax: matplotlib ax
-            Optional. external ax 
+            Optional. external ax
+        draw: bool
+            Optional. Default True. Plot heatmap
 
         Return
         ------
@@ -1725,81 +1436,24 @@ class VanKrevelen(object):
                 sq.append(temp_i/total_i)
             d_table.append(hc)
         out = pd.DataFrame(data = d_table, columns=['0-0.25', '0,25-0.5','0.5-0.75','0.75-1'], index=['1.8-2.2', '1.4-1.8', '1-1.4', '0.6-1', '0-0.6'])
-        self._plot_heatmap(out, ax=ax)
+
+        if draw:
+            if ax is None:
+                fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
+            sns.heatmap(out.round(4),cmap='coolwarm',annot=True, linewidths=.5, ax=ax)
+            bottom, top = ax.get_ylim()
+            plt.yticks(rotation=0)
+            plt.xticks(rotation=90) 
+            ax.set_ylim(bottom + 0.5, top - 0.5)
+
+            ax.set_xlabel('O/C')
+            ax.set_ylabel('H/C')
 
         # just for proper naming of squars. bad solution
         square = pd.DataFrame(data=sq, columns=['value'], index=[5,10,15,20,   4,9,14,19,   3,8,13,18,    2,7,12,17,   1,6,11,16])
-
-        return square.sort_index()
-
-    def scatter_density(self, ax=None, ax_x=None, ax_y=None, color:str='blue', alpha:float=0.3, volumes:float=None) -> None:
-        """
-        Plot VK scatter with density
-        Same as joinplot in seaborn
-        but you can use external axes
-
-        Parameters
-        ----------
-        ax: matplotlib ax
-            central ax for scatter
-        ax_x: matplotlib ax
-            horizontal ax for density
-        ax_y: matplotlib ax
-            vertical ax for density
-        color: str
-            color for scatter and density
-        alpha: float
-            alpha for scatter
-        """
-        if ax is None:
-            fig = plt.figure(figsize=(6,6), dpi=100)
-            gs = GridSpec(4, 4)
-
-            ax = fig.add_subplot(gs[1:4, 0:3])
-            ax_x = fig.add_subplot(gs[0,0:3])
-            ax_y = fig.add_subplot(gs[1:4, 3])
-
-        self.table['intensity'] = self.table['intensity'] / self.table['intensity'].median()
-
-        if volumes is None:
-            self.table['volume'] = self.table['intensity'] / self.table['intensity'].median()
-        else:
-            self.table['volume'] = volumes
-
-        ax.scatter(self.table['O/C'],self.table['H/C'], s=self.table['volume'], alpha=alpha, c=color)
-        ax.set_ylim(0,2.2)
-        ax.set_xlim(0,1)
-        ax.set_xlabel("O/C")
-        ax.set_ylabel("H/C")
-        ax.yaxis.set_ticks(np.arange(0, 2.2, 0.4))
-        ax.xaxis.set_ticks(np.arange(0, 1.1, 0.2))
-
-        oc = self.table['O/C']*self.table['intensity']
-        hc = self.table['H/C']*self.table['intensity']
-        total_int = self.table['intensity'].sum()
-
-        x = np.linspace(self.table['O/C'].min(), self.table['O/C'].max(), 100)        
-        oc = np.array([])
-        for i, el in enumerate(x[1:]):
-            s = self.table.loc[(self.table['O/C'] > x[i-1]) & (self.table['O/C'] <= el), 'intensity'].sum()
-            coun = len(self.table) * s/total_int
-            m = (x[i-1] + x[i])/2
-            oc = np.append(oc, [m]*int(coun))
-        sns.kdeplot(x = oc, ax=ax_x, color=color, fill=True, alpha=0.1, bw_adjust=2)
-        ax_x.set_axis_off()
-        ax_x.set_xlim(0,1)
         
-        y = np.linspace(self.table['H/C'].min(), self.table['H/C'].max(), 100)        
-        hc = np.array([])
-        for i, el in enumerate(y[1:]):
-            s = self.table.loc[(self.table['H/C'] > y[i-1]) & (self.table['H/C'] <= el), 'intensity'].sum()
-            coun = len(self.table) * s/total_int
-            m = (y[i-1] + y[i])/2
-            hc = np.append(hc, [m]*int(coun))
-        sns.kdeplot(x = hc, ax=ax_y, color=color, vertical=True, fill=True, alpha=0.1, bw_adjust=2)
-        ax_y.set_axis_off()
-        ax_y.set_ylim(0,2.2)
-
+        return square.sort_index()
+        
 
 class ErrorTable(object):
     """
@@ -2284,7 +1938,8 @@ class MassSpectrumList(object):
         mode: str = "cosine",
         values: np.ndarray = None,
         ax: plt.axes = None,
-        annot = True
+        annot = True,
+        **kwargs
         ) -> None:
         """
         Draw similarity matrix by using seaborn
@@ -2302,6 +1957,8 @@ class MassSpectrumList(object):
             Entarnal axes for plot
         annotate: bool
             Draw value of similarity onto titles
+        **kwargs: dict
+            Additional parameters to seaborn heatmap method
         """
         if values is None:
             values = self.calculate_similarity(mode=mode)
