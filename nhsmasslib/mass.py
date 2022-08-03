@@ -19,6 +19,7 @@
 from pathlib import Path
 from typing import Sequence, Union, Optional, Mapping, Tuple
 import copy
+from xml.etree.ElementInclude import FatalIncludeError
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -243,7 +244,9 @@ class MassSpectrum(object):
             generated_bruttos_table: pd.DataFrame = None,
             rel_error: float = None,
             abs_error: float = None,
-            sign: str ='-'
+            sign: str ='-',
+            mass_min: float =  None,
+            mass_max: float = None,
     ) -> "MassSpectrum":
         """
         Finding the nearest mass in generated_bruttos_table
@@ -270,6 +273,10 @@ class MassSpectrum(object):
             '-' for negative mode
             '+' for positive mode
             '0' for neutral
+        mass_min: float
+            Optional. Default None. Minimall mass for assigment
+        mass_max: float
+            Optional. Default None. Maximum mass for assigment   
 
         Return
         ------
@@ -279,7 +286,13 @@ class MassSpectrum(object):
         if generated_bruttos_table is None:
             generated_bruttos_table = brutto_gen(brutto_dict)
 
-        table = self.table.loc[:,['mass', 'intensity']].copy()
+        if mass_min is None:
+            mass_min = self.table['mass'].min()
+        if mass_max is None:
+            mass_max = self.table['mass'].max()
+
+        self.table = self.table.loc[:,['mass', 'intensity']]
+        table = self.table.loc[(self.table['mass']>=mass_min) & (self.table['mass']<=mass_max)].copy()
 
         masses = generated_bruttos_table["mass"].values
         
@@ -325,7 +338,11 @@ class MassSpectrum(object):
 
         res = pd.DataFrame(res)
 
-        return MassSpectrum(table.join(res))
+        table = table.join(res)
+        self.table = self.table.merge(table, how='outer', on=list(self.table.columns))
+        self.table['assign'] = self.table['assign'].fillna(False)
+
+        return self
 
     @_copy
     def filter_by_C13(
