@@ -387,6 +387,9 @@ class MassSpectrum(object):
         MassSpectrum object wit calculated bruttos
         """
 
+        if "assign" not in self.table:
+            raise Exception("Spectrum is not assigned")
+
         table = self.table
 
         elems = self.find_elems()
@@ -702,6 +705,7 @@ class MassSpectrum(object):
 
         return self.table[item]
 
+    @_copy
     def drop_unassigned(self) -> "MassSpectrum":
         """
         Drop unassigned mass from Mass Spectrum table
@@ -715,13 +719,12 @@ class MassSpectrum(object):
         Danger of lose data - with these operation we exclude data that can be usefull
         """
 
-        spec = self.copy()
-
-        if "assign" not in spec.table:
+        if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        return MassSpectrum(spec.table.loc[spec.table["assign"] == True].reset_index(drop=True))
+        return MassSpectrum(self.table.loc[self.table["assign"] == True].reset_index(drop=True))
 
+    @_copy
     def sum_isotopes(self) -> "MassSpectrum":
         """
         All isotopes will be sum and title as main.
@@ -731,17 +734,16 @@ class MassSpectrum(object):
         MassSpectrum object without minor isotopes        
         """
 
-        spec = self.copy()
-        elems = spec.find_elems()
+        elems = self.find_elems()
         for el in elems:
             res = el.split('_')
             if len(res) == 2:
-                if res[0] not in spec.table:
-                    spec.table[res[0]] = 0
-                spec.table[res[0]] = spec.table[res[0]] + spec.table[el]
-                spec.table = spec.table.drop(columns=[el]) 
+                if res[0] not in self.table:
+                    self.table[res[0]] = 0
+                self.table[res[0]] = self.table[res[0]] + self.table[el]
+                self.table = self.table.drop(columns=[el]) 
 
-        return MassSpectrum(spec.table)
+        return MassSpectrum(self.table)
 
     @_copy
     def calculate_simmilarity(self, other:"MassSpectrum", mode:str='tanimoto') -> float:
@@ -762,8 +764,13 @@ class MassSpectrum(object):
         float Simmilarity index
         """
 
-        s1 = self.drop_unassigned().calculate_mass().normalize(how='sum')
-        s2 = other.drop_unassigned().calculate_mass().normalize(how='sum')
+        if 'calculated_mass' not in self.table:
+            self = self.calculate_mass()
+        if 'calculated_mass' not in other.table:
+            otjer = other.calculate_mass()
+
+        s1 = self.drop_unassigned().normalize(how='sum')
+        s2 = other.drop_unassigned().normalize(how='sum')
 
         df1 = pd.DataFrame()
         df1['cmass'] = s1.drop_unassigned().table['calculated_mass']
@@ -840,9 +847,9 @@ class MassSpectrum(object):
         weight by intensity
         """
         if "CRAM" not in self.table:
-            self = self.calculate_cram().drop_unassigned()
+            self = self.calculate_cram()
 
-        value = self.table.loc[self.table['CRAM'] == True, 'intensity'].sum()/self.table['intensity'].sum()
+        value = self.table.loc[self.table['CRAM'] == True, 'intensity'].sum()/self.table.loc[self.table['assign']==True, 'intensity'].sum()
         return int(value*100)
 
     @_copy
@@ -854,7 +861,13 @@ class MassSpectrum(object):
         ------
         MassSpectrum object with calculated AI
         """
-        table = self.calculate_cai().calculate_dbe_ai().table
+        if "DBE" not in self.table:
+            self = self.calculate_dbe()
+
+        if "CAI" not in self.table:
+            self = self.calculate_cai()
+
+        table = self.table
         table["AI"] = table["DBE_AI"] / table["CAI"]
 
         return MassSpectrum(table)
@@ -935,10 +948,9 @@ class MassSpectrum(object):
         ------
         MassSpectrum object with calculated DBE-O
         """
-        if "assign" not in self.table:
-            raise Exception("Spectrum is not assigned")
+        if "DBE" not in self.table:
+            self = self.calculate_dbe()
 
-        self = self.calculate_dbe()
         table = self.copy().sum_isotopes().table
         self.table['DBE-O'] = table['DBE'] - table['O']
 
@@ -953,10 +965,9 @@ class MassSpectrum(object):
         ------
         MassSpectrum object with calculated DBE-O/C
         """
-        if "assign" not in self.table:
-            raise Exception("Spectrum is not assigned")
+        if "DBE" not in self.table:
+            self = self.calculate_dbe()
 
-        self = self.calculate_dbe()
         table = self.copy().sum_isotopes().table
         self.table['DBE-OC'] = (table['DBE'] - table['O'])/table['C']
 
@@ -989,11 +1000,10 @@ class MassSpectrum(object):
         ------
         MassSpectrum object with calculated Ke and KMD
         """
-        if "assign" not in self.table:
-            raise Exception("Spectrum is not assigned")
 
         if 'calculated_mass' not in self.table:
             self = self.calculate_mass()
+
         self.table['Ke'] = self.table['calculated_mass'] * 14/14.01565
         self.table['KMD'] = np.floor(self.table['calculated_mass'].values) - np.array(self.table['Ke'].values)
         self.table.loc[self.table['KMD']<=0, 'KMD'] = self.table.loc[self.table['KMD']<=0, 'KMD'] + 1
@@ -1045,6 +1055,9 @@ class MassSpectrum(object):
         MassSpectrum object with assigned zones
         """
 
+        if 'AI' not in self.table:
+            self = self.calculate_ai()
+
         self = self.calculate_ai()
         table = self.copy().sum_isotopes().table
 
@@ -1082,7 +1095,7 @@ class MassSpectrum(object):
             else:
                 return 'undefinded'
                 
-        self.table['kzone'] = table.apply(get_zone, axis=1)
+        self.table['class'] = table.apply(get_zone, axis=1)
 
         return MassSpectrum(self.table)
 
@@ -1127,10 +1140,10 @@ class MassSpectrum(object):
                     'undefinded']:
 
             if weight == "count":
-                ans[zone] = len(self.table.loc[self.table['kzone'] == zone])/count_density
+                ans[zone] = len(self.table.loc[self.table['class'] == zone])/count_density
 
             elif weight == "intensity":
-                ans[zone] = self.table.loc[self.table['kzone'] == zone, 'intensity'].sum()/sum_density
+                ans[zone] = self.table.loc[self.table['class'] == zone, 'intensity'].sum()/sum_density
 
             else:
                 raise ValueError(f"weight should be count or intensity not {weight}")
@@ -1160,7 +1173,7 @@ class MassSpectrum(object):
         self = self.calculate_cram()
         self = self.calculate_nosc()
         self = self.calculate_brutto()
-        
+        self = self.calculate_mol_class_zones()
         self = self.calculate_kendrick()
 
         return MassSpectrum(self.table)
@@ -1359,18 +1372,28 @@ class MassSpectrum(object):
         return MassSpectrum(out2)
 
     @_copy
-    def calculate_DBEvsO(self, ax=None, olim=None, **kwargs) -> None:
+    def calculate_DBEvsO(self, 
+                        olim: Optional[Tuple[int, int]] = None, 
+                        draw: Optional[bool] = True, 
+                        ax: Optional[plt.axes] = None, 
+                        **kwargs: dict) -> Tuple[float, float]:
         """
         Draw plot DBE by nO and calculate linear fit
         
         Parameters
         ----------
-        ax: matplotlib axes
-            ax fo outer plot. Default None
         olim: tuple of two int
             limit for nO. Deafult None
+        draw: bool
+            draw scatter DBE vs nO and how it is fitted
+        ax: matplotlib axes
+            ax fo outer plot. Default None
         **kwargs: dict
             dict for additional condition to scatter matplotlib
+
+        Return
+        ------
+        (float, float), a and b in fit y = a*x + b
 
         References
         ----------
@@ -1380,8 +1403,10 @@ class MassSpectrum(object):
         Analytical chemistry, 83(11), 4193-4199.
         
         """
+        if 'DBE' not in self.table:
+            self = self.calculate_dbe()
 
-        self = self.calculate_dbe().drop_unassigned()
+        self = self.drop_unassigned()
         if olim is None:
             no = list(range(5, int(self.table['O'].max())-4))
         else:
@@ -1405,17 +1430,20 @@ class MassSpectrum(object):
         ss_res = np.sum(residuals**2)
         ss_tot = np.sum((y-np.mean(y))**2)
         r_squared = 1 - (ss_res / ss_tot)
-
-        if ax is None:
-            fig,ax = plt.subplots(figsize=(3,3), dpi=100)
         
-        ax.scatter(x, y, **kwargs)
-        ax.plot(x, linear(x, *popt), label=f'y={round(popt[0],2)}x + {round(popt[1],1)} R2={round(r_squared, 4)}', **kwargs)
-        ax.set_xlim(4)
-        ax.set_ylim(5)
-        ax.set_xlabel('number of oxygen')
-        ax.set_ylabel('DBE average')
-        ax.legend()
+        if draw:
+            if ax is None:
+                fig,ax = plt.subplots(figsize=(3,3), dpi=100)
+            
+            ax.scatter(x, y, **kwargs)
+            ax.plot(x, linear(x, *popt), label=f'y={round(popt[0],2)}x + {round(popt[1],1)} R2={round(r_squared, 4)}', **kwargs)
+            ax.set_xlim(4)
+            ax.set_ylim(5)
+            ax.set_xlabel('number of oxygen')
+            ax.set_ylabel('DBE average')
+            ax.legend()
+
+        return popt[0], popt[1]
 
     def vk_squares(self, ax=None, draw:bool=True) -> pd.DataFrame:
         """
