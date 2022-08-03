@@ -241,19 +241,18 @@ def scatter_density(spec: 'MassSpectrum',
 
     scatter(spec, x=x, y=y, xlim=xlim, ylim=ylim, volume=volume, color=color, alpha=alpha, size=size, size_power=size_power, ax=ax, **kwargs)
     
-    density(spec, col=x, color=color, ax=ax_x)
+    density(spec, col=x, color=color, ax=ax_x, xlim=xlim)
     ax_x.set_axis_off()
-    ax_x.set_xlim(xlim)
     
-    density(spec, col=y, color=color, ax=ax_y, vertical=True)
+    density(spec, col=y, color=color, ax=ax_y, ylim=ylim, vertical=True)
     ax_y.set_axis_off()
-    ax_y.set_xlim(ylim)
 
     return
 
 def density(spec: 'MassSpectrum',
             col: str,
             xlim: Tuple[Optional[float], Optional[float]] = (None, None),
+            ylim: Tuple[Optional[float], Optional[float]] = (None, None),
             color: Optional[str] = 'blue', 
             ax: Optional[plt.axes] = None, 
             **kwargs: Optional[dict]) -> None:
@@ -268,6 +267,8 @@ def density(spec: 'MassSpectrum',
         Column name for draw density
     xlim: Tuple (float, float)
         restrict for mass
+    ylim: Tuple (float, float)
+        restrict for intensity
     color: str
         Optional, default blue. Color of density plot
     ax: plt.axes
@@ -295,6 +296,7 @@ def density(spec: 'MassSpectrum',
     sns.kdeplot(x = oc, ax=ax, color=color, fill=True, alpha=0.1, bw_adjust=2, **kwargs)
     ax.set_xlabel(col)
     ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
 
     return
 
@@ -363,7 +365,7 @@ def vk(spec: "MassSpectrum",
         arguments to send scatter function    
     """
     if 'O/C' or 'H/C' not in spec.table:
-        spec = spec.copy().calculate_hc_oc()
+        spec = spec.calculate_hc_oc()
 
     if func is None:
         func = scatter
@@ -372,7 +374,7 @@ def vk(spec: "MassSpectrum",
 
     return
 
-def show_error(spec) -> None:
+def show_error(spec:"MassSpectrum") -> None:
     """
     Plot relative error of assigned brutto formulas vs mass
 
@@ -383,7 +385,7 @@ def show_error(spec) -> None:
     """
 
     if "rel_error" not in spec.table:
-        spec = spec.copy().calculate_error()      
+        spec = spec.calculate_error()      
 
     fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
     ax.scatter(spec.table['mass'], spec.table['rel_error'], s=0.1)
