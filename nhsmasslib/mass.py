@@ -949,8 +949,9 @@ class Spectrum(object):
         else:
             raise Exception(f"There is no such mode: {mode}")
 
-    ##############################################
-    # Calculation methods for brutto formulas
+    ###########################################
+    # Calculation methods for brutto formulas #
+    ###########################################
 
     @_copy
     def brutto(self) -> 'Spectrum':
@@ -1020,23 +1021,6 @@ class Spectrum(object):
         return self
 
     @_copy
-    def get_cram_value(self) -> int:
-        """
-        Calculate percent of CRAM molecules
-        (carboxylic-rich alicyclic molecules)
-
-        Return
-        ------
-        int. percent of CRAM molecules in mass-spec
-        weight by intensity
-        """
-        if "CRAM" not in self.table:
-            self = self.cram()
-
-        value = self.table.loc[self.table['CRAM'] == True, 'intensity'].sum()/self.table.loc[self.table['assign']==True, 'intensity'].sum()
-        return int(value*100)
-
-    @_copy
     def ai(self) -> 'Spectrum':
         """
         Calculate AI
@@ -1052,6 +1036,11 @@ class Spectrum(object):
             self = self.cai()
 
         self.table["AI"] = self.table["DBE_AI"] / self.table["CAI"]
+
+        clear  = self.table["AI"].values[np.isfinite(self.table["AI"].values)]
+        self.table['AI'] = self.table['AI'].replace(-np.inf, np.min(clear))
+        self.table['AI'] = self.table['AI'].replace(np.inf, np.max(clear))
+        self.table['AI'] = self.table['AI'].replace(np.nan, np.mean(clear))
 
         return self
 
@@ -1281,14 +1270,14 @@ class Spectrum(object):
         return self
 
     @_copy
-    def get_mol_class(self, weight: str = "intensity") -> pd.DataFrame:
+    def get_mol_class(self, how_average: str = "weight") -> pd.DataFrame:
         """
         get molercular class density
 
         Parameters
         ----------
-        weight: str
-            how calculate density. Default "intensity".
+        how_average: str
+            how average density. Default "weight" - weight by intensity.
             Also can be "count".
 
         Return
@@ -1320,14 +1309,14 @@ class Spectrum(object):
                     'N-satureted',
                     'undefinded']:
 
-            if weight == "count":
+            if how_average == "count":
                 out.append([zone, len(self.table.loc[self.table['class'] == zone])/count_density])
 
-            elif weight == "intensity":
+            elif how_average == "weight":
                 out.append([zone, self.table.loc[self.table['class'] == zone, 'intensity'].sum()/sum_density])
 
             else:
-                raise ValueError(f"weight should be count or intensity not {weight}")
+                raise ValueError(f"how_average should be count or intensity not {how_average}")
         
         return pd.DataFrame(data=out, columns=['class', 'density'])
 
@@ -1485,8 +1474,49 @@ class Spectrum(object):
 
         return self
 
-    ###########################################################
-    # passing pandas DataFrame methods for represent mass table
+    @_copy
+    def get_mol_metrics(self, 
+                        metrics: Optional[Sequence[str]] = None, 
+                        how_average: str = 'weight') -> pd.DataFrame:
+        """
+        Get average metrics
+
+        Parameters
+        ----------
+        metrics: Sequence[str]
+            Optional. Default None. Chose metrics fot watch.
+        how_average: str
+            How calculate average. My be "count" or "weight" ((default))
+
+        Return
+        ------
+        pd.DataFrame
+        """
+
+        self = self.calc_all_metrics().drop_unassigned().normalize()
+
+        if metrics is None:
+            metrics = set(self.table.columns) - set(['intensity', 'calc_mass', 'rel_error','abs_error',
+                                                    'assign', 'class', 'brutto', 'Ke', 'KMD'])
+
+        res = []
+        metrics = np.sort(np.array(list(metrics)))
+
+        for col in metrics:
+
+            if how_average=='count':
+                res.append([col, np.average(self.table[col])])
+            
+            elif how_average=='weight':
+                res.append([col, np.average(self.table[col], weights=self.table['intensity'])])
+            else:
+                raise ValueError(f'how_average can be only "count" or "weight", not {how_average}')
+
+        return pd.DataFrame(data=res, columns=['metric', 'value'])
+
+    #############################################################
+    # passing pandas DataFrame methods for represent mass table #
+    #############################################################
 
     def head(self, num: Optional[int] = None) -> pd.DataFrame:
         """
@@ -2034,6 +2064,36 @@ class SpectrumList(UserList):
             values = values + values.T - np.diag(np.diag(values))
 
         return values
+
+    def get_mol_metrics(self, 
+                        metrics: Optional[Sequence[str]] = None,
+                        how_average: str = 'weight') -> pd.DataFrame:
+        """
+        Get average metrics
+
+        Parameters
+        ----------
+        metrics: Sequence[str]
+            Optional. Default None. Chose metrics fot watch.
+        how_average: str
+            How calculate average. My be "count" or "weight" ((default))
+        """
+
+        metrics_table = pd.DataFrame()
+        names = []
+
+        for i, spec in enumerate(self):
+            metr = spec.get_mol_metrics(metrics=metrics, how_average=how_average)
+            names.append(spec.metadata['name'])
+
+            if i == 0:
+                metrics_table = metr
+            else:
+                metrics_table = metrics_table.merge(metr, how='outer', on='metric')
+                            
+        metrics_table.columns = ['metric',*names]
+
+        return metrics_table
 
     def get_mol_density(self) -> pd.DataFrame:
         """
