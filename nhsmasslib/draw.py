@@ -19,14 +19,14 @@ from typing import Optional, Tuple, Callable
 
 import numpy as np
 import matplotlib.pyplot as plt
-from .mass import MassSpectrum
+from .mass import Spectrum
 
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
 
 
-def spectrum(spec: 'MassSpectrum',
+def spectrum(spec: 'Spectrum',
     xlim: Tuple[Optional[float], Optional[float]] = (None, None),
     ylim: Tuple[Optional[float], Optional[float]] = (None, None),
     color: Optional[str] = 'black',
@@ -41,7 +41,7 @@ def spectrum(spec: 'MassSpectrum',
 
     Parameters
     ----------
-    spec: MassSpectrum object
+    spec: Spectrum object
         spec for plot
     xlim: Tuple (float, float)
         restrict for mass
@@ -101,7 +101,7 @@ def spectrum(spec: 'MassSpectrum',
 
     return
 
-def scatter(spec: 'MassSpectrum',
+def scatter(spec: 'Spectrum',
             x: str, 
             y: str,
             xlim: Tuple[Optional[float], Optional[float]] = (None, None),
@@ -119,7 +119,7 @@ def scatter(spec: 'MassSpectrum',
 
     Parameters
     ----------
-    spec: MassSpectrum object
+    spec: Spectrum object
         spec for plot
     x: str
         Name for x ordiante - columns in spec table
@@ -197,7 +197,7 @@ def scatter(spec: 'MassSpectrum',
 
     return
 
-def scatter_density(spec: 'MassSpectrum',
+def scatter_density(spec: 'Spectrum',
                     x: str, 
                     y: str,
                     xlim: Tuple[Optional[float], Optional[float]] = (None, None),
@@ -217,7 +217,7 @@ def scatter_density(spec: 'MassSpectrum',
 
     Parameters
     ----------
-    spec: MassSpectrum object
+    spec: Spectrum object
         spec for plot
     ax: list of 3 plt.ax
         Optional, default None. List of three axes: ax for scatter, and ax_x, ax_y for density plot
@@ -263,12 +263,12 @@ def scatter_density(spec: 'MassSpectrum',
     else:
         ax, ax_x, ax_y = ax
 
-    scatter(spec, x=x, y=y, xlim=xlim, ylim=ylim, volume=volume, color=color, alpha=alpha, size=size, size_power=size_power, ax=ax, **kwargs)
+    scatter(spec, x=x, y=y, xlim=xlim, ylim=ylim, volume=volume, color=color, alpha=alpha, size=size, size_power=size_power, ax=ax, title=False, **kwargs)
     
-    density(spec, col=x, color=color, ax=ax_x, xlim=xlim)
+    density(spec, col=x, color=color, ax=ax_x, xlim=xlim, title=False)
     ax_x.set_axis_off()
     
-    density(spec, col=y, color=color, ax=ax_y, ylim=ylim, vertical=True)
+    density(spec, col=y, color=color, ax=ax_y, ylim=ylim, vertical=True, title=False)
     ax_y.set_axis_off()
 
     if title is None:
@@ -281,7 +281,7 @@ def scatter_density(spec: 'MassSpectrum',
 
     return
 
-def density(spec: 'MassSpectrum',
+def density(spec: 'Spectrum',
             col: str,
             xlim: Tuple[Optional[float], Optional[float]] = (None, None),
             ylim: Tuple[Optional[float], Optional[float]] = (None, None),
@@ -294,7 +294,7 @@ def density(spec: 'MassSpectrum',
 
     Parameters
     ----------
-    spec: MassSpectrum object
+    spec: Spectrum object
         spec for plot
     x: str
         Column name for draw density
@@ -345,7 +345,7 @@ def density(spec: 'MassSpectrum',
 
     return
 
-def density_2D(spec: 'MassSpectrum', 
+def density_2D(spec: 'Spectrum', 
                 x: str, 
                 y: str,
                 xlim: Tuple[Optional[float], Optional[float]] = (None, None),
@@ -363,7 +363,7 @@ def density_2D(spec: 'MassSpectrum',
 
     Parameters
     ----------
-    spec: MassSpectrum object
+    spec: Spectrum object
         spec for plot
     x: str
         Name for x ordiante - columns in spec table
@@ -404,7 +404,7 @@ def density_2D(spec: 'MassSpectrum',
 
     return
 
-def vk(spec: "MassSpectrum",
+def vk(spec: "Spectrum",
        func: Optional[Callable] = None,
        ax: Optional[plt.axes] = None,
        title: Optional[str] = None,
@@ -415,7 +415,7 @@ def vk(spec: "MassSpectrum",
 
     Parameters
     ----------
-    spec: MassSpectrum object
+    spec: Spectrum object
         Mass-spectrum
     func: function
         function for draw vank-krevelen, may be scatter, scatter_density, density_2D
@@ -429,7 +429,7 @@ def vk(spec: "MassSpectrum",
         arguments to send scatter function    
     """
     if 'O/C' or 'H/C' not in spec.table:
-        spec = spec.calculate_hc_oc()
+        spec = spec.hc_oc()
 
     if func is None:
         func = scatter
@@ -446,13 +446,13 @@ def vk(spec: "MassSpectrum",
 
     return
 
-def show_error(spec:"MassSpectrum") -> None:
+def show_error(spec:"Spectrum") -> None:
     """
     Plot relative error of assigned brutto formulas vs mass
 
     Parameters
     ----------
-    spec: MassSpectrum object
+    spec: Spectrum object
         mass-spec for plotting relative error
     """
 
