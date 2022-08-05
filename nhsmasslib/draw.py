@@ -31,6 +31,7 @@ def spectrum(spec: 'MassSpectrum',
     ylim: Tuple[Optional[float], Optional[float]] = (None, None),
     color: Optional[str] = 'black',
     ax: Optional[plt.axes] = None,
+    title: Optional[str] = None,
     **kwargs
     ) -> None:
     """
@@ -50,6 +51,8 @@ def spectrum(spec: 'MassSpectrum',
         color of draw
     ax: matplotlyp axes object
         send here ax to plot in your own condition
+    title: str
+        Title of draw. Default None. Take name from metadata and number of peaks.
     **kwargs: dict
         additinal parameters to plot method
     """
@@ -87,7 +90,14 @@ def spectrum(spec: 'MassSpectrum',
     ax.set_ylim(ylim)
     ax.set_xlabel('m/z, Da')
     ax.set_ylabel('Intensity')
-    ax.set_title(f'{len(spec.table)} peaks')
+
+    if title is None:
+        if 'name' in spec.metadata:
+            title = f'{spec.metadata["name"]}, {len(spec.table)} peaks'
+        else:
+            title = f'{len(spec.table)} peaks'
+    if title:
+        plt.title(title)
 
     return
 
@@ -102,6 +112,7 @@ def scatter(spec: 'MassSpectrum',
             size: Optional[float] = None,
             size_power: Optional[float] = None,
             ax: Optional[plt.axes] = None,
+            title: Optional[str] = None,
             **kwargs: Optional[dict]) -> None:
     """
     Draw scatter of different columns in mass-spectrum
@@ -133,6 +144,8 @@ def scatter(spec: 'MassSpectrum',
     size_power: float
         Optinal. default None - plot linear dependes for volume.
         raises volume values to a power. For increae size put values > 1, for decrease <1
+    title: str
+        Title of draw. Default None. Take name from metadata and number of peaks.
     **kwargs: dict
         additional parameters to scatter method
     """
@@ -174,6 +187,14 @@ def scatter(spec: 'MassSpectrum',
     ax.set_xlabel(x)
     ax.set_ylabel(y)
 
+    if title is None:
+        if 'name' in spec.metadata:
+            title = f'{spec.metadata["name"]}, {len(spec.drop_unassigned())} formulas'
+        else:
+            title = f'{len(spec.drop_unassigned())} formulas'
+    if title:
+        plt.title(title)
+
     return
 
 def scatter_density(spec: 'MassSpectrum',
@@ -187,6 +208,7 @@ def scatter_density(spec: 'MassSpectrum',
                     size: Optional[float] = None,
                     size_power: Optional[float] = None,
                     ax: Optional[plt.axes] = None,
+                    title: Optional[str] = None,
                     **kwargs) -> None:
     """
     Plot VK scatter with density
@@ -220,6 +242,8 @@ def scatter_density(spec: 'MassSpectrum',
     size_power: float
         Optinal. default None - plot linear dependes for volume.
         raises volume values to a power. For increae size put values > 1, for decrease <1
+    title: str
+        Title of draw. Default None. Take name from metadata and number of peaks.
     **kwargs: dict
         additional parameters to scatter method
     """
@@ -247,6 +271,14 @@ def scatter_density(spec: 'MassSpectrum',
     density(spec, col=y, color=color, ax=ax_y, ylim=ylim, vertical=True)
     ax_y.set_axis_off()
 
+    if title is None:
+        if 'name' in spec.metadata:
+            title = f'{spec.metadata["name"]}, {len(spec.drop_unassigned())} formulas'
+        else:
+            title = f'{len(spec.drop_unassigned())} formulas'
+    if title:
+        plt.title(title)
+
     return
 
 def density(spec: 'MassSpectrum',
@@ -254,7 +286,8 @@ def density(spec: 'MassSpectrum',
             xlim: Tuple[Optional[float], Optional[float]] = (None, None),
             ylim: Tuple[Optional[float], Optional[float]] = (None, None),
             color: Optional[str] = 'blue', 
-            ax: Optional[plt.axes] = None, 
+            ax: Optional[plt.axes] = None,
+            title: Optional[str] = None,
             **kwargs: Optional[dict]) -> None:
     """
     Draw KDE density for values
@@ -273,6 +306,10 @@ def density(spec: 'MassSpectrum',
         Optional, default blue. Color of density plot
     ax: plt.axes
         Optional. External axes.
+    title: str
+        Title of draw. Default None. Take name from metadata and number of peaks.
+    **kwargs: Dict
+        Additional arguments for plot
     """
 
     if col not in spec.table:
@@ -298,6 +335,14 @@ def density(spec: 'MassSpectrum',
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
 
+    if title is None:
+        if 'name' in spec.metadata:
+            title = f'{spec.metadata["name"]}, {len(spec.drop_unassigned())} formulas'
+        else:
+            title = f'{len(spec.drop_unassigned())} formulas'
+    if title:
+        plt.title(title)
+
     return
 
 def density_2D(spec: 'MassSpectrum', 
@@ -306,8 +351,10 @@ def density_2D(spec: 'MassSpectrum',
                 xlim: Tuple[Optional[float], Optional[float]] = (None, None),
                 ylim: Tuple[Optional[float], Optional[float]] = (None, None),
                 cmap: Optional[str] ="YlGnBu", 
+                shade: Optional[bool] = True,
+                title: Optional[str] = None,
                 ax: Optional[plt.axes] = None, 
-                shade: Optional[bool] = True
+                **kwargs
                 ) -> None:
     """
     Draw Van-Krevelen density
@@ -332,22 +379,35 @@ def density_2D(spec: 'MassSpectrum',
         external ax
     shade: bool
         show shade
+    title: str
+        Title of draw. Default None. Take name from metadata and number of peaks.
+    **kwargs: Dict
+        Additional arguments for plot
     """
     if x not in spec.table:
         raise Exception(f'Value {x} is not in spectrum table. Calculate it before')
     if y not in spec.table:
         raise Exception(f'Value {y} is not in spectrum table. Calculate it before')
 
-    sns.kdeplot(spec.table[x], spec.table[y], ax=ax, cmap=cmap, shade=shade)
+    sns.kdeplot(spec.table[x], spec.table[y], ax=ax, cmap=cmap, shade=shade, **kwargs)
 
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
+
+    if title is None:
+        if 'name' in spec.metadata:
+            title = f'{spec.metadata["name"]}, {len(spec.drop_unassigned())} formulas'
+        else:
+            title = f'{len(spec.drop_unassigned())} formulas'
+    if title:
+        plt.title(title)
 
     return
 
 def vk(spec: "MassSpectrum",
        func: Optional[Callable] = None,
        ax: Optional[plt.axes] = None,
+       title: Optional[str] = None,
        *args: Optional[list],
        **kwargs: Optional[dict]) -> None:
     """
@@ -359,6 +419,10 @@ def vk(spec: "MassSpectrum",
         Mass-spectrum
     func: function
         function for draw vank-krevelen, may be scatter, scatter_density, density_2D
+    ax: matplotlyp axes object
+        send here ax to plot in your own condition
+    title: str
+        Title of draw. Default None. Take name from metadata and number of peaks.
     *args: list
         arguments to send scatter function
     *kwargs: dict
@@ -370,7 +434,15 @@ def vk(spec: "MassSpectrum",
     if func is None:
         func = scatter
 
-    func(spec=spec, x='O/C', y='H/C', xlim=(0, 1), ylim=(0, 2.2), ax=ax, *args, **kwargs)
+    func(spec=spec, x='O/C', y='H/C', xlim=(0, 1), ylim=(0, 2.2), ax=ax, title=False, *args, **kwargs)
+
+    if title is None:
+        if 'name' in spec.metadata:
+            title = f'{spec.metadata["name"]}, {len(spec.drop_unassigned())} formulas'
+        else:
+            title = f'{len(spec.drop_unassigned())} formulas'
+    if title:
+        plt.title(title)
 
     return
 

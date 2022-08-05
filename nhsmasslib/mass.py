@@ -16,10 +16,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmasslib.  If not, see <http://www.gnu.org/licenses/>.
 
+from heapq import merge
 from pathlib import Path
-from typing import List, Sequence, Union, Optional, Mapping, Tuple
+from typing import List, Dict, Sequence, Union, Optional, Mapping, Tuple
 import copy
-from xml.etree.ElementInclude import FatalIncludeError
+from collections import UserDict, UserList
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,6 +36,7 @@ from scipy.optimize import curve_fit
 from tqdm import tqdm
 
 from .brutto import brutto_gen, elements_table, get_elements_masses
+from .metadata import MetaData
 
 
 class MassSpectrum(object):
@@ -46,11 +48,14 @@ class MassSpectrum(object):
     table : pandas Datarame
         Optional. consist spectrum (mass and intensity of peaks) and all calculated parameters
         like brutto formulas, calculated mass, relative errorr
+    metadata: MetaData
+        Optional. Default None. Metadata object that consist dictonary of metadata
     """
 
     def __init__(
                 self,
-                table: pd.DataFrame = None
+                table: Optional[pd.DataFrame] = None,
+                metadata: Optional[Dict] = None
                 ) -> pd.DataFrame:
         """
         Parameters
@@ -58,14 +63,18 @@ class MassSpectrum(object):
         table : pandas Datarame
             Optional. Consist spectrum (mass and intensity of peaks) and all calculated 
             parameters like brutto formulas, calculated mass, relative errorr
+        metadata: Dict
+            Optional. Default None. To add some data into spectrum metedata. 
         """
 
-        self.features = ["mass", "calculated_mass", 'intensity', "abs_error", "rel_error"]
+        self.features = ["mass", 'intensity', "calculated_mass", 'intensity', "rel_error"]
 
         if table is not None:
             self.table = table
         else:
-            self.table = pd.DataFrame(columns=['intensity', "mass", "brutto", "calculated_mass", "abs_error", "rel_error"])
+            self.table = pd.DataFrame(columns=["mass", 'intensity', "brutto", "calculated_mass", "rel_error"])
+
+        self.metadata = MetaData(metadata)
 
     def _copy(func):
         """
@@ -127,7 +136,8 @@ class MassSpectrum(object):
         intens_max: float = None,
         mass_min: float =  None,
         mass_max: float = None,
-        assign_mark: bool = False
+        assign_mark: bool = False,
+        metadata: Optional[Dict] = {}
     ) -> "MassSpectrum":
         """
         Load mass pectrum table to MassSpectrum object
@@ -169,6 +179,9 @@ class MassSpectrum(object):
         assign_mark: bool
             default False. Mark peaks as assigned if they have elements
             need for load mass-list treated by external software
+        metadata: Dict
+            Optional. Default None. Metadata object that consist dictonary of metadata.
+            if name not in metadata - name will take from filename.
 
         Return
         ------
@@ -204,6 +217,11 @@ class MassSpectrum(object):
             self._mark_assigned_by_brutto()
 
         self.table = self.table.sort_values(by="mass").reset_index(drop=True)
+
+        if 'name' not in metadata:
+            self.metadata['name'] = filename.split('/')[-1].split('.')[0]
+
+        self.metadata.add(metadata=metadata)
 
         return self
 
@@ -304,6 +322,8 @@ class MassSpectrum(object):
             mass_shift = 0
         else:
             raise Exception('Sended sign to assign method is not correct. May be "+","-","0"')
+
+        self.metadata.add({'sign':sign})
 
         if rel_error is not None:
             rel = True
@@ -478,14 +498,19 @@ class MassSpectrum(object):
             self = self.calculate_mass()
 
         if sign is None:
-            sign = self._calculate_sign()
+            if 'sign' in self.metadata:
+                sign = self.metadata['sign']
+            else:
+                sign = self._calculate_sign()
 
         if sign == '-':
             self.table["abs_error"] = self.table["mass"] - self.table["calculated_mass"] + (- 0.00054858 + 1.007825) #-electron + proton
         elif sign == '+':
             self.table["abs_error"] = self.table["mass"] - self.table["calculated_mass"] + 0.00054858 #+electron
-        else:
+        elif sign == '0':
             self.table["abs_error"] = self.table["mass"] - self.table["calculated_mass"]
+        else:
+            raise Exception('Sended sign or sign in metadata is not correct. May be "+","-","0"')
         
         self.table["rel_error"] = self.table["abs_error"] / self.table["mass"] * 1e6
         
@@ -1933,7 +1958,7 @@ class ErrorTable(object):
         return ErrorTable(err.table)       
 
 
-class MassSpectrumList(list):
+class MassSpectrumList(UserList):
     """
     Class for work list of MassSpectrums objects
     inheritan from list class with some extra features.
@@ -1941,6 +1966,12 @@ class MassSpectrumList(list):
     """
 
     def __init__(self, spectra: Optional[List["MassSpectrum"]] = []):
+
+        t = type(MassSpectrum())
+        for spec in spectra:
+            if isinstance(spec, t) == False:
+                raise Exception(f'MassSpectrumList must contain only MassSpectrum objects, not {type(spec)}')
+
         super().__init__(spectra)
         """
         init MassSpectrumList Class
@@ -2019,9 +2050,11 @@ class MassSpectrumList(list):
         if ax is None:
             fig, ax = plt.subplots(figsize=(len(self),len(self)), dpi=75)
         
-        #x_axis_labels = self.names
-        #y_axis_labels = self.names
-        sns.heatmap(np.array(values), vmin=0, vmax=1, cmap="viridis", annot=annot, ax=ax)#, xticklabels=x_axis_labels, yticklabels=y_axis_labels)
+        axis_labels = []
+        for i, spec in enumerate(self):
+            axis_labels.append(spec.metadata['name'] if 'name' in spec.metadata else i)
+        
+        sns.heatmap(np.array(values), vmin=0, vmax=1, cmap="viridis", annot=annot, ax=ax, xticklabels=axis_labels, yticklabels=axis_labels)
         plt.title(mode)
 
 

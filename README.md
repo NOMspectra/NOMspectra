@@ -1,3 +1,5 @@
+for now it is not available from PyPI until end of refactoring
+ 
 [![PyPI](https://img.shields.io/pypi/v/nhsmasslib)](https://pypi.org/project/nhsmasslib/)
 
 # nhsmasslib
@@ -15,10 +17,10 @@ This lib supports
 
 ## Installation
 
-By pip:
+By pip from folder:
 
 ```console
-pip install nhsmasslib
+pip install .
 ```
 
 ## Documentation
