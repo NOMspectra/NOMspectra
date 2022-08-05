@@ -15,6 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmasslib.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Sequence, Optional
 import numpy as np
 import pandas as pd
 import copy
@@ -32,7 +33,7 @@ def _freeze(func):
 
 @_freeze
 @lru_cache(maxsize=None)
-def brutto_gen(elems:dict = None, rules:bool = True) -> pd.DataFrame:
+def brutto_gen(elems: Optional[dict] = None, rules: bool = True) -> pd.DataFrame:
     """
     Generete brutto formula
 
@@ -104,7 +105,7 @@ def brutto_gen(elems:dict = None, rules:bool = True) -> pd.DataFrame:
 
     return gdf
 
-def _sum_isotopes(gdf:pd.DataFrame) -> pd.DataFrame:
+def _sum_isotopes(gdf: pd.DataFrame) -> pd.DataFrame:
     """
     All isotopes will be sum and title as main.
 
@@ -123,7 +124,7 @@ def _sum_isotopes(gdf:pd.DataFrame) -> pd.DataFrame:
 
     return gdf
 
-def get_elements_masses(elems) -> np.array :
+def get_elements_masses(elems: Sequence[str]) -> np.array :
     """
     Get elements masses from list
 
@@ -150,7 +151,7 @@ def get_elements_masses(elems) -> np.array :
 
     return np.array(elems_masses)
 
-def gen_from_brutto(table:pd.DataFrame) -> pd.DataFrame:
+def gen_from_brutto(table: pd.DataFrame) -> pd.DataFrame:
     """
     Generate mass from brutto table
 

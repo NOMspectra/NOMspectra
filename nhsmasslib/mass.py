@@ -19,7 +19,7 @@
 from pathlib import Path
 from typing import List, Dict, Sequence, Union, Optional, Mapping, Tuple
 import copy
-from collections import UserDict, UserList
+from collections import UserList
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -78,17 +78,17 @@ class Spectrum(object):
     def load(
         self,
         filename: Union[Path, str],
-        mapper: Mapping[str, str] = None,
-        ignore_columns: Sequence[str] = None,
-        take_columns: Sequence[str] = None,
-        take_only_mz: Sequence[str] = False,
+        mapper: Optional[Mapping[str, str]] = None,
+        ignore_columns: Optional[Sequence[str]] = None,
+        take_columns: Optional[Sequence[str]] = None,
+        take_only_mz: bool = False,
         sep: str = ",",
-        intens_min: float =  None,
-        intens_max: float = None,
-        mass_min: float =  None,
-        mass_max: float = None,
+        intens_min: Optional[float] =  None,
+        intens_max: Optional[float] = None,
+        mass_min: Optional[float] =  None,
+        mass_max: Optional[float] = None,
         assign_mark: bool = False,
-        metadata: Optional[Dict] = {}
+        metadata: Optional[Dict] = None
     ) -> "Spectrum":
         """
         Load mass pectrum table to Spectrum object
@@ -169,14 +169,18 @@ class Spectrum(object):
 
         self.table = self.table.sort_values(by="mass").reset_index(drop=True)
 
-        if 'name' not in metadata:
-            self.metadata['name'] = filename.split('/')[-1].split('.')[0]
+        if metadata is not None:            
+            self.metadata.add(metadata=metadata)
 
-        self.metadata.add(metadata=metadata)
+        #FIXME bad solution
+        if 'name' not in self.metadata:
+            self.metadata['name'] = filename.split('/')[-1].split('.')[0]
 
         return self
     
-    def save(self, filename: Union[Path, str], sep: str = ",") -> None:
+    def save(self, 
+            filename: Union[Path, str], 
+            sep: str = ",") -> None:
         """
         Saves to csv Spectrum
         
@@ -236,13 +240,13 @@ class Spectrum(object):
 
     def assign(
             self,
-            brutto_dict: dict = None,
-            generated_bruttos_table: pd.DataFrame = None,
-            rel_error: float = None,
-            abs_error: float = None,
+            brutto_dict: Optional[dict] = None,
+            generated_bruttos_table: Optional[pd.DataFrame] = None,
+            rel_error: Optional[float] = None,
+            abs_error: Optional[float] = None,
             sign: str ='-',
-            mass_min: float =  None,
-            mass_max: float = None,
+            mass_min: Optional[float] =  None,
+            mass_max: Optional[float] = None,
     ) -> "Spectrum":
         """
         Finding the nearest mass in generated_bruttos_table
@@ -465,7 +469,9 @@ class Spectrum(object):
         return self
 
     @_copy
-    def recallibrate(self, error_table: "ErrorTable" = None, how = 'assign') -> "Spectrum":
+    def recallibrate(self, 
+                    error_table: Optional["ErrorTable"] = None, 
+                    how: str = 'assign') -> "Spectrum":
         '''
         Recallibrate data by error-table
 
@@ -516,10 +522,10 @@ class Spectrum(object):
     @_copy
     def assign_by_tmds (
         self, 
-        tmds_spec: "Tmds" = None, 
+        tmds_spec: Optional["Tmds"] = None, 
         abs_error: float = 0.001,
         p = 0.2,
-        max_num: int = None,
+        max_num: Optional[int] = None,
         C13_filter: bool = True
         ) -> "Spectrum":
         '''
@@ -670,7 +676,7 @@ class Spectrum(object):
             return '0'
 
     @_copy
-    def calc_error(self, sign:str=None) -> "Spectrum":
+    def calc_error(self, sign: Optional[str] = None) -> "Spectrum":
         """
         Calculate relative and absolute error of assigned peaks
 
@@ -714,7 +720,7 @@ class Spectrum(object):
     ######################################################
 
     @_copy
-    def __or__(self: "Spectrum", other: "Spectrum") -> "Spectrum":
+    def __or__(self, other: "Spectrum") -> "Spectrum":
         """
         Logic function or for two Spectrum object
 
@@ -742,7 +748,7 @@ class Spectrum(object):
         return Spectrum(a)
 
     @_copy
-    def __xor__(self: "Spectrum", other: "Spectrum") -> "Spectrum":
+    def __xor__(self, other: "Spectrum") -> "Spectrum":
         """
         Logic function xor for two Spectrum object
 
@@ -759,7 +765,7 @@ class Spectrum(object):
         return sub1.__or__(sub2)
 
     @_copy
-    def __and__(self: "Spectrum", other: "Spectrum") -> "Spectrum":
+    def __and__(self, other: "Spectrum") -> "Spectrum":
         """
         Logic function and for two Spectrum object
 
@@ -795,7 +801,7 @@ class Spectrum(object):
 
         return Spectrum(res)
     
-    def __add__(self: "Spectrum", other: "Spectrum") -> "Spectrum":
+    def __add__(self, other: "Spectrum") -> "Spectrum":
         """
         Logic function or for two Spectrum object
 
@@ -887,7 +893,7 @@ class Spectrum(object):
         return (self - other) + Spectrum(rE)  
 
     @_copy
-    def simmilarity(self, other:"Spectrum", mode:str='tanimoto') -> float:
+    def simmilarity(self, other: "Spectrum", mode: str = 'cosine') -> float:
         """
         Calculate Simmilarity
 
@@ -1328,9 +1334,9 @@ class Spectrum(object):
     @_copy
     def get_dbe_vs_o(self, 
                         olim: Optional[Tuple[int, int]] = None, 
-                        draw: Optional[bool] = True, 
+                        draw: bool = True, 
                         ax: Optional[plt.axes] = None, 
-                        **kwargs: dict) -> Tuple[float, float]:
+                        **kwargs) -> Tuple[float, float]:
         """
         Draw plot DBE by nO and calculate linear fit
         
@@ -1399,7 +1405,9 @@ class Spectrum(object):
 
         return popt[0], popt[1]
 
-    def squares_vk(self, ax=None, draw:bool=True) -> pd.DataFrame:
+    def squares_vk(self, 
+                   ax: Optional[plt.axes] = None, 
+                   draw: bool = True) -> pd.DataFrame:
         """
         Calculate density in Van Krevelen diagram divided into 20 squares
 
@@ -1480,7 +1488,7 @@ class Spectrum(object):
     ###########################################################
     # passing pandas DataFrame methods for represent mass table
 
-    def head(self, num:int = None) -> pd.DataFrame:
+    def head(self, num: Optional[int] = None) -> pd.DataFrame:
         """
         Show head of mass spec table
 
@@ -1498,7 +1506,7 @@ class Spectrum(object):
         else:
             return self.table.head(num)
 
-    def tail(self, num:int = None) -> pd.DataFrame:
+    def tail(self, num: Optional[int] = None) -> pd.DataFrame:
         """
         Show tail of mass spec table
 
@@ -1573,7 +1581,7 @@ class ErrorTable(object):
 
     def __init__(
             self,
-            table: pd.DataFrame = None,
+            table: Optional[pd.DataFrame] = None,
     ) -> None:
         """
         Init ErrorTable object
@@ -1613,7 +1621,7 @@ class ErrorTable(object):
         self, 
         spec: "Spectrum", 
         ppm: float = 5, 
-        show_map: bool = False
+        show_map: Optional[bool] = False
         ) -> pd.DataFrame:
         '''
         Calculate mass differnce map
@@ -1815,7 +1823,7 @@ class ErrorTable(object):
 
     def massdiff_error(
         self,
-        spec:Spectrum,
+        spec: Spectrum,
         show_map:bool = True):
         '''
         Self-recallibration of mass-spectra by mass-difference map
@@ -1976,13 +1984,6 @@ class SpectrumList(UserList):
     """
 
     def __init__(self, spectra: Optional[List["Spectrum"]] = []):
-
-        t = type(Spectrum())
-        for spec in spectra:
-            if isinstance(spec, t) == False:
-                raise Exception(f'SpectrumList must contain only Spectrum objects, not {type(spec)}')
-
-        super().__init__(spectra)
         """
         init SpectrumList Class
         
@@ -1991,6 +1992,13 @@ class SpectrumList(UserList):
         spectra: Sequence[Spectrum]
             list of Spectrum objects
         """
+        t = type(Spectrum())
+        for spec in spectra:
+            if isinstance(spec, t) == False:
+                raise Exception(f'SpectrumList must contain only Spectrum objects, not {type(spec)}')
+
+        super().__init__(spectra)
+        self.data: List[Spectrum]
 
     def get_simmilarity(self, mode: str = "cosine", symmetric = True) -> np.ndarray:
         """
@@ -2030,9 +2038,9 @@ class SpectrumList(UserList):
     def draw_simmilarity(
         self,
         mode: str = "cosine",
-        values: np.ndarray = None,
-        ax: plt.axes = None,
-        annot = True,
+        values: Optional[np.ndarray] = None,
+        ax: Optional[plt.axes] = None,
+        annot: bool = True,
         **kwargs
         ) -> None:
         """
@@ -2103,7 +2111,7 @@ class Tmds(Spectrum):
 
     def calc(
         self,
-        other:"Spectrum"=None,
+        other: Optional["Spectrum"] = None,
         p: float = 0.2,
         wide: int = 10,
         C13_filter:bool = True,
@@ -2224,10 +2232,10 @@ class Tmds(Spectrum):
 
     def assign(
         self,
-        generated_bruttos_table: pd.DataFrame = None,
+        generated_bruttos_table: Optional[pd.DataFrame] = None,
         error: float = 0.001,
-        brutto_dict:dict = None,
-        max_num: int = None
+        brutto_dict: Optional[dict] = None,
+        max_num: Optional[int] = None
         ) -> "Tmds":
 
         """

@@ -15,6 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmasslib.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Optional
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,8 +34,8 @@ class Reaction(object):
         mass spectrum of product
     """
     def __init__(self, 
-        sourse:"Spectrum" = None, 
-        product:"Spectrum" = None,
+        sourse: Optional["Spectrum"] = None, 
+        product: Optional["Spectrum"] = None,
         ) -> None:
         """
         Init Reaction
@@ -49,7 +50,7 @@ class Reaction(object):
         self.sourse = sourse
         self.product = product
 
-    def find_modification(self, brutto_table:pd.DataFrame) -> "Reaction":
+    def find_modification(self, brutto_table: pd.DataFrame) -> "Reaction":
         """
         Find in source peaks that have modifed by diff-mass-es in brutto table
         Also cath them in product
@@ -91,12 +92,12 @@ class Reaction(object):
         return Reaction(sourse=self.sourse, product=self.product)
 
     def draw_modification(self,
-        ax:plt.axes = None,
-        sourse:bool = True,
-        product:bool = True,
-        sourse_color:str = 'red',
-        product_color:str = 'blue',
-        size:float = 5
+        ax: Optional[plt.axes] = None,
+        sourse: bool = True,
+        product: bool = True,
+        sourse_color: str = 'red',
+        product_color: str = 'blue',
+        size: float = 5
         )->None:
         """
         Plot Van-Krevelen for modifed peaks in product and sourse

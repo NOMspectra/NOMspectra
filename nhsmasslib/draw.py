@@ -15,7 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmasslib.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Optional, Tuple, Callable
+from typing import Optional, Tuple, Callable, Union
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,9 +29,9 @@ import seaborn as sns
 def spectrum(spec: 'Spectrum',
     xlim: Tuple[Optional[float], Optional[float]] = (None, None),
     ylim: Tuple[Optional[float], Optional[float]] = (None, None),
-    color: Optional[str] = 'black',
+    color: str = 'black',
     ax: Optional[plt.axes] = None,
-    title: Optional[str] = None,
+    title: Optional[Union[str, bool]] = None,
     **kwargs
     ) -> None:
     """
@@ -106,13 +106,13 @@ def scatter(spec: 'Spectrum',
             y: str,
             xlim: Tuple[Optional[float], Optional[float]] = (None, None),
             ylim: Tuple[Optional[float], Optional[float]] = (None, None),
-            volume: Optional[str] = 'intensity',
+            volume: str = 'intensity',
             color: Optional[str] = None, 
-            alpha: Optional[float] = 0.3, 
+            alpha: float = 0.3, 
             size: Optional[float] = None,
             size_power: Optional[float] = None,
             ax: Optional[plt.axes] = None,
-            title: Optional[str] = None,
+            title: Optional[Union[str, bool]] = None,
             **kwargs: Optional[dict]) -> None:
     """
     Draw scatter of different columns in mass-spectrum
@@ -202,13 +202,13 @@ def scatter_density(spec: 'Spectrum',
                     y: str,
                     xlim: Tuple[Optional[float], Optional[float]] = (None, None),
                     ylim: Tuple[Optional[float], Optional[float]] = (None, None),
-                    volume: Optional[str] = 'intensity',
+                    volume: str = 'intensity',
                     color: Optional[str] = None, 
-                    alpha: Optional[float] = 0.3, 
+                    alpha: float = 0.3, 
                     size: Optional[float] = None,
                     size_power: Optional[float] = None,
                     ax: Optional[plt.axes] = None,
-                    title: Optional[str] = None,
+                    title: Optional[Union[str, bool]] = None,
                     **kwargs) -> None:
     """
     Plot VK scatter with density
@@ -285,9 +285,9 @@ def density(spec: 'Spectrum',
             col: str,
             xlim: Tuple[Optional[float], Optional[float]] = (None, None),
             ylim: Tuple[Optional[float], Optional[float]] = (None, None),
-            color: Optional[str] = 'blue', 
+            color: str = 'blue', 
             ax: Optional[plt.axes] = None,
-            title: Optional[str] = None,
+            title: Optional[Union[str, bool]] = None,
             **kwargs: Optional[dict]) -> None:
     """
     Draw KDE density for values
@@ -350,9 +350,9 @@ def density_2D(spec: 'Spectrum',
                 y: str,
                 xlim: Tuple[Optional[float], Optional[float]] = (None, None),
                 ylim: Tuple[Optional[float], Optional[float]] = (None, None),
-                cmap: Optional[str] ="YlGnBu", 
-                shade: Optional[bool] = True,
-                title: Optional[str] = None,
+                cmap: str ="YlGnBu", 
+                shade: bool = True,
+                title: Optional[Union[str, bool]] = None,
                 ax: Optional[plt.axes] = None, 
                 **kwargs
                 ) -> None:
@@ -407,7 +407,7 @@ def density_2D(spec: 'Spectrum',
 def vk(spec: "Spectrum",
        func: Optional[Callable] = None,
        ax: Optional[plt.axes] = None,
-       title: Optional[str] = None,
+       title: Optional[Union[str, bool]] = None,
        *args: Optional[list],
        **kwargs: Optional[dict]) -> None:
     """

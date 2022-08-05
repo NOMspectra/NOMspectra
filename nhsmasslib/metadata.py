@@ -15,8 +15,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmasslib.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Dict, List, Sequence, Union, Optional, Mapping, Tuple
-from collections import UserList, UserDict
+from typing import Dict, Optional, Mapping
+from collections import UserDict
 
 
 class MetaData(UserDict):
@@ -53,7 +53,7 @@ class MetaData(UserDict):
 
         return uniform_metadata
 
-    def add(self, metadata):
+    def add(self, metadata:Mapping):
 
         if isinstance(metadata, Mapping) == False:
             raise Exception("Metadata must be dictionary, or None")
