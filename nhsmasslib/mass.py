@@ -1281,7 +1281,7 @@ class Spectrum(object):
         return self
 
     @_copy
-    def get_mol_class(self, weight: str = "intensity") -> dict:
+    def get_mol_class(self, weight: str = "intensity") -> pd.DataFrame:
         """
         get molercular class density
 
@@ -1293,7 +1293,7 @@ class Spectrum(object):
 
         Return
         ------
-        Dict. mol_class:density
+        pandas Dataframe with columns: mol_class, density
         
         References
         ----------
@@ -1304,11 +1304,11 @@ class Spectrum(object):
         Pure and Applied Chemistry 92.9 (2020): 1447-1467.
         """
 
-        ans = {}
         self = self.drop_unassigned().mol_class()
         count_density = len(self.table)
         sum_density = self.table["intensity"].sum()
 
+        out = []
         for zone in ['unsat_lowOC',
                     'unsat_highOC',
                     'condensed_lowOC',
@@ -1321,15 +1321,15 @@ class Spectrum(object):
                     'undefinded']:
 
             if weight == "count":
-                ans[zone] = len(self.table.loc[self.table['class'] == zone])/count_density
+                out.append([zone, len(self.table.loc[self.table['class'] == zone])/count_density])
 
             elif weight == "intensity":
-                ans[zone] = self.table.loc[self.table['class'] == zone, 'intensity'].sum()/sum_density
+                out.append([zone, self.table.loc[self.table['class'] == zone, 'intensity'].sum()/sum_density])
 
             else:
                 raise ValueError(f"weight should be count or intensity not {weight}")
         
-        return ans
+        return pd.DataFrame(data=out, columns=['class', 'density'])
 
     @_copy
     def get_dbe_vs_o(self, 
@@ -2034,6 +2034,60 @@ class SpectrumList(UserList):
             values = values + values.T - np.diag(np.diag(values))
 
         return values
+
+    def get_mol_density(self) -> pd.DataFrame:
+        """
+        Calculate mol class density table
+
+        Return
+        ------
+        pandas Dataframe with index as mol classes and column as spec name
+        """
+
+        mol_density = pd.DataFrame()
+        for i, spec in enumerate(self):
+            mol_dens_spec = spec.get_mol_class()
+            if i == 0:
+                index = mol_dens_spec['class'].values
+            mol_density[spec.metadata['name']] = mol_dens_spec['density']
+        mol_density.index = index
+
+        return mol_density
+
+    def draw_mol_density(
+        self,
+        mol_density: Optional[pd.DataFrame] = None,
+        ax: Optional[plt.axes] = None,
+        **kwargs
+        ) -> None:
+        """
+        Draw simmilarity matrix by using seaborn
+
+        Parameters
+        ----------
+        mol_density: pd.DataFrame
+            Optional. Table with molecular class density. Default None and cacl by self.
+        ax: matplotlib axes
+            Entarnal axes for plot
+        **kwargs: dict
+            Additional parameters to seaborn heatmap method
+        """
+        if mol_density is None:
+            mol_density = self.get_mol_density()
+
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(4,4), dpi=75)
+
+        width=0.35
+        
+        labels = mol_density.columns
+        bottom = np.zeros(len(labels))
+        for key in mol_density.index:
+            val = [mol_density.at[key, i] for i in labels]
+            ax.bar(labels, val, width, label=key, bottom=bottom)
+            bottom = bottom + np.array(val)
+            
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
     def draw_simmilarity(
         self,
