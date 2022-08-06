@@ -125,6 +125,8 @@ def assign_by_tmds(
 
     out.table=out.table[out.table['calc_mass'].isnull() | ~out.table[out.table['calc_mass'].notnull()].duplicated(subset='calc_mass',keep='first')] 
     spec.table = out.table.sort_values(by='mass').reset_index(drop=True)
+
+    spec.metadata.add({'assigned_by_tmds':True})
     
     return spec
 

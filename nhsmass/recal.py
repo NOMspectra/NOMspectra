@@ -79,6 +79,8 @@ def recallibrate(spec: "Spectrum",
             e = mass * err.loc[i, 'ppm'] / 1000000
             spec.table.loc[ind, 'mass'] = spec.table.loc[ind, 'mass'] + e
 
+    spec.metadata.add({'recallibrate':how})
+
     return spec
 
 

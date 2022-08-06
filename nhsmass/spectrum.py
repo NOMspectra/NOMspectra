@@ -17,10 +17,9 @@
 #    along with nhsmass.  If not, see <http://www.gnu.org/licenses/>.
 
 from pathlib import Path
-from typing import List, Dict, Sequence, Union, Optional, Mapping, Tuple
+from typing import Dict, Sequence, Union, Optional, Mapping, Tuple
 import copy
 import json
-from collections import UserList
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -250,6 +249,8 @@ class Spectrum(object):
         if len(elems) == 0:
             elems = None
 
+        self.metadata.add({'elems':elems})
+
         return elems
 
     def _mark_assigned_by_brutto(self) -> None:
@@ -455,10 +456,12 @@ class Spectrum(object):
         
         if intensity is not None:
             self.table = self.table.loc[self.table['intensity'] > intensity].reset_index(drop=True)
+            self.metadata.add({'noise filter':f'intensity {intensity}'})
         
         elif quantile is not None:
             tresh = self.table['intensity'].quantile(quantile)
             self.table = self.table.loc[self.table['intensity'] > tresh].reset_index(drop=True)
+            self.metadata.add({'noise filter':f'quintile {quantile}'})
         
         else:
 
@@ -473,6 +476,8 @@ class Spectrum(object):
             tresh = np.where(dx==np.min(dx))
             cut = cut_diapasone[tresh[0][0]] * force
             self.table = self.table.loc[self.table['intensity'] > cut].reset_index(drop=True)
+
+            self.metadata.add({'noise filter':f'force {force}'})
 
         return self
 
@@ -494,6 +499,7 @@ class Spectrum(object):
             raise Exception("Spectrum is not assigned")
 
         self.table = self.table.loc[self.table["assign"] == True].reset_index(drop=True)
+        self.metadata.add({'drop_unassigned':True})
 
         return self
 
@@ -544,6 +550,7 @@ class Spectrum(object):
 
         if remove:
             self.table = self.table.loc[(self.table['C13_peak'] == True) & (self.table['assign'] == True)].reset_index(drop=True)
+            self.metadata.add({'filter_C13':True})
 
         return self
 
@@ -574,6 +581,8 @@ class Spectrum(object):
             self.table['intensity'] /= self.table['intensity'].mean()
         else:
             raise Exception(f"There is no such mode: {how}")
+        
+        self.metadata.add({'normilize':how})
 
         return self
 
@@ -594,7 +603,9 @@ class Spectrum(object):
                 if res[0] not in self.table:
                     self.table[res[0]] = 0
                 self.table[res[0]] = self.table[res[0]] + self.table[el]
-                self.table = self.table.drop(columns=[el]) 
+                self.table = self.table.drop(columns=[el])
+        
+        self.metadata.add({'sum_isotopes':True})
 
         return self
 
@@ -726,7 +737,10 @@ class Spectrum(object):
         a = a.append(b, ignore_index=True)
         a = a.drop_duplicates(subset=['calc_mass'])
 
-        return Spectrum(a)
+        metadata = {'operate':'or'}
+        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+
+        return Spectrum(table = a, metadata=metadata)
 
     @_copy
     def __xor__(self, other: "Spectrum") -> "Spectrum":
@@ -742,8 +756,13 @@ class Spectrum(object):
 
         sub1 = self.__sub__(other)
         sub2 = other.__sub__(self)
+
+        a = sub1.__or__(sub2)
         
-        return sub1.__or__(sub2)
+        metadata = {'operate':'xor'}
+        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+
+        return Spectrum(table = a, metadata=metadata)
 
     @_copy
     def __and__(self, other: "Spectrum") -> "Spectrum":
@@ -780,7 +799,10 @@ class Spectrum(object):
         res['calc_mass'] = mark
         res = res.dropna()
 
-        return Spectrum(res)
+        metadata = {'operate':'or'}
+        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+
+        return Spectrum(table = res, metadata=metadata)
     
     def __add__(self, other: "Spectrum") -> "Spectrum":
         """
@@ -792,7 +814,12 @@ class Spectrum(object):
         ------
         Spectrum object contain all assigned brutto formulas from two spectrum
         """
-        return self.__or__(other)
+        a = self.__or__(other)
+
+        metadata = {'operate':'add'}
+        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+
+        return Spectrum(table = a, metadata=metadata)
 
     @_copy
     def __sub__(self, other:"Spectrum") -> "Spectrum":
@@ -829,7 +856,10 @@ class Spectrum(object):
         res['calc_mass'] = mark
         res = res.dropna()
 
-        return Spectrum(res)
+        metadata = {'operate':'sub'}
+        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+
+        return Spectrum(table = res, metadata=metadata)
 
     @_copy
     def intens_sub(self, other:"Spectrum") -> "Spectrum":
@@ -871,7 +901,12 @@ class Spectrum(object):
         rE = rE.loc[rE['intensity'] > 0]
         
         #and add only own molecules
-        return (self - other) + Spectrum(rE)  
+        res = (self - other) + Spectrum(rE)
+
+        metadata = {'operate':'sub'}
+        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+
+        return Spectrum(table = res, metadata=metadata)  
 
     @_copy
     def simmilarity(self, other: "Spectrum", mode: str = 'cosine') -> float:
@@ -1441,33 +1476,6 @@ class Spectrum(object):
         return square.sort_values(by='square').reset_index(drop=True)
 
     @_copy
-    def calc_all_metrics(self) -> "Spectrum":
-        """
-        Calculated all avaible metrics
-
-        Return
-        ------
-        Spectrum object with calculated metrics
-        """
-
-        self = self.calc_mass()
-        self = self.calc_error()
-        self = self.dbe()
-        self = self.dbe_o()
-        self = self.ai()
-        self = self.dbe_oc()
-        self = self.dbe_ai()
-        self = self.mol_class()
-        self = self.hc_oc()
-        self = self.cai()
-        self = self.cram()
-        self = self.nosc()
-        self = self.brutto()
-        self = self.kendrick()
-
-        return self
-
-    @_copy
     def get_mol_metrics(self, 
                         metrics: Optional[Sequence[str]] = None, 
                         how_average: str = 'weight') -> pd.DataFrame:
@@ -1506,6 +1514,33 @@ class Spectrum(object):
                 raise ValueError(f'how_average can be only "count" or "weight", not {how_average}')
 
         return pd.DataFrame(data=res, columns=['metric', 'value'])
+
+    @_copy
+    def calc_all_metrics(self) -> "Spectrum":
+        """
+        Calculated all avaible metrics
+
+        Return
+        ------
+        Spectrum object with calculated metrics
+        """
+
+        self = self.calc_mass()
+        self = self.calc_error()
+        self = self.dbe()
+        self = self.dbe_o()
+        self = self.ai()
+        self = self.dbe_oc()
+        self = self.dbe_ai()
+        self = self.mol_class()
+        self = self.hc_oc()
+        self = self.cai()
+        self = self.cram()
+        self = self.nosc()
+        self = self.brutto()
+        self = self.kendrick()
+
+        return self
 
     #############################################################
     # passing pandas DataFrame methods for represent mass table #
