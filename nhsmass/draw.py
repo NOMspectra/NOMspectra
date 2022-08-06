@@ -457,7 +457,7 @@ def show_error(spec:"Spectrum") -> None:
     """
 
     if "rel_error" not in spec.table:
-        spec = spec.calculate_error()      
+        spec = spec.calc_error()      
 
     fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
     ax.scatter(spec.table['mass'], spec.table['rel_error'], s=0.1)

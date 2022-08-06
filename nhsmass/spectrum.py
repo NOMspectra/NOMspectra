@@ -18,6 +18,7 @@
 
 from optparse import Option
 from pathlib import Path
+from signal import raise_signal
 from typing import List, Dict, Sequence, Union, Optional, Mapping, Tuple
 import copy
 import json
@@ -635,10 +636,11 @@ class Spectrum(object):
         return self
 
     @_copy
-    def assign_by_tmds (
+    def assign_by_tmds(
         self, 
-        tmds_spec: Optional["Tmds"] = None, 
-        abs_error: float = 0.001,
+        tmds_spec: Optional["Tmds"] = None,
+        tmds_brutto_dict: Optional[Dict] = None, 
+        rel_error: float = 1,
         p = 0.2,
         max_num: Optional[int] = None,
         C13_filter: bool = True
@@ -651,8 +653,12 @@ class Spectrum(object):
         tmds_spec: Tmds object
             Optional. if None generate tmds spectr with default parameters
             Tmds object, include table with most intensity mass difference
+        brutto_dict: dict
+            Optional. Deafault None.
+            Custom Dictonary for generate brutto table.
+            Example: {'C':(-1,20),'H':(-4,40), 'O':(-1,20),'N':(-1,2)}
         abs_error: float
-            Optional, default 0.001. Error for assign peaks by massdif
+            Optional, default 1 ppm. Error for assign peaks by massdif
         p: float
             Optional. Default 0.2. 
             Relative intensity coefficient for treshold tmds spectrum
@@ -668,19 +674,32 @@ class Spectrum(object):
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
+        #calculstae tmds table
         if tmds_spec is None:
             tmds_spec = Tmds(spec=self).calc(p=p, C13_filter=C13_filter) #by varifiy p-value we can choose how much mass-diff we will take
-            tmds_spec = tmds_spec.assign(max_num=max_num)
+            tmds_spec = tmds_spec.assign(max_num=max_num, brutto_dict=tmds_brutto_dict)
             tmds_spec = tmds_spec.calc_mass()
 
+        #prepare tmds table
         tmds = tmds_spec.table.sort_values(by='intensity', ascending=False).reset_index(drop=True)
         tmds = tmds.loc[tmds['intensity'] > p].sort_values(by='mass', ascending=True).reset_index(drop=True)
-        elem = tmds_spec.find_elements()
+        elem_tmds = tmds_spec.find_elements()
 
+        #prepare self table
         assign_false = copy.deepcopy(self.table.loc[self.table['assign'] == False]).reset_index(drop=True)
         assign_true = copy.deepcopy(self.table.loc[self.table['assign'] == True]).reset_index(drop=True)
         masses = assign_true['mass'].values
+        elem_self = self.find_elements()
+        
+        
+        #Check that all elements in tmds also in self
+        if len(set(elem_tmds)-set(elem_self)) > 0:
+            raise Exception(f"All elements in tmds spectrum must be in regular spectrum too. But {(set(elem_tmds)-set(elem_self))} not in spectrum")
+        for i in set(elem_self)-set(elem_tmds):
+            tmds[i] = 0
+
         mass_dif_num = len(tmds)
+        min_mass = np.min(masses)
 
         for i, row_tmds in tqdm(tmds.iterrows(), total=mass_dif_num):
 
@@ -691,26 +710,27 @@ class Spectrum(object):
                     continue
                      
                 mass = row["mass"] + mass_shift
+                if mass < min_mass:
+                    continue
+
                 idx = np.searchsorted(masses, mass, side='left')
                 if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
                     idx -= 1
-
-                if np.fabs(masses[idx] - mass) <= abs_error:
+                    
+                if np.fabs(masses[idx] - mass) / mass * 1e6 <= rel_error:
                     assign_false.loc[index,'assign'] = True
-                    for el in elem:
+
+                    for el in elem_self:
                         assign_false.loc[index,el] = row_tmds[el] + assign_true.loc[idx,el]
 
-        #FIXME probably bad solutions
+        print(len(assign_false), len(assign_true))
         assign_true = assign_true.append(assign_false, ignore_index=True).sort_values(by='mass').reset_index(drop=True)
 
         out = Spectrum(assign_true)
         out = out.calc_mass()
 
-        out_false = out.table.loc[out.table['assign'] == False]
-        out_true = out.table.loc[out.table['assign'] == True].drop_duplicates(subset="calc_mass")
-
-        out2 = pd.merge(out_true, out_false, how='outer').reset_index(drop=True).sort_values(by='mass').reset_index(drop=True)
-        self.table = out2
+        out.table=out.table[out.table['calc_mass'].isnull() | ~out.table[out.table['calc_mass'].notnull()].duplicated(subset='calc_mass',keep='first')] 
+        self.table = out.table.sort_values(by='mass').reset_index(drop=True)
         
         return self
 
