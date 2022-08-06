@@ -734,7 +734,7 @@ class Spectrum(object):
         a = self.table.dropna()
         b = other.table.dropna()
         
-        a = a.append(b, ignore_index=True)
+        a = pd.concat([a, b], ignore_index=True)
         a = a.drop_duplicates(subset=['calc_mass'])
 
         metadata = {'operate':'or'}

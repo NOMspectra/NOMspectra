@@ -118,8 +118,8 @@ def assign_by_tmds(
                 for el in elem_spec:
                     assign_false.loc[index,el] = row_tmds[el] + assign_true.loc[idx,el]
 
-    assign_true = assign_true.append(assign_false, ignore_index=True).sort_values(by='mass').reset_index(drop=True)
-
+    assign_true = pd.concat([assign_true, assign_false], ignore_index=True).sort_values(by='mass').reset_index(drop=True)
+    
     out = Spectrum(assign_true)
     out = out.calc_mass()
 
