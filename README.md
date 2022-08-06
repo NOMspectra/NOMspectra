@@ -1,8 +1,8 @@
 for now it is not available from PyPI until end of refactoring
  
-[![PyPI](https://img.shields.io/pypi/v/nhsmasslib)](https://pypi.org/project/nhsmasslib/)
+[![PyPI](https://img.shields.io/pypi/v/nhsmass)](https://pypi.org/project/nhsmass/)
 
-# nhsmasslib
+# nhsmass
 
 Lib for working with high resolution mass spectrums
 
@@ -25,17 +25,17 @@ pip install .
 
 ## Documentation
 
-Automaticaly generated documentation is placed [here](https://nhsmasslib.github.io/docs/index.html)
+Automaticaly generated documentation is placed [here](https://nhsmass.github.io/docs/index.html)
 
 ## Examples of usage
 
-There are few jupyter notebook that explain how to use nhsmasslib. It is lockated in folder "notebooks"
+There are few jupyter notebook that explain how to use nhsmass. It is lockated in folder "notebooks"
 
 ## Graphical interface
 
 Simple GIU lockated here
 
-https://github.com/nhsmasslib/nhsmasslibPQ
+https://github.com/nhsmass/nhsmassPQ
 
 It is support all main operation.
 

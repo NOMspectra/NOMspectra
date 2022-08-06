@@ -5,20 +5,20 @@ import os
 here = os.path.abspath(os.path.dirname(__file__))
 
 version = {}
-with open(os.path.join(here, "nhsmasslib", "__version__.py")) as f:
+with open(os.path.join(here, "nhsmass", "__version__.py")) as f:
     exec(f.read(), version)
 
 with open("README.md") as readme_file:
     readme = readme_file.read()
 
 setup(
-    name='nhsmasslib',
+    name='nhsmass',
     version=version["__version__"],
     license='GPLv3',
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Volikov Alexander, Rukhovich Gleb',
-    url = 'https://github.com/nhsmasslib/nhsmasslib',
+    url = 'https://github.com/nhsmass/nhsmass',
     packages=find_packages(),
     include_package_data=True,
     python_requires='>=3.7',
