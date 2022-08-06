@@ -1509,18 +1509,22 @@ class Spectrum(object):
 
         return popt[0], popt[1]
 
-    def squares_vk(self, 
-                   ax: Optional[plt.axes] = None, 
-                   draw: bool = True) -> pd.DataFrame:
+    @_copy
+    def get_squares_vk(self,
+                        how_average: str = 'weight',
+                        ax: Optional[plt.axes] = None, 
+                        draw: bool = False) -> pd.DataFrame:
         """
         Calculate density in Van Krevelen diagram divided into 20 squares
 
         Parameters
         ----------
+        how_average: str
+            How calculate average. My be "count" or "weight" ((default))
         ax: matplotlib ax
             Optional. external ax
         draw: bool
-            Optional. Default True. Plot heatmap
+            Optional. Default False. Plot heatmap
 
         Return
         ------
@@ -1528,21 +1532,27 @@ class Spectrum(object):
         """
 
         if 'H/C' not in self.table or 'O/C' not in self.table:
-            self = self.hc_oc()   
+            self = self.hc_oc().drop_unassigned()
 
         d_table = []
         sq = []
-        table = self.table
-        total_i = len(table)
+
         for y in [ (1.8, 2.2), (1.4, 1.8), (1, 1.4), (0.6, 1), (0, 0.6)]:
             hc = []
             for x in  [(0, 0.25), (0.25, 0.5), (0.5, 0.75), (0.75, 1)]:
                 temp = copy.deepcopy(self)
                 temp.table = temp.table.loc[(temp.table['O/C'] >= x[0]) & (temp.table['O/C'] < x[1]) & (temp.table['H/C'] >= y[0]) & (temp.table['H/C'] < y[1])]
-                temp_i = len(temp.table)
-                hc.append(temp_i/total_i)
-                sq.append(temp_i/total_i)
+
+                if how_average == 'count':
+                    res = len(temp)/len(self)
+                    hc.append(res)
+                    sq.append(res)
+                elif how_average == 'weight':
+                    res = temp.table['intensity'].sum()/self.table['intensity'].sum()
+                    hc.append(res)
+                    sq.append(res)
             d_table.append(hc)
+
         out = pd.DataFrame(data = d_table, columns=['0-0.25', '0,25-0.5','0.5-0.75','0.75-1'], index=['1.8-2.2', '1.4-1.8', '1-1.4', '0.6-1', '0-0.6'])
 
         if draw:
@@ -1558,9 +1568,11 @@ class Spectrum(object):
             ax.set_ylabel('H/C')
 
         # just for proper naming of squars. bad solution
-        square = pd.DataFrame(data=sq, columns=['value'], index=[5,10,15,20,   4,9,14,19,   3,8,13,18,    2,7,12,17,   1,6,11,16])
+        square = pd.DataFrame()
+        square['value'] = sq
+        square['square'] = [5,10,15,20,   4,9,14,19,   3,8,13,18,    2,7,12,17,   1,6,11,16]
         
-        return square.sort_index()
+        return square.sort_values(by='square').reset_index(drop=True)
 
     @_copy
     def calc_all_metrics(self) -> "Spectrum":
@@ -2220,6 +2232,10 @@ class SpectrumList(UserList):
             Optional. Default None. Chose metrics fot watch.
         how_average: str
             How calculate average. My be "count" or "weight" ((default))
+
+        Return
+        ------
+        Pandas Dataframe 
         """
 
         metrics_table = pd.DataFrame()
@@ -2237,6 +2253,30 @@ class SpectrumList(UserList):
         metrics_table.columns = ['metric',*names]
 
         return metrics_table
+
+    def get_square_vk(self, how_average: str = 'weight') -> pd.DataFrame:
+        """
+        Get Van-Krevelen square density
+
+        Parameters
+        ----------
+        how_average: str
+            How calculate average. My be "count" or "weight" ((default))
+
+        Return
+        ------
+        Pandas Dataframe with as square number and columns as values spec name
+        """
+
+        square_vk = pd.DataFrame()
+        for i, spec in enumerate(self):
+            square_dens = spec.get_squares_vk(how_average=how_average)
+            if i == 0:
+                index = square_dens['square'].values
+            square_vk[spec.metadata['name']] = square_dens['value']
+        square_vk.index = index
+
+        return square_vk
 
     def get_mol_density(self) -> pd.DataFrame:
         """
