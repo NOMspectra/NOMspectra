@@ -19,7 +19,7 @@ from typing import Optional, Tuple, Callable, Union
 
 import numpy as np
 import matplotlib.pyplot as plt
-from .mass import Spectrum
+from .spectrum import Spectrum
 
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec

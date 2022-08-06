@@ -19,6 +19,7 @@
 from pathlib import Path
 from typing import List, Dict, Sequence, Union, Optional, Mapping, Tuple
 import copy
+import json
 from collections import UserList
 
 import matplotlib.pyplot as plt
@@ -75,7 +76,7 @@ class Spectrum(object):
 
         self.metadata = MetaData(metadata)
 
-    def load(
+    def read_csv(
         self,
         filename: Union[Path, str],
         mapper: Optional[Mapping[str, str]] = None,
@@ -91,7 +92,7 @@ class Spectrum(object):
         metadata: Optional[Dict] = None
     ) -> "Spectrum":
         """
-        Load mass pectrum table to Spectrum object
+        Read mass spectrum table from csv (Comma-Separated Values) file
 
         All parameters is optional except filename
 
@@ -178,20 +179,58 @@ class Spectrum(object):
 
         return self
     
-    def save(self, 
-            filename: Union[Path, str], 
-            sep: str = ",") -> None:
+    def to_csv(self, 
+                filename: Union[Path, str], 
+                sep: str = ",") -> None:
         """
-        Saves to csv Spectrum
+        Saves Spectrum mass-list to csv Spectrum
         
         Parameters
         ----------
         filename: str
             Path for saving mass spectrum table with calculation to csv file
         sep: str
-            Optional. Separator in saved file. By default it is ','        
+            Optional. Separator in saved file. By default it is ','
+
+        Caution
+        -------
+        Metadata will be lost. For save them too use save_json method     
         """
         self.table.to_csv(filename, sep=sep, index=False)
+
+    def read_json(self, filename: Union[Path, str]) -> "Spectrum":
+        """
+        Read mass spectrum from json own format
+
+        Parameters
+        ----------
+        filename: str
+            path to mass spectrum json file, absoulute or relative
+
+        Return
+        ------
+        Spectrum object
+        """
+        with open(filename, 'rb') as data:
+            res = json.load(data)[0]
+        self.table = pd.DataFrame(res['table'])
+        self.metadata=res['metadata']
+
+        return self
+
+    def to_json(self, filename: Union[Path, str]) -> None:
+        """
+        Saves Spectrum mass-list to JSON own format
+        
+        Parameters
+        ----------
+        filename: str
+            Path for saving mass spectrum table with calculation to json file
+        """
+        out = {'metadata':copy.deepcopy(dict(self.metadata))}
+        out['table'] = self.table.to_dict()
+        with open(filename, 'w') as f:
+            json.dump([out], f)
 
     def find_elements(self) -> Sequence[str]:
         """ 
@@ -2033,6 +2072,46 @@ class SpectrumList(UserList):
 
         super().__init__(spectra)
         self.data: List[Spectrum]
+
+    def read_json(self, filename: Union[Path, str]) -> "SpectrumList":
+        """
+        Read SpectrumList from json, own format
+
+        Parameters
+        ----------
+        filename: str
+            path to SpectrumList json file, absoulute or relative
+
+        Return
+        ------
+        Spectrum object
+        """
+        with open(filename, 'rb') as data:
+            res = json.load(data)
+
+        for i in res:
+            self.append(Spectrum(table = pd.DataFrame(i['table']), metadata=i['metadata']))
+        
+        return self
+
+    def to_json(self, filename: Union[Path, str]) -> None:
+        """
+        Saves Spectrum mass-list to JSON own format
+        
+        Parameters
+        ----------
+        filename: str
+            Path for saving mass spectrum table with calculation to json file
+        """
+
+        res = []
+        for spec in self:
+            out = {'metadata':copy.deepcopy(dict(spec.metadata))}
+            out['table'] = spec.table.to_dict()
+            res.append(out)
+
+        with open(filename, 'w') as f:
+            json.dump(res, f)
 
     def get_simmilarity(self, mode: str = "cosine", symmetric = True) -> np.ndarray:
         """
