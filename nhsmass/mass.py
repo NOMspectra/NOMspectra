@@ -34,7 +34,7 @@ from scipy.optimize import curve_fit
 
 from tqdm import tqdm
 
-from .brutto import brutto_gen, elements_table, get_elements_masses
+from .brutto import brutto_gen, elements_table, get_elements_masses, gen_from_brutto
 from .metadata import MetaData
 
 
@@ -247,6 +247,8 @@ class Spectrum(object):
             sign: str ='-',
             mass_min: Optional[float] =  None,
             mass_max: Optional[float] = None,
+            intensity_min: Optional[float] =  None,
+            intensity_max: Optional[float] = None,
     ) -> "Spectrum":
         """
         Finding the nearest mass in generated_bruttos_table
@@ -276,7 +278,11 @@ class Spectrum(object):
         mass_min: float
             Optional. Default None. Minimall mass for assigment
         mass_max: float
-            Optional. Default None. Maximum mass for assigment   
+            Optional. Default None. Maximum mass for assigment
+        intensity_min: float
+            Optional. Default None. Minimall intensity for assigment
+        intensity_max: float
+            Optional. Default None. Maximum intensity for assigment   
 
         Return
         ------
@@ -290,11 +296,10 @@ class Spectrum(object):
             mass_min = self.table['mass'].min()
         if mass_max is None:
             mass_max = self.table['mass'].max()
-
-        self.table = self.table.loc[:,['mass', 'intensity']]
-        table = self.table.loc[(self.table['mass']>=mass_min) & (self.table['mass']<=mass_max)].copy()
-
-        masses = generated_bruttos_table["mass"].values
+        if intensity_min is None:
+            intensity_min = self.table['intensity'].min()
+        if intensity_max is None:
+            intensity_max = self.table['intensity'].max()
         
         if sign == '-':
             mass_shift = - 0.00054858 + 1.007825  # electron and hydrogen mass
@@ -317,11 +322,24 @@ class Spectrum(object):
             rel = True
             rel_error = 0.5
 
+        self.table = self.table.loc[:,['mass', 'intensity']].reset_index(drop=True)
+        table = self.table.copy()
+
+        masses = generated_bruttos_table["mass"].values
+
         elems = list(generated_bruttos_table.drop(columns=["mass"]))
         bruttos = generated_bruttos_table[elems].values.tolist()
 
         res = []
         for index, row in table.iterrows():
+
+            if (row["mass"] < mass_min or 
+                row["mass"] > mass_max or
+                row["intensity"] < intensity_min or 
+                row["intensity"] > intensity_max):
+                res.append({"assign": False})
+                continue 
+
             mass = row["mass"] + mass_shift
             idx = np.searchsorted(masses, mass, side='left')
             if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
@@ -494,9 +512,7 @@ class Spectrum(object):
         '''
         if error_table is None:
             if how == 'assign':
-                if "assign" not in self.table:
-                    raise Exception("Spectrum is not assigned")
-                error_table = ErrorTable().assign_error(self).zeroshift(self)
+                error_table = ErrorTable().assign_error(self)
             elif how == 'mdm':
                 error_table = ErrorTable().massdiff_error(self)
             else:
@@ -512,7 +528,7 @@ class Spectrum(object):
         a = np.linspace(min_mass, max_mass, wide+1)
 
         for i in range(wide):
-            for ind in self.table.loc[(self.table['mass']>a[i]) & (self.table['mass']<a[i+1])].index:
+            for ind in self.table.loc[(self.table['mass']>a[i]) & (self.table['mass']<=a[i+1])].index:
                 mass = self.table.loc[ind, 'mass']
                 e = mass * err.loc[i, 'ppm'] / 1000000
                 self.table.loc[ind, 'mass'] = self.table.loc[ind, 'mass'] + e
@@ -1623,34 +1639,10 @@ class ErrorTable(object):
         """
         self.table = table
 
-    def dif_mass(self) -> list:
-        '''Generate common mass diffrence list
-
-        Return:
-        -------
-        List of float, containing most common mass difference
-        '''
-        H = 1.007825
-        C = 12.000000
-        O = 15.994915
-
-        dif = []
-        for k in range(1,11):
-            dif.append(k*(C + H*2))
-            dif.append(k*(O))
-            dif.append(k*(C + O))
-            dif.append(k*(H*2))
-            dif.append(k*(C*2 + O + H*2))
-            dif.append(k*(C + O + H*2))
-            dif.append(k*(O + H*2))
-            dif.append(k*(C + O*2))
-
-        return dif
-
     def md_error_map(
         self, 
         spec: "Spectrum", 
-        ppm: float = 5, 
+        ppm: float = 3, 
         show_map: Optional[bool] = False
         ) -> pd.DataFrame:
         '''
@@ -1672,7 +1664,12 @@ class ErrorTable(object):
         Pandas Dataframe object with calculated error map
         '''
 
-        dif = self.dif_mass()
+        df = pd.DataFrame({ 'C':[1,1,1,2,0,1],
+                            'H':[2,0,2,1,2,0],
+                            'O':[0,1,1,1,1,2]})
+
+        dif_masses = gen_from_brutto(df)['calc_mass'].values
+        dif = np.unique([dif_masses*i for i in range(1,10)])
 
         data = copy.deepcopy(spec.table)
         masses = data['mass'].values
@@ -1802,22 +1799,23 @@ class ErrorTable(object):
         positions = np.vstack([xx.ravel(), yy.ravel()])
         values = np.vstack([x, y])
         kernel = st.gaussian_kde(values)
-        f = np.reshape(kernel(positions).T, xx.shape)
-        f = np.rot90(f)
+        kdm = np.reshape(kernel(positions).T, xx.shape)
+        kdm = np.rot90(kdm)
 
         if show_map:
             fig = plt.figure(figsize=(4,4), dpi=75)
             ax = fig.gca()
             ax.set_xlim(xmin, xmax)
             ax.set_ylim(ymin, ymax)
-            ax.imshow(f, extent=[xmin, xmax, ymin, ymax], aspect='auto')
+            ax.imshow(kdm, extent=[xmin, xmax, ymin, ymax], aspect='auto')
         
-        return f
+        return kdm
 
     def assign_error(
         self, 
         spec:Spectrum,
-        ppm = 3,
+        ppm: float = 3,
+        brutto_dict = {'C':(4,30), 'H':(4,60), 'O':(0,20)},
         show_map:bool = True):
         '''
         Recallibrate by assign error
@@ -1827,10 +1825,11 @@ class ErrorTable(object):
         spec: Spectrum object
             Initial mass spectrum for recallibrate
         ppm: float
-            Optional. Default 3.
-            permissible relative error in callibrate error
+            Permissible relative error in callibrate error. Default 3.
+        brutto_dict: dict
+            Dictonary with elements ranges for assignment
         show_error: bool
-            Optional. Default False. Show process 
+            Optional. Default True. Show process 
 
         Return
         ------
@@ -1838,7 +1837,8 @@ class ErrorTable(object):
 
         '''
         spectr = copy.deepcopy(spec)
-        spectr = spectr.assign(rel_error=ppm).calc_mass().calc_error()
+        spectr = spectr.assign(rel_error=ppm, brutto_dict=brutto_dict)
+        spectr = spectr.calc_mass().calc_error()
 
         error_table = spectr.table
         error_table = error_table.loc[:,['mass','rel_error']]
@@ -1846,10 +1846,14 @@ class ErrorTable(object):
         error_table['ppm'] = - error_table['ppm']
         error_table = error_table.dropna()
 
-        kde = self.kernel_density_map(df_error = error_table)
-        err = self.fit_kernel(f=kde, show_map=show_map, mass=spec.table['mass'].values)
+        kdm = self.kernel_density_map(df_error = error_table)
+        err = self.fit_kernel(f=kdm, 
+                            show_map=show_map, 
+                            mass=spectr.drop_unassigned().table['mass'].values)
+        self = ErrorTable(err).extrapolate((spec.table['mass'].min(), spec.table['mass'].max()))
+        self = self.zeroshift(spectr)
 
-        return ErrorTable(err)
+        return self
 
     def massdiff_error(
         self,
@@ -1878,8 +1882,8 @@ class ErrorTable(object):
         '''
         spec = copy.deepcopy(spec)
         mde = self.md_error_map(spec = spec)
-        f = self.kernel_density_map(df_error=mde)
-        err = self.fit_kernel(f=f, show_map=show_map, mass=spec.table['mass'].values)
+        kdm = self.kernel_density_map(df_error=mde)
+        err = self.fit_kernel(f=kdm, show_map=show_map, mass=spec.table['mass'].values)
         
         return ErrorTable(err)
 
@@ -1946,8 +1950,8 @@ class ErrorTable(object):
         error_table = df.loc[:,['mass','ppm']]
         error_table = error_table.dropna()
 
-        kde = self.kernel_density_map(df_error = error_table)
-        err = self.fit_kernel(f=kde, show_map=show_map, mass=spec.table['mass'].values)
+        kdm = self.kernel_density_map(df_error = error_table)
+        err = self.fit_kernel(f=kdm, show_map=show_map, mass=spec.table['mass'].values)
 
         return ErrorTable(err)
 
