@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmass.  If not, see <http://www.gnu.org/licenses/>.
 
+from optparse import Option
 from pathlib import Path
 from typing import List, Dict, Sequence, Union, Optional, Mapping, Tuple
 import copy
@@ -423,6 +424,65 @@ class Spectrum(object):
             kwargs = {k: copy.deepcopy(v) if isinstance(v, Spectrum) else v for k, v in kwargs.items()}
             return func(self, *args, **kwargs)
         return wrapped
+
+    @_copy
+    def noise_filter(self,
+                    force: float = 1.5,
+                    intensity: Optional[float] = None,
+                    quantile: Optional[float] = None 
+                    ) -> 'Spectrum':
+        """
+        Remove noise from spectrum.
+        Before applying spectrum will be normalized bu sum.
+
+        Caution
+        -------
+        There is risk of loosing data. Do it cautiously.
+        Level of noise may be determenided wrong. 
+        Draw and watch spectrum.
+
+        Parameters
+        ----------
+        intensity: float
+            Simply cut directly by min intensity. 
+            Default None and dont apply.
+        quantile: float
+            Cut by quantile. For example 0.1 mean that 10% 
+            of peaks with minimal intensity will be cuted. 
+            Default None and dont aplly
+        force: float
+            How many peaks should cut when auto-search noise level.
+            Default 1.5 means that peaks with intensity more 
+            than noise level*1.5 will be cutted
+        
+        Return
+        ------
+        Spectrum
+        """
+        self = self.normalize()
+        
+        if intensity is not None:
+            self.table = self.table.loc[self.table['intensity'] > intensity].reset_index(drop=True)
+        
+        elif quantile is not None:
+            tresh = self.table['intensity'].quantile(quantile)
+            self.table = self.table.loc[self.table['intensity'] > tresh].reset_index(drop=True)
+        
+        else:
+
+            intens = self.table['intensity'].values
+            cut_diapasone=np.linspace(0, np.mean(intens),100)
+
+            d = []
+            for i in cut_diapasone:
+                d.append(len(intens[intens > i]))
+
+            dx = np.gradient(d, 1)
+            tresh = np.where(dx==np.min(dx))
+            cut = cut_diapasone[tresh[0][0]] * force
+            self.table = self.table.loc[self.table['intensity'] > cut].reset_index(drop=True)
+
+        return self
 
     @_copy
     def drop_unassigned(self) -> "Spectrum":
