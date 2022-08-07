@@ -21,7 +21,7 @@ setup(
     url = 'https://github.com/nhsmass/nhsmass',
     packages=find_packages(),
     include_package_data=True,
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     install_requires=[
         'matplotlib>=3.1.2',
         'numpy>=1.18.1',
@@ -29,7 +29,8 @@ setup(
         'scipy>=1.4.1',
         'seaborn>=0.10.0',
         'tqdm>=4.43.0',
-        'frozendict>=2.3.4'
+        'frozendict>=2.3.4',
+        'networkx>=2.7,1'
 	],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

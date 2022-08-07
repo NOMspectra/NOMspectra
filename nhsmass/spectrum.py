@@ -17,7 +17,7 @@
 #    along with nhsmass.  If not, see <http://www.gnu.org/licenses/>.
 
 from pathlib import Path
-from typing import Dict, Sequence, Union, Optional, Mapping, Tuple
+from typing import Callable, Dict, Sequence, Union, Optional, Mapping, Tuple
 import copy
 import json
 import matplotlib.pyplot as plt
@@ -904,7 +904,7 @@ class Spectrum(object):
         return res
 
     @_copy
-    def simmilarity(self, other: "Spectrum", mode: str = 'cosine') -> float:
+    def simmilarity(self, other: "Spectrum", mode: Union[str, Callable] = 'cosine', func = None) -> float:
         """
         Calculate Simmilarity
 
@@ -912,10 +912,11 @@ class Spectrum(object):
         ----------
         other: Spectrum object
             second MaasSpectrum object with that calc simmilarity
-        mode: str
-            Optionaly. Default cosine. 
-            one of the simmilarity functions
-            Mode can be: "tanimoto", "jaccard", "cosine"
+        mode: str or Function
+            one of the simple simmilarity functions
+            Mode can be: "tanimoto", "jaccard", "cosine". Default cosine.
+            May also send here function, that will be 
+            applayed to two pd.DataFrame with Spectrum data             
 
         Return
         ------
@@ -949,16 +950,19 @@ class Spectrum(object):
         a = a/np.sum(a)
         b = b/np.sum(b)      
 
-        if mode == "jaccard":
-            m1 = set(df1['cmass'].to_list())
-            m2 = set(df2['cmass'].to_list())
-            return len(m1 & m2)/len(m1 | m2)
-        elif mode == "tanimoto":
-            return np.dot(a, b)/(np.dot(a, a) + np.dot(b, b) - np.dot(a, b))
-        elif mode == 'cosine':
-            return 1 - spatial.distance.cosine(a, b)
+        if isinstance(mode, str):
+            if mode == "jaccard":
+                m1 = set(df1['cmass'].to_list())
+                m2 = set(df2['cmass'].to_list())
+                return len(m1 & m2)/len(m1 | m2)
+            elif mode == "tanimoto":
+                return np.dot(a, b)/(np.dot(a, a) + np.dot(b, b) - np.dot(a, b))
+            elif mode == 'cosine':
+                return 1 - spatial.distance.cosine(a, b)
+            else:
+                raise Exception(f"There is no such mode: {mode}")
         else:
-            raise Exception(f"There is no such mode: {mode}")
+            return func(self.table, other.table)
 
     ###########################################
     # Calculation methods for brutto formulas #
