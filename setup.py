@@ -31,7 +31,7 @@ setup(
         'seaborn>=0.10.0',
         'tqdm>=4.43.0',
         'frozendict>=2.3.4',
-        'networkx>=2.7,1'
+        'networkx>=2.7.1'
 	],
     classifiers=[
         'Development Status :: 3 - Alpha',
