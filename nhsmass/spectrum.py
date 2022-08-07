@@ -68,8 +68,8 @@ class Spectrum(object):
 
         self.metadata = MetaData(metadata)
 
+    @staticmethod
     def read_csv(
-        self,
         filename: Union[Path, str],
         mapper: Optional[Mapping[str, str]] = None,
         ignore_columns: Optional[Sequence[str]] = None,
@@ -132,44 +132,45 @@ class Spectrum(object):
         Spectrum object
         """
 
-        self.table = pd.read_csv(filename, sep=sep)
+        table = pd.read_csv(filename, sep=sep)
         if mapper:
-            self.table = self.table.rename(columns=mapper)
+            table = table.rename(columns=mapper)
 
         if take_columns:
-            self.table = self.table.loc[:,take_columns]
+            table = table.loc[:,take_columns]
 
         if ignore_columns:
-            self.table = self.table.drop(columns=ignore_columns)
+            table = table.drop(columns=ignore_columns)
 
         if take_only_mz:
-            self.table = self.table.loc[:,['mass','intensity']]
+            table = table.loc[:,['mass','intensity']]
 
         if intens_min is not None:
-            self.table = self.table.loc[self.table['intensity']>intens_min]
+            table = table.loc[table['intensity']>intens_min]
 
         if intens_max is not None:
-            self.table = self.table.loc[self.table['intensity']<intens_max]
+            table = table.loc[table['intensity']<intens_max]
 
         if mass_min is not None:
-            self.table = self.table.loc[self.table['mass']>mass_min]
+            table = table.loc[table['mass']>mass_min]
 
         if mass_max is not None:
-            self.table = self.table.loc[self.table['mass']<mass_max]
+            table = table.loc[table['mass']<mass_max]
+
+        table = table.sort_values(by="mass").reset_index(drop=True)
+
+        if metadata is None:
+            metadata = {}
+
+        if 'name' not in metadata:
+            metadata['name'] = filename.split('/')[-1].split('.')[0]
+
+        res = Spectrum(table=table, metadata=metadata)
 
         if assign_mark:
-            self._mark_assigned_by_brutto()
+            res._mark_assigned_by_brutto()
 
-        self.table = self.table.sort_values(by="mass").reset_index(drop=True)
-
-        if metadata is not None:            
-            self.metadata.add(metadata=metadata)
-
-        #FIXME bad solution
-        if 'name' not in self.metadata:
-            self.metadata['name'] = filename.split('/')[-1].split('.')[0]
-
-        return self
+        return res
     
     def to_csv(self, 
                 filename: Union[Path, str], 
@@ -190,7 +191,8 @@ class Spectrum(object):
         """
         self.table.to_csv(filename, sep=sep, index=False)
 
-    def read_json(self, filename: Union[Path, str]) -> "Spectrum":
+    @staticmethod
+    def read_json(filename: Union[Path, str]) -> "Spectrum":
         """
         Read mass spectrum from json own format
 
@@ -205,10 +207,10 @@ class Spectrum(object):
         """
         with open(filename, 'rb') as data:
             res = json.load(data)[0]
-        self.table = pd.DataFrame(res['table'])
-        self.metadata=res['metadata']
+        table = pd.DataFrame(res['table'])
+        metadata=res['metadata']
 
-        return self
+        return Spectrum(table=table, metadata=metadata)
 
     def to_json(self, filename: Union[Path, str]) -> None:
         """

@@ -62,7 +62,7 @@ def recallibrate(spec: "Spectrum",
         elif how == 'mdm':
             error_table = ErrorTable().massdiff_error(spec, show_map=draw)
         else:
-            etalon = Spectrum().read_csv(filename=how)
+            etalon = Spectrum.read_csv(filename=how)
             error_table = ErrorTable().etalon_error(spec=spec, etalon=etalon, show_map=draw)
 
     err = copy.deepcopy(error_table.table)
@@ -172,8 +172,8 @@ class ErrorTable(object):
 
         return df_error
     
+    @staticmethod
     def fit_kernel(
-        self, 
         f: np.array,
         mass: np.array,
         err_ppm: float = 3,
@@ -229,8 +229,8 @@ class ErrorTable(object):
 
         return kde_err
 
+    @staticmethod
     def kernel_density_map(
-        self, 
         df_error: pd.DataFrame, 
         ppm: float = 3, 
         show_map: bool = False

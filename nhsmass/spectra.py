@@ -53,7 +53,8 @@ class SpectrumList(UserList):
         super().__init__(spectra)
         self.data: List[Spectrum]
 
-    def read_json(self, filename: Union[Path, str]) -> "SpectrumList":
+    @staticmethod
+    def read_json(filename: Union[Path, str]) -> "SpectrumList":
         """
         Read SpectrumList from json, own format
 
@@ -66,13 +67,15 @@ class SpectrumList(UserList):
         ------
         Spectrum object
         """
+        specs = SpectrumList()
+
         with open(filename, 'rb') as data:
             res = json.load(data)
 
         for i in res:
-            self.append(Spectrum(table = pd.DataFrame(i['table']), metadata=i['metadata']))
+            specs.append(Spectrum(table = pd.DataFrame(i['table']), metadata=i['metadata']))
         
-        return self
+        return specs
 
     def to_json(self, filename: Union[Path, str]) -> None:
         """
