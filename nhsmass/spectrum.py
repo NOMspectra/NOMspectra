@@ -1477,7 +1477,7 @@ class Spectrum(object):
     @_copy
     def get_mol_metrics(self, 
                         metrics: Optional[Sequence[str]] = None, 
-                        how_average: str = 'weight') -> pd.DataFrame:
+                        func: Optional[str] = None) -> pd.DataFrame:
         """
         Get average metrics
 
@@ -1485,8 +1485,9 @@ class Spectrum(object):
         ----------
         metrics: Sequence[str]
             Optional. Default None. Chose metrics fot watch.
-        how_average: str
-            How calculate average. My be "count" or "weight" ((default))
+        func: str
+            How calculate average. My be "mean_weight" (default - weight average on intensity),
+            "mean", "median", "max", "min", "std" (standard deviation)
 
         Return
         ------
@@ -1502,15 +1503,25 @@ class Spectrum(object):
         res = []
         metrics = np.sort(np.array(list(metrics)))
 
-        for col in metrics:
+        if func is None:
+            func = 'mean_weight'
 
-            if how_average=='count':
-                res.append([col, np.average(self.table[col])])
-            
-            elif how_average=='weight':
-                res.append([col, np.average(self.table[col], weights=self.table['intensity'])])
-            else:
-                raise ValueError(f'how_average can be only "count" or "weight", not {how_average}')
+        func_dict = {'mean': lambda col : np.average(self.table[col]),
+                    'mean_weight': lambda col : np.average(self.table[col], weights=self.table['intensity']),
+                    'median': lambda col : np.median(self.table[col]),
+                    'max': lambda col : np.max(self.table[col]),
+                    'min': lambda col : np.min(self.table[col]),
+                    'std': lambda col : np.std(self.table[col])}
+        if func not in func_dict:
+            raise ValueError(f'not correct value - {func}')
+        else:
+            f = func_dict[func]
+
+        for col in metrics:
+            try:
+                res.append([col, f(col)])
+            except:
+                res.append([col, np.NaN])
 
         return pd.DataFrame(data=res, columns=['metric', 'value'])
 

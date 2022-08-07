@@ -133,7 +133,7 @@ class SpectrumList(UserList):
 
     def get_mol_metrics(self, 
                         metrics: Optional[Sequence[str]] = None,
-                        how_average: str = 'weight') -> pd.DataFrame:
+                        func: Optional[str] = None) -> pd.DataFrame:
         """
         Get average metrics
 
@@ -141,8 +141,9 @@ class SpectrumList(UserList):
         ----------
         metrics: Sequence[str]
             Optional. Default None. Chose metrics fot watch.
-        how_average: str
-            How calculate average. My be "count" or "weight" ((default))
+        func: str
+            How calculate average. My be "mean_weight" (default - weight average on intensity),
+            "mean", "median", "max", "min", "std" (standard deviation)
 
         Return
         ------
@@ -153,7 +154,7 @@ class SpectrumList(UserList):
         names = []
 
         for i, spec in enumerate(self):
-            metr = spec.get_mol_metrics(metrics=metrics, how_average=how_average)
+            metr = spec.get_mol_metrics(metrics=metrics, func=func)
             names.append(spec.metadata['name'])
 
             if i == 0:
