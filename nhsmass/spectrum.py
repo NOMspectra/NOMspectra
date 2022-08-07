@@ -737,8 +737,7 @@ class Spectrum(object):
         a = pd.concat([a, b], ignore_index=True)
         a = a.drop_duplicates(subset=['calc_mass'])
 
-        metadata = {'operate':'or'}
-        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+        metadata = {'operate':'or', 'name':MetaData.combine_two_name(self,other)}
 
         return Spectrum(table = a, metadata=metadata)
 
@@ -759,10 +758,10 @@ class Spectrum(object):
 
         a = sub1.__or__(sub2)
         
-        metadata = {'operate':'xor'}
-        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
-
-        return Spectrum(table = a, metadata=metadata)
+        metadata = {'operate':'xor', 'name':MetaData.combine_two_name(self,other)}
+        a.metadata = MetaData(metadata)
+        
+        return a
 
     @_copy
     def __and__(self, other: "Spectrum") -> "Spectrum":
@@ -799,8 +798,7 @@ class Spectrum(object):
         res['calc_mass'] = mark
         res = res.dropna()
 
-        metadata = {'operate':'or'}
-        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+        metadata = {'operate':'and', 'name':MetaData.combine_two_name(self,other)}
 
         return Spectrum(table = res, metadata=metadata)
     
@@ -814,12 +812,8 @@ class Spectrum(object):
         ------
         Spectrum object contain all assigned brutto formulas from two spectrum
         """
-        a = self.__or__(other)
 
-        metadata = {'operate':'add'}
-        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
-
-        return Spectrum(table = a, metadata=metadata)
+        return self.__or__(other)
 
     @_copy
     def __sub__(self, other:"Spectrum") -> "Spectrum":
@@ -856,8 +850,7 @@ class Spectrum(object):
         res['calc_mass'] = mark
         res = res.dropna()
 
-        metadata = {'operate':'sub'}
-        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+        metadata = {'operate':'sub', 'name':MetaData.combine_two_name(self,other)}
 
         return Spectrum(table = res, metadata=metadata)
 
@@ -903,10 +896,10 @@ class Spectrum(object):
         #and add only own molecules
         res = (self - other) + Spectrum(rE)
 
-        metadata = {'operate':'sub'}
-        metadata['name'] = f"{self.metadata['name']}_{other.metadata['name']}"
+        metadata = {'operate':'intens_sub', 'name':MetaData.combine_two_name(self,other)}
+        res.metadata = MetaData(metadata)
 
-        return Spectrum(table = res, metadata=metadata)  
+        return res
 
     @_copy
     def simmilarity(self, other: "Spectrum", mode: str = 'cosine') -> float:
@@ -1370,13 +1363,13 @@ class Spectrum(object):
         """
         if 'DBE' not in self.table:
             self = self.dbe()
-
+        
         self = self.drop_unassigned()
         if olim is None:
             no = list(range(5, int(self.table['O'].max())-4))
         else:
             no = list(range(olim[0],olim[1]))
-
+        
         dbe_o = []
         
         for i in no:

@@ -64,7 +64,16 @@ class MetaData(UserDict):
         #FIXME may be bad solution. It's overwrite existing data
         for key in metadata.keys():
             self[key] = metadata[key]
-
+    
+    @staticmethod
+    def combine_two_name(spec1, spec2):
+        
+        name1 = name2 = '_'
+        if 'name' in spec1.metadata:
+            name1 = spec1.metadata['name']
+        if 'name' in spec2.metadata:
+            name2 = spec2.metadata['name']
+        return f"{name1}_{name2}"
 
 if __name__ == '__main__':
     pass
