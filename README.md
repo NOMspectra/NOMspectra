@@ -1,10 +1,9 @@
-for now it is not available from PyPI until end of refactoring
  
 [![PyPI](https://img.shields.io/pypi/v/nhsmass)](https://pypi.org/project/nhsmass/)
 
 # nhsmass
 
-Lib for working with high resolution mass spectrums
+Lib for working with high resolution mass spectra
 
 This lib supports
 
@@ -17,10 +16,10 @@ This lib supports
 
 ## Installation
 
-By pip from folder:
+By pip:
 
 ```console
-pip install .
+pip install nhsmass
 ```
 
 ## Documentation
@@ -33,11 +32,11 @@ There are few jupyter notebook that explain how to use nhsmass. It is lockated i
 
 ## Graphical interface
 
-Simple GIU lockated here
+Simple GUI lockated here
 
 https://github.com/nhsmass/nhsmassPQ
 
-It is support all main operation.
+It is support all basic operation.
 
 ## How to contribute
 

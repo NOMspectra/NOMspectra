@@ -15,6 +15,7 @@ setup(
     name='nhsmass',
     version=version["__version__"],
     license='GPLv3',
+    description = 'Lib for working with high resolution mass spectra',
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Volikov Alexander, Rukhovich Gleb',
@@ -33,7 +34,7 @@ setup(
         'networkx>=2.7,1'
 	],
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3.7',
   ],
