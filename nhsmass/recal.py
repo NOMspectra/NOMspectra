@@ -108,8 +108,8 @@ class ErrorTable(object):
         """
         self.table = table
 
+    @staticmethod
     def md_error_map(
-        self, 
         spec: "Spectrum", 
         ppm: float = 3, 
         show_map: Optional[bool] = False
@@ -122,7 +122,7 @@ class ErrorTable(object):
         spec: pd.Dataframe
             Dataframe with spectrum table from Spectrum
         ppm: float
-            Optional. Default 5.
+            Optional. Default 3.
             Permissible error in ppm
         show_map: bool
             Optional. Default False.
@@ -193,7 +193,7 @@ class ErrorTable(object):
         ------
         Pandas Dataframe with error table for 100 values
         '''
-        df = pd.DataFrame(f, index=np.linspace(3,-3,100))
+        df = pd.DataFrame(f, index=np.linspace(err_ppm,-err_ppm,100))
 
         out = []
         for i in df.columns:
@@ -203,7 +203,7 @@ class ErrorTable(object):
         kde_err = pd.DataFrame(data=out, columns=['i','ppm'])
         
         #smooth data
-        kde_err['ppm'] = savgol_filter(kde_err['ppm'], 31,5)
+        kde_err['ppm'] = savgol_filter(kde_err['ppm'], 31,3)
         
         xmin = min(mass)
         xmax = max(mass)
@@ -223,9 +223,6 @@ class ErrorTable(object):
             ax.plot(kde_err['mass'], kde_err['ppm'], c='r')
             ax.set_xlabel('m/z, Da')
             ax.set_ylabel('error, ppm')      
-
-        #lock start at zero
-        kde_err['ppm'] = kde_err['ppm'] - kde_err.loc[0,'ppm']
 
         return kde_err
 
@@ -280,8 +277,8 @@ class ErrorTable(object):
         
         return kdm
 
+    @staticmethod
     def assign_error(
-        self, 
         spec:Spectrum,
         ppm: float = 3,
         brutto_dict = {'C':(4,30), 'H':(4,60), 'O':(0,20)},
@@ -315,19 +312,17 @@ class ErrorTable(object):
         error_table['ppm'] = - error_table['ppm']
         error_table = error_table.dropna()
 
-        kdm = self.kernel_density_map(df_error = error_table)
-        err = self.fit_kernel(f=kdm, 
+        kdm = ErrorTable.kernel_density_map(df_error = error_table)
+        err = ErrorTable.fit_kernel(f=kdm, 
                             show_map=show_map, 
                             mass=spectr.drop_unassigned().table['mass'].values)
-        self = ErrorTable(err).extrapolate((spec.table['mass'].min(), spec.table['mass'].max()))
-        self = self.zeroshift(spectr)
+        err = ErrorTable(err).extrapolate((spec.table['mass'].min(), spec.table['mass'].max()))
 
-        return self
+        return err
 
-    def massdiff_error(
-        self,
-        spec: Spectrum,
-        show_map:bool = True):
+    @staticmethod
+    def massdiff_error( spec: Spectrum,
+                        show_map:bool = True):
         '''
         Self-recallibration of mass-spectra by mass-difference map
 
@@ -350,14 +345,16 @@ class ErrorTable(object):
         Analytical chemistry, 91(5), 3350-3358. 
         '''
         spec = copy.deepcopy(spec)
-        mde = self.md_error_map(spec = spec)
-        kdm = self.kernel_density_map(df_error=mde)
-        err = self.fit_kernel(f=kdm, show_map=show_map, mass=spec.table['mass'].values)
+        mde = ErrorTable.md_error_map(spec = spec)
+        kdm = ErrorTable.kernel_density_map(df_error=mde)
+        err = ErrorTable.fit_kernel(f=kdm, show_map=show_map, mass=spec.table['mass'].values)
         
-        return ErrorTable(err)
+        err = ErrorTable(err)
 
-    def etalon_error( self,
-                    spec: "Spectrum", #initial masspectr
+        return err
+
+    @staticmethod
+    def etalon_error(spec: "Spectrum", #initial masspectr
                     etalon: "Spectrum", #etalon massspectr
                     quart: float = 0.9, #treshold by quartile
                     ppm: float = 3,#treshold by ppm
@@ -419,8 +416,8 @@ class ErrorTable(object):
         error_table = df.loc[:,['mass','ppm']]
         error_table = error_table.dropna()
 
-        kdm = self.kernel_density_map(df_error = error_table)
-        err = self.fit_kernel(f=kdm, show_map=show_map, mass=spec.table['mass'].values)
+        kdm = ErrorTable.kernel_density_map(df_error = error_table)
+        err = ErrorTable.fit_kernel(f=kdm, show_map=show_map, mass=spec.table['mass'].values)
 
         return ErrorTable(err)
 
@@ -459,24 +456,6 @@ class ErrorTable(object):
         ax.plot(self.table['mass'], self.table['ppm'])
         ax.set_xlabel('m/z, Da')
         ax.set_ylabel('error, ppm')
-
-    def zeroshift(self, spec:"Spectrum") -> "ErrorTable":
-        """
-        Shift error so mean eror will be zero
-
-        Parameters
-        ----------
-        spec: Spectrum object
-            income massspec
-
-        Return
-        ------
-        ErrorTable object with shifted ppm error
-        """
-        err = copy.deepcopy(self)
-        mean_error = spec.drop_unassigned().calc_error()['rel_error'].mean()
-        err.table['ppm'] = err.table['ppm'] - mean_error
-        return ErrorTable(err.table)
 
 
 if __name__ == '__main__':

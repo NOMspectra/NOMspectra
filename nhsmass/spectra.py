@@ -150,19 +150,18 @@ class SpectrumList(UserList):
         Pandas Dataframe 
         """
 
-        metrics_table = pd.DataFrame()
+        metrics_table = pd.DataFrame()        
         names = []
 
         for i, spec in enumerate(self):
             metr = spec.get_mol_metrics(metrics=metrics, func=func)
             names.append(spec.metadata['name'])
-
             if i == 0:
-                metrics_table = metr
-            else:
-                metrics_table = metrics_table.merge(metr, how='outer', on='metric')
-                            
-        metrics_table.columns = ['metric',*names]
+                index = metr['metric'].values
+            metrics_table[spec.metadata['name']] = metr['value']
+
+        metrics_table.index = index
+        metrics_table.columns = names
 
         return metrics_table
 
