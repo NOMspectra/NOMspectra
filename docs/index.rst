@@ -23,9 +23,9 @@ Main operation:
 
 .. toctree::
    :maxdepth: 3
-   :caption: API:
+   :caption: Contents:
 
-   modules
+   API <api/nhsmass.rst>
 
 Installation
 ============

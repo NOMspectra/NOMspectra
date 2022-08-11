@@ -5,6 +5,7 @@ test.json
 
 docs/_build
 docs/_templates
+docs/api
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

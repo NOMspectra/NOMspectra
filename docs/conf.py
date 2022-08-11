@@ -12,7 +12,12 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../nhsmass/'))
+sys.path.append('..')
+import nhsmass
+
+
+d = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, os.path.join(d, ".."))
 
 
 # -- Project information -----------------------------------------------------
@@ -31,10 +36,23 @@ release = '0.2.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-'sphinx.ext.autodoc',
-'sphinx.ext.viewcode',
-'sphinx.ext.napoleon'
+    "sphinx.ext.autodoc",
+    "sphinx.ext.coverage",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.todo",
+    "sphinx.ext.doctest",
+    "sphinxcontrib.apidoc",
+    "sphinx.ext.napoleon",
 ]
+
+apidoc_module_dir = "../nhsmass"
+apidoc_output_dir = "./api"
+apidoc_excluded_paths = ["tests", "readthedocs"]
+apidoc_separate_modules = True
+apidoc_module_first = True
+# Hide undocumented member by excluding default undoc-members option
+os.environ["SPHINX_APIDOC_OPTIONS"] = "members,show-inheritance"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -42,8 +60,12 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "readthedocs/conf.rst"]
 
+# Include class __init__ and __call__ docstrings.
+autodoc_default_options = {
+    'special-members': '__init__,__call__',
+}
 
 # -- Options for HTML output -------------------------------------------------
 
