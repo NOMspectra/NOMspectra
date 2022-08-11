@@ -16,6 +16,7 @@
 #    along with nhsmass.  If not, see <http://www.gnu.org/licenses/>.
 
 from typing import Sequence, Optional
+from functools import wraps
 import numpy as np
 import pandas as pd
 import copy
@@ -25,6 +26,7 @@ from frozendict import frozendict
 def _freeze(func):
     """freeze dict in func
     """
+    @wraps(func)
     def wrapped(*args, **kwargs):
         args = tuple([frozendict(arg) if isinstance(arg, dict) else arg for arg in args])
         kwargs = {k: frozendict(v) if isinstance(v, dict) else v for k, v in kwargs.items()}

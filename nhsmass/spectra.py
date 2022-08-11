@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmass.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 from pathlib import Path
 from typing import List, Sequence, Union, Optional
 import copy
@@ -95,6 +96,46 @@ class SpectrumList(UserList):
 
         with open(filename, 'w') as f:
             json.dump(res, f)
+
+    def to_csv(self, folder: Union[Path, str]) -> None:
+        """
+        Save all spectrum into separate csv files
+
+        Parameters
+        ----------
+        folder - folder for save spectra in separate files
+        """
+        for spec in all:
+            spec.table.save(os.path.join(folder, spec.metadata['name']))
+
+    @staticmethod
+    def read_csv(folder: Union[Path, str]) -> 'SpectrumList':
+        """
+        Read csv files from folder to SpectrumList object. 
+        Read only 'csv' ot 'txt' fromat
+
+        Parameters
+        ----------
+        folder - folder for load spectrum in separate files
+        """
+        specs = SpectrumList()
+
+        for file in os.listdir(folder):
+            if file[-3:].lower() == 'txt' or file[-3:].lower() == 'txt':
+                spec = Spectrum.read_csv(filename=os.path.join(folder, file))
+                specs.append(spec)
+        
+        return specs
+
+    def get_names(self) -> Sequence:
+        """
+        Get names od spectra into object
+
+        Return
+        ------
+        List with str - names of spectrs
+        """
+        return [spec.metadata['name'] for spec in self]
 
     def get_simmilarity(self, mode: str = "cosine", symmetric = True) -> np.ndarray:
         """
@@ -245,7 +286,7 @@ class SpectrumList(UserList):
 
     def draw_simmilarity(
         self,
-        mode: str = "cosine",
+        mode: str = "tanimoto",
         values: Optional[np.ndarray] = None,
         ax: Optional[plt.axes] = None,
         annot: bool = True,

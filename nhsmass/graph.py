@@ -32,11 +32,6 @@ from matplotlib.colors import rgb2hex
 class GraphMetric(object):
     """
     Calculate metric based on graph properties
-
-    Atributes
-    ---------
-    spec: MassSpectrum object
-    Massspectrum for calculate
     """
     def __init__(self, spec:"Spectrum" = None) -> None: 
         if spec is None:
@@ -55,8 +50,8 @@ class GraphMetric(object):
         dif: diff_mass
             diff-mass inm rounded by 6
         
-        Retun
-        -----
+        Return
+        ------
         tuple (0,1)
         [0]:float - sum of n/total nodes
         where n - length of chain, 
@@ -224,10 +219,6 @@ class GraphMetric(object):
 class Vis(object):
     """
     Generate visulization
-
-    Atributes
-    ---------
-    G: Networkx Graph
     """
 
     def __init__(self, G:nx.Graph=None) -> None:

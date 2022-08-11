@@ -25,13 +25,6 @@ from .draw import vk
 class Reaction(object):
     """
     Class for discover reaction by MS-difference methods
-
-    Atributes
-    ---------
-    sourse: Spectrum object
-        mass spectrum of source
-    product: Spectrum object
-        mass spectrum of product
     """
     def __init__(self, 
         sourse: Optional["Spectrum"] = None, 

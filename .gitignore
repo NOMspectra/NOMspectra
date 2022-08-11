@@ -3,6 +3,9 @@ test.py
 test.txt
 test.json
 
+docs/_build
+docs/_templates
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

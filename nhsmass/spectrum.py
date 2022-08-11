@@ -18,6 +18,7 @@
 
 from pathlib import Path
 from typing import Callable, Dict, Sequence, Union, Optional, Mapping, Tuple
+from functools import wraps
 import copy
 import json
 import matplotlib.pyplot as plt
@@ -413,6 +414,7 @@ class Spectrum(object):
         function with deepcopyed self
 
         """
+        @wraps(func)
         def wrapped(self, *args, **kwargs):
             self = copy.deepcopy(self)
             args = tuple([copy.deepcopy(arg) if isinstance(arg, Spectrum) else arg for arg in args])
