@@ -22,7 +22,7 @@ Main operation:
 - and many other usefull calculation
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: API:
 
    modules
