@@ -1,20 +1,26 @@
  
 [![PyPI](https://img.shields.io/pypi/v/nhsmass)](https://pypi.org/project/nhsmass/)
+[![Documentation Status](https://readthedocs.org/projects/nhsmass/badge/?version=latest)](https://nhsmass.readthedocs.io/en/latest/?badge=latest)
+
 
 # nhsmass
 
-Lib for working with high resolution mass spectra
+nhsmass is an open-access Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples and other difficult object by FTICR or Orbitrap technique. 
 
-This lib supports
+Main operation:
 
-- Plot spectrum and different kind of Van Krevelen diagramm
-- Assigning brutto formulas to signal by mass and TMDS
+- Assigning brutto formulas to signal by mass with desirable ranges of elements (include isotopes)
 - Recallibrate spectrum by etalon, asssigment error or dif-mass map
 - Working with spectra as with sets (intersection, union, etc)
-- Calculate and plot simmilarity map of spectrums
+- Plot spectrum and different kind of Van Krevelen diagramm
+- Calculate simmilarity metrics and moleculars descriptors for spectra
 - and many other usefull calculation
 
 ## Installation
+
+Requirements:
+
+- Python 3.8
 
 By pip:
 
@@ -40,8 +46,4 @@ It is support all basic operation.
 
 ## How to contribute
 
-You can contribute by writing code. Firstly unitteset.
-
-It also supports the creation of issues, forks, pull rquests, bugreports, developing any new ideas.
-
-You can also help by check the documentation and creating new examples.
+Feel free to use [issues](https://github.com/nhsmass/nhsmass/issues) to ask any question, make comments and suggestions
