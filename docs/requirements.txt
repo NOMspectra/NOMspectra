@@ -1,3 +1,10 @@
 sphinx==4.4.0
 sphinx_rtd_theme==1.0.0
 sphinxcontrib-apidoc==0.3.0
+matplotlib
+numpypandas
+scipy
+seaborn
+tqdm
+frozendict
+networkx
