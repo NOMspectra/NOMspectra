@@ -33,6 +33,11 @@ setup(
         'frozendict>=2.3.4',
         'networkx>=2.7.1'
 	],
+    extras_require={"dev": ["pytest",
+                            "sphinx>=4.4.0",
+                            "sphinx_rtd_theme",
+                            "sphinxcontrib-apidoc"]
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
