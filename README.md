@@ -30,7 +30,7 @@ pip install nhsmass
 
 ## Documentation
 
-Automaticaly generated documentation is placed [here](https://nhsmass.github.io/docs/index.html)
+Automaticaly generated documentation is placed [here](https://nhsmass.readthedocs.io)
 
 ## Examples of usage
 
