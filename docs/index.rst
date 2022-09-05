@@ -22,7 +22,7 @@ Main operation:
 - and many other usefull calculation
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: Contents:
 
    API <api/nhsmass.rst>

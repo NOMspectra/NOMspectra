@@ -32,7 +32,10 @@ def recallibrate(spec: "Spectrum",
                 how: str = 'assign',
                 draw: bool = True) -> "Spectrum":
     '''
-    Recallibrate data by error-table
+    Recallibrate spectrum
+
+    Fine reccalabration based on self (assign or mass differnce map)
+    or with external ethalon spectrum
 
     Parameters
     ----------
@@ -41,19 +44,20 @@ def recallibrate(spec: "Spectrum",
     error_table: ErrorTable object
         Optional. If None - calculate for spec. 
         ErrorTable object contain table error in ppm for mass, default 100 string            
-    how: str
+    how: {'assign', 'mdm', filename} 
         Optional. Default 'assign'.
         If error_table is None we can choose how to recalculate.
         'assign' - by assign error, default.
         'mdm' - by calculation mass-difference map.
-        filename - path to etalon spectrum, treated and saved by masslib
+        filename - path to etalon spectrum, treated and saved by nhsmass
     draw: bool
         Plot error (fit of KDM)
 
     Returns
     -------
-    Spectrum object with recallibrated mass
+    Spectrum
     '''
+
     spec = spec.copy()
 
     if error_table is None:
@@ -87,11 +91,6 @@ def recallibrate(spec: "Spectrum",
 class ErrorTable(object):
     """
     A class used to recallibrate mass spectrum
-
-    Attributes
-    ----------
-    table : pandas Datarame
-        consist error table: error in ppm for mass
     """
 
     def __init__(
@@ -106,6 +105,7 @@ class ErrorTable(object):
         table : pandas Datarame
             consist error table: error in ppm for mass
         """
+        
         self.table = table
 
     @staticmethod
@@ -130,9 +130,10 @@ class ErrorTable(object):
 
         Return
         ------
-        Pandas Dataframe object with calculated error map
+        Pandas Dataframe
         '''
 
+        #common neutral mass loses: CH2, CO, CH2O, C2HO, H2O, CO2
         df = pd.DataFrame({ 'C':[1,1,1,2,0,1],
                             'H':[2,0,2,1,2,0],
                             'O':[0,1,1,1,1,2]})
@@ -191,8 +192,9 @@ class ErrorTable(object):
 
         Return
         ------
-        Pandas Dataframe with error table for 100 values
+        Pandas Dataframe
         '''
+
         df = pd.DataFrame(f, index=np.linspace(err_ppm,-err_ppm,100))
 
         out = []
@@ -233,7 +235,7 @@ class ErrorTable(object):
         show_map: bool = False
         ) -> np.array:
         '''
-        Plot kernel density map 100*100 for data
+        Calculate and plot kernel density map 100*100 for data
 
         Parameters
         ----------
@@ -243,11 +245,11 @@ class ErrorTable(object):
             Optional. Default 3.
             treshould for generate
         show_map: bool
-            Optional. Default True. plot kde
+            Optional. Default False. plot kde
 
         Return
         ------
-        numpy array 100*100 with generated kde
+        numpy array
         '''
         
         x = np.array(df_error['mass'])
@@ -279,10 +281,10 @@ class ErrorTable(object):
 
     @staticmethod
     def assign_error(
-        spec:Spectrum,
+        spec: Spectrum,
         ppm: float = 3,
         brutto_dict = {'C':(4,30), 'H':(4,60), 'O':(0,20)},
-        show_map:bool = True):
+        show_map: bool = True):
         '''
         Recallibrate by assign error
 
@@ -299,9 +301,9 @@ class ErrorTable(object):
 
         Return
         ------
-        ErrorTable object that contain recallabrate error ppm for mass diaposone
-
+        ErrorTable
         '''
+
         spectr = copy.deepcopy(spec)
         spectr = spectr.assign(rel_error=ppm, brutto_dict=brutto_dict)
         spectr = spectr.calc_mass().calc_error()
@@ -335,7 +337,7 @@ class ErrorTable(object):
 
         Return
         -------
-        ErrorTable object that contain recallabrate error ppm for mass diaposone
+        ErrorTable
 
         Reference
         ---------
@@ -344,6 +346,7 @@ class ErrorTable(object):
         recalibration of mass spectrometric data in nontargeted metabolomics. 
         Analytical chemistry, 91(5), 3350-3358. 
         '''
+
         spec = copy.deepcopy(spec)
         mde = ErrorTable.md_error_map(spec = spec)
         kdm = ErrorTable.kernel_density_map(df_error=mde)
@@ -381,8 +384,7 @@ class ErrorTable(object):
 
         Return
         ------
-        ErrorTable object that contain recallabrate error ppm for mass diaposone
-
+        ErrorTable
         '''
 
         et = copy.deepcopy(etalon.table)['mass'].to_list()
@@ -429,11 +431,11 @@ class ErrorTable(object):
         ----------
         ranges: Tuple(numeric, numeric)
             Optionaly. Default None - all width of mass in error table.
-            For which diaposone of mass extrapolate existin data
+            For which diaposone of mass extrapolate data
 
         Return
         ------
-        ErrorTable object with extrapolated data
+        ErrorTable
         """
         
         if ranges is None:
@@ -452,6 +454,7 @@ class ErrorTable(object):
         """
         Plot error map from ErrorTable data
         """
+
         fig, ax = plt.subplots(figsize=(4,4), dpi=75)
         ax.plot(self.table['mass'], self.table['ppm'])
         ax.set_xlabel('m/z, Da')

@@ -46,6 +46,7 @@ class SpectrumList(UserList):
         spectra: Sequence[Spectrum]
             list of Spectrum objects
         """
+
         t = type(Spectrum())
         for spec in spectra:
             if isinstance(spec, t) == False:
@@ -57,7 +58,7 @@ class SpectrumList(UserList):
     @staticmethod
     def read_json(filename: Union[Path, str]) -> "SpectrumList":
         """
-        Read SpectrumList from json, own format
+        Read SpectrumList from json
 
         Parameters
         ----------
@@ -66,8 +67,9 @@ class SpectrumList(UserList):
 
         Return
         ------
-        Spectrum object
+        SpectrumList
         """
+
         specs = SpectrumList()
 
         with open(filename, 'rb') as data:
@@ -80,7 +82,7 @@ class SpectrumList(UserList):
 
     def to_json(self, filename: Union[Path, str]) -> None:
         """
-        Saves Spectrum mass-list to JSON own format
+        Saves Spectrum mass-list to JSON
         
         Parameters
         ----------
@@ -103,8 +105,10 @@ class SpectrumList(UserList):
 
         Parameters
         ----------
-        folder - folder for save spectra in separate files
+        folder: str
+            folder for save spectra in separate files
         """
+
         for spec in all:
             spec.table.save(os.path.join(folder, spec.metadata['name']))
 
@@ -116,12 +120,18 @@ class SpectrumList(UserList):
 
         Parameters
         ----------
-        folder - folder for load spectrum in separate files
+        folder: str
+            folder for save spectra in separate files
+
+        Return
+        ------
+        SpectrumList
         """
+
         specs = SpectrumList()
 
         for file in os.listdir(folder):
-            if file[-3:].lower() == 'txt' or file[-3:].lower() == 'txt':
+            if file[-3:].lower() == 'txt' or file[-3:].lower() == 'csv':
                 spec = Spectrum.read_csv(filename=os.path.join(folder, file))
                 specs.append(spec)
         
@@ -129,11 +139,12 @@ class SpectrumList(UserList):
 
     def get_names(self) -> Sequence:
         """
-        Get names od spectra into object
+        Get names of spectra
 
         Return
         ------
-        List with str - names of spectrs
+        List
+            list with names of spectra in SpectrumList
         """
         return [spec.metadata['name'] for spec in self]
 
@@ -143,18 +154,19 @@ class SpectrumList(UserList):
 
         Parameters
         ----------
-        mode: str
+        mode: {"tanimoto", "jaccard", "cosine"}
             Optionaly. Default cosine. 
             one of the simmilarity functions
             Mode can be: "tanimoto", "jaccard", "cosine"
         symmetric: bool
             Optionaly. Default True.
-            If metric is symmtrical ( a(b)==b(a) ) it is enough to calc just half of table
+            If metric is symmetrical ( a(b)==b(a) ) it is enough to calc just half of table
 
         Return
         ------
-        simmilarity matrix, 2d np.ndarray with size [len(names), len(names)]"""
-
+        numpy array
+            table with simmilirities of spectrum corresponig their index in SpectrumList
+        """
         
         spec_num = len(self)
         values = np.eye(spec_num)
@@ -176,14 +188,14 @@ class SpectrumList(UserList):
                         metrics: Optional[Sequence[str]] = None,
                         func: Optional[str] = None) -> pd.DataFrame:
         """
-        Get average metrics
+        Get average molecular metrics
 
         Parameters
         ----------
         metrics: Sequence[str]
             Optional. Default None. Chose metrics fot watch.
-        func: str
-            How calculate average. My be "mean_weight" (default - weight average on intensity),
+        func: {"weight", "mean", "median", "max", "min", "std"}
+            How calculate average. My be "weight" (default - weight average on intensity),
             "mean", "median", "max", "min", "std" (standard deviation)
 
         Return
@@ -208,16 +220,24 @@ class SpectrumList(UserList):
 
     def get_square_vk(self, how_average: str = 'weight') -> pd.DataFrame:
         """
-        Get Van-Krevelen square density
+        Calculate Van-Krevelen square density for spectra
 
         Parameters
         ----------
-        how_average: str
+        how_average: {"count", "weight"}
             How calculate average. My be "count" or "weight" ((default))
 
         Return
         ------
-        Pandas Dataframe with as square number and columns as values spec name
+        Pandas Dataframe
+
+        References
+        ----------
+        Zherebker, Alexander, et al. "Interlaboratory comparison of 
+        humic substances compositional space as measured by Fourier 
+        transform ion cyclotron resonance mass spectrometry 
+        (IUPAC Technical Report)." 
+        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
         """
 
         square_vk = pd.DataFrame()
@@ -232,11 +252,19 @@ class SpectrumList(UserList):
 
     def get_mol_density(self) -> pd.DataFrame:
         """
-        Calculate mol class density table
+        Calculate molecular class density table
 
         Return
         ------
-        pandas Dataframe with index as mol classes and column as spec name
+        pandas Dataframe
+
+        References
+        ----------
+        Zherebker, Alexander, et al. "Interlaboratory comparison of 
+        humic substances compositional space as measured by Fourier 
+        transform ion cyclotron resonance mass spectrometry 
+        (IUPAC Technical Report)." 
+        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
         """
 
         mol_density = pd.DataFrame()
@@ -256,7 +284,7 @@ class SpectrumList(UserList):
         **kwargs
         ) -> None:
         """
-        Draw simmilarity matrix by using seaborn
+        Draw mol density of spectra in bar diagram
 
         Parameters
         ----------

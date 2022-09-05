@@ -35,14 +35,6 @@ from .metadata import MetaData
 class Spectrum(object):
     """ 
     A class used to represent mass spectrum
-
-    Attributes
-    ----------
-    table : pandas Datarame
-        Consist spectrum (mass and intensity of peaks) and all calculated parameters
-        like brutto formulas, calculated mass, relative errorr
-    metadata: MetaData
-        Metadata object that consist dictonary of metadata
     """
 
     def __init__(
@@ -60,8 +52,6 @@ class Spectrum(object):
             Optional. Default None. To add some data into spectrum metedata. 
         """
 
-        self.features = ["mass", 'intensity', "calc_mass", 'intensity', "rel_error"]
-
         if table is not None:
             self.table = table
         else:
@@ -77,10 +67,10 @@ class Spectrum(object):
         take_columns: Optional[Sequence[str]] = None,
         take_only_mz: bool = False,
         sep: str = ",",
-        intens_min: Optional[float] =  None,
-        intens_max: Optional[float] = None,
-        mass_min: Optional[float] =  None,
-        mass_max: Optional[float] = None,
+        intens_min: Optional[Union[int, float]] =  None,
+        intens_max: Optional[Union[int, float]] = None,
+        mass_min: Optional[Union[int, float]] =  None,
+        mass_max: Optional[Union[int, float]] = None,
         assign_mark: bool = False,
         metadata: Optional[Dict] = None
     ) -> "Spectrum":
@@ -88,49 +78,49 @@ class Spectrum(object):
         Read mass spectrum table from csv (Comma-Separated Values) file
 
         All parameters is optional except filename
+        File must have header and at last two main columns: mass and intensity
 
         Parameters
         ----------
         filename: str
-            path to mass spectrum table, absoulute or relative
+            path to mass spectrum table
         mapper: dict
-            dictonary for recognize columns in mass spec file. 
+            dictonary for recognize columns in mass spectrum file. 
             Example: {'m/z':'mass','I':'intensity'}
-        ignore_columns: list of str
+        ignore_columns: Sequence[str]
             list with names of columns that willn't loaded.
             if None load all columns.
             Example: ["index", "s/n"]
-        take_columns: list of str
-            list with names of columns that only will be loaded.
+        take_columns: Sequence[str]
+            list with names of columns that will be loaded, other will be ignored
             if None load all columns.
             Example: ["mass", "intensity", "C", "H", "N", "O"]
         take_only_mz: bool
-            load only mass and intesivity columns
+            Load only mass and intesivity columns
         sep: str
             separator in mass spectrum table, \\t - for tab.
         intens_min: numeric
-            bottom limit for intensivity.
-            by default None and don't restrict by this.
-            But for some spectrum it is necessary to cut noise.
+            bottom limit for intensity.
+            by default it is None and don't restrict by this.
         intens_max: numeric
             upper limit for intensivity.
-            by default None and don't restrict by this
+            by default it is None and don't restrict by this
         mass_min: numeric
             bottom limit for m/z.
-            by default None and don't restrict by this
+            by default it is None and don't restrict by this
         mass_max: numeric
             upper limit for m/z.
-            by default None and don't restrict by this
+            by default it is None and don't restrict by this
         assign_mark: bool
-            default False. Mark peaks as assigned if they have elements
-            need for load mass-list treated by external software
+            default False. Mark peaks as assigned if they have elements.
+            Need for load mass-list treated by external software
         metadata: Dict
             Optional. Default None. Metadata object that consist dictonary of metadata.
             if name not in metadata - name will take from filename.
 
         Return
         ------
-        Spectrum object
+        Spectrum
         """
 
         table = pd.read_csv(filename, sep=sep)
@@ -177,19 +167,20 @@ class Spectrum(object):
                 filename: Union[Path, str], 
                 sep: str = ",") -> None:
         """
-        Saves Spectrum mass-list to csv Spectrum
+        Save Spectrum mass-list to csv file
         
         Parameters
         ----------
         filename: str
-            Path for saving mass spectrum table with calculation to csv file
+            Path for saving mass spectrum table with calculation
         sep: str
             Optional. Separator in saved file. By default it is ','
 
         Caution
         -------
-        Metadata will be lost. For save them too use save_json method     
+        Metadata will be lost. For save them too use to_json method     
         """
+
         self.table.to_csv(filename, sep=sep, index=False)
 
     @staticmethod
@@ -200,12 +191,13 @@ class Spectrum(object):
         Parameters
         ----------
         filename: str
-            path to mass spectrum json file, absoulute or relative
+            path to mass spectrum json file
 
         Return
         ------
-        Spectrum object
+        Spectrum
         """
+
         with open(filename, 'rb') as data:
             res = json.load(data)[0]
         table = pd.DataFrame(res['table'])
@@ -215,13 +207,14 @@ class Spectrum(object):
 
     def to_json(self, filename: Union[Path, str]) -> None:
         """
-        Saves Spectrum mass-list to JSON own format
+        Save Spectrum mass-list to json format
         
         Parameters
         ----------
         filename: str
             Path for saving mass spectrum table with calculation to json file
         """
+
         out = {'metadata':copy.deepcopy(dict(self.metadata))}
         out['table'] = self.table.to_dict()
         with open(filename, 'w') as f:
@@ -229,14 +222,13 @@ class Spectrum(object):
 
     def find_elements(self) -> Sequence[str]:
         """ 
-        Find elems from mass spectrum table.
+        Find elements from columns of mass spectrum table.
 
-        Find elements in table columns. Used elems_mass_table with all elements and isotopes.
-        For example, element 'C' will be recognised as carbon 12C, element 'C_13" as 13C
+        For example, column 'C' will be recognised as carbon 12C, column 'C_13" as 13C
 
         Returns
         -------
-        list of found elemets in columns label. For example: ['C','H','O','N']
+        list
         """
 
         main_elems = elements_table()['element'].values
@@ -257,11 +249,12 @@ class Spectrum(object):
         return elems
 
     def _mark_assigned_by_brutto(self) -> None:
-        """Mark paeks in loaded mass list if they have brutto
+        """
+        Mark peaks in loaded mass list if they have brutto
 
         Return
         ------
-        Spectrum object with assigned mark
+        Spectrum
         """
 
         assign = []
@@ -287,7 +280,7 @@ class Spectrum(object):
             intensity_max: Optional[float] = None,
     ) -> "Spectrum":
         """
-        Finding the nearest mass in generated_bruttos_table
+        Assigning brutto formulas to signal by mass
         
         Parameters
         -----------
@@ -322,7 +315,7 @@ class Spectrum(object):
 
         Return
         ------
-        MassSpectra object with assigned signals
+        Spectrum 
         """
 
         if generated_bruttos_table is None:
@@ -412,8 +405,8 @@ class Spectrum(object):
         Return
         ------
         function with deepcopyed self
-
         """
+
         @wraps(func)
         def wrapped(self, *args, **kwargs):
             self = copy.deepcopy(self)
@@ -429,23 +422,16 @@ class Spectrum(object):
                     quantile: Optional[float] = None 
                     ) -> 'Spectrum':
         """
-        Remove noise from spectrum.
-        Before applying spectrum will be normalized bu sum.
-
-        Caution
-        -------
-        There is risk of loosing data. Do it cautiously.
-        Level of noise may be determenided wrong. 
-        Draw and watch spectrum.
+        Remove noise from spectrum
 
         Parameters
         ----------
         intensity: float
-            Simply cut directly by min intensity. 
+            Cut by min intensity. 
             Default None and dont apply.
         quantile: float
             Cut by quantile. For example 0.1 mean that 10% 
-            of peaks with minimal intensity will be cuted. 
+            of peaks with minimal intensity will be cutted. 
             Default None and dont aplly
         force: float
             How many peaks should cut when auto-search noise level.
@@ -455,7 +441,14 @@ class Spectrum(object):
         Return
         ------
         Spectrum
+
+        Caution
+        -------
+        There is risk of loosing data. Do it cautiously.
+        Level of noise may be determenided wrong. 
+        Draw and watch spectrum.
         """
+
         self = self.normalize()
         
         if intensity is not None:
@@ -488,11 +481,11 @@ class Spectrum(object):
     @_copy
     def drop_unassigned(self) -> "Spectrum":
         """
-        Drop unassigned mass from Mass Spectrum table
+        Drop unassigned by brutto rows
 
         Return
         ------
-        Spectrum object that contain only assigned by brutto formulas peaks
+        Spectrum
 
         Caution
         -------
@@ -514,7 +507,7 @@ class Spectrum(object):
         remove: bool = False,
     ) -> 'Spectrum':
         """ 
-        C13 isotope peak checking
+        Check if peaks have the same brutto with C13 isotope
 
         Parameters
         ----------
@@ -527,7 +520,7 @@ class Spectrum(object):
         
         Return
         ------
-        MassSpectra object with cleaned or checked mass-signals
+        Spectrum
         """
         
         self.table = self.table.sort_values(by='mass').reset_index(drop=True)
@@ -561,18 +554,19 @@ class Spectrum(object):
     @_copy
     def normalize(self, how:str='sum') -> 'Spectrum':
         """
-        Intensity normalize by max intensity
+        Intensity normalize by intensity
 
         Parameters
         ----------
-        how: str
-            two option: 
-            'max' for normilize by maximum peak.
+        how: {'sum', 'max', 'median', 'mean'}
             'sum' for normilize by sum of intensity of all peaks. (default)
+            'max' for normilize by higher intensity peak.
+            'median' for normilize by median of peaks intensity.
+            'mean' for normilize by mean of peaks intensity.
 
         Return
         ------
-        Intensity normalized Spectrum instance
+        Spectrum
         """
 
         if how=='max':
@@ -591,13 +585,19 @@ class Spectrum(object):
         return self
 
     @_copy
-    def sum_isotopes(self) -> "Spectrum":
+    def merge_isotopes(self) -> "Spectrum":
         """
-        All isotopes will be sum and title as main.
+        Merge isotopes.
+
+        For example if specrum list have 'C' and 'C_13' they will be summed in 'C' column.
 
         Return
         ------
-        Spectrum object without minor isotopes        
+        Spectrum
+
+        Caution
+        -------
+        Danger of lose data - with these operation we exclude data that can be usefull       
         """
 
         elems = self.find_elements()
@@ -609,7 +609,7 @@ class Spectrum(object):
                 self.table[res[0]] = self.table[res[0]] + self.table[el]
                 self.table = self.table.drop(columns=[el])
         
-        self.metadata.add({'sum_isotopes':True})
+        self.metadata.add({'merge_isotopes':True})
 
         return self
 
@@ -619,8 +619,9 @@ class Spectrum(object):
 
         Return
         ------
-        Deepcopy of self Spectrum object
+        Spectrum
         """
+
         table = copy.deepcopy(self.table)
         metadata = copy.deepcopy(self.metadata)
 
@@ -629,11 +630,13 @@ class Spectrum(object):
     @_copy
     def calc_mass(self) -> "Spectrum":
         """
-        Calculate mass from assigned brutto formulas
+        Calculate mass from assigned brutto formulas and elements exact masses
+
+        Add column "calc_mass" to self.table
 
         Return
         ------
-        Spectrum object with calculated mass
+        Spectrum
         """
 
         if "assign" not in self.table:
@@ -654,12 +657,17 @@ class Spectrum(object):
     @_copy
     def _calc_sign(self) -> str:
         """
-        Calculate sign from mass and calculated mass
+        Determine sign from mass and calculated mass
+
+        '-' for negative mode
+        '+' for positive mode
+        '0' for neutral
 
         Return
         ------
-        str: "-", "+", "0"
+        str            
         """
+
         self = self.drop_unassigned()
 
         value = (self.table["calc_mass"]- self.table["mass"]).mean()
@@ -674,12 +682,14 @@ class Spectrum(object):
     @_copy
     def calc_error(self, sign: Optional[str] = None) -> "Spectrum":
         """
-        Calculate relative and absolute error of assigned peaks
+        Calculate relative and absolute error of assigned peaks from measured and calculated masses
+
+        Add columns "abs_error" and "rel_error" to self.table
 
         Parameters
         ----------
-        sign: str
-            Optional. Default None and calculated by self. 
+        sign: {'-', '+', '0'}
+            Optional. Default None and get from metatdata or calculated by self. 
             Mode in which mass spectrum was gotten. 
             '-' for negative mode
             '+' for positive mode
@@ -687,8 +697,9 @@ class Spectrum(object):
         
         Return
         ------
-        Spectrum object wit calculated error
+        Spectrum
         """
+
         if "calc_mass" not in self.table:
             self = self.calc_mass()
 
@@ -705,7 +716,7 @@ class Spectrum(object):
         elif sign == '0':
             self.table["abs_error"] = self.table["mass"] - self.table["calc_mass"]
         else:
-            raise Exception('Sended sign or sign in metadata is not correct. May be "+","-","0"')
+            raise ValueError('Sended sign or sign in metadata is not correct. May be "+","-","0"')
         
         self.table["rel_error"] = self.table["abs_error"] / self.table["mass"] * 1e6
         
@@ -718,13 +729,11 @@ class Spectrum(object):
     @_copy
     def __or__(self, other: "Spectrum") -> "Spectrum":
         """
-        Logic function or for two Spectrum object
-
-        Work by calculated mass from brutto formulas
+        Logic function 'or' for two Spectrum object
 
         Return
         ------
-        Spectrum object contain all assigned brutto formulas from two spectrum
+        Spectrum
         """
         
         self = self.normalize()
@@ -748,13 +757,11 @@ class Spectrum(object):
     @_copy
     def __xor__(self, other: "Spectrum") -> "Spectrum":
         """
-        Logic function xor for two Spectrum object
-
-        Work by calculated mass from brutto formulas
+        Logic function 'xor' for two Spectrum object
 
         Return
         ------
-        Spectrum object contain xor assigned brutto formulas from two spectrum
+        Spectrum
         """
 
         sub1 = self.__sub__(other)
@@ -770,13 +777,11 @@ class Spectrum(object):
     @_copy
     def __and__(self, other: "Spectrum") -> "Spectrum":
         """
-        Logic function and for two Spectrum object
-
-        Work by calculated mass from brutto formulas
+        Logic function 'and' for two Spectrum object
 
         Return
         ------
-        Spectrum object contain common assigned brutto formulas from two spectrum
+        Spectrum
         """
 
         self = self.normalize()
@@ -808,13 +813,11 @@ class Spectrum(object):
     
     def __add__(self, other: "Spectrum") -> "Spectrum":
         """
-        Logic function or for two Spectrum object
-
-        Work by calculated mass from brutto formulas
+        addition self spectrum with other spectrum
 
         Return
         ------
-        Spectrum object contain all assigned brutto formulas from two spectrum
+        Spectrum
         """
 
         return self.__or__(other)
@@ -822,13 +825,11 @@ class Spectrum(object):
     @_copy
     def __sub__(self, other:"Spectrum") -> "Spectrum":
         """
-        Logic function substraction for two Spectrum object
-
-        Work by calculated mass from brutto formulas
+        Substraction other spectrum from self spectrum
 
         Return
         ------
-        Spectrum object contain substraction assigned brutto formulas from two spectrum
+        Spectrum
         """
         
         self = self.normalize()
@@ -861,7 +862,10 @@ class Spectrum(object):
     @_copy
     def intens_sub(self, other:"Spectrum") -> "Spectrum":
         """
-        Calculate substruction by intensivity
+        Substruction of other spectrum from self by intensivity
+
+        Result Contain only peaks that higher than in other. 
+        And intensity of this peaks is substraction of self and other.
 
         Parameters
         ----------
@@ -870,10 +874,9 @@ class Spectrum(object):
 
         Return
         ------
-        Spectrum object contain only that peak
-        that higher than in other. And intensity of this peaks
-        is substraction of self and other.
+        Spectrum 
         """
+
         self = self.normalize()
         other = other.normalize()
 
@@ -908,22 +911,23 @@ class Spectrum(object):
     @_copy
     def simmilarity(self, other: "Spectrum", mode: Union[str, Callable] = 'cosine', func = None) -> float:
         """
-        Calculate Simmilarity
+        Calculate Simmilarity of self spectrum with other spectrum
 
         Parameters
         ----------
         other: Spectrum object
             second MaasSpectrum object with that calc simmilarity
-        mode: str or Function
+        mode: {"tanimoto", "jaccard", "cosine"} or Function
             one of the simple simmilarity functions
             Mode can be: "tanimoto", "jaccard", "cosine". Default cosine.
             May also send here function, that will be 
-            applayed to two pd.DataFrame with Spectrum data             
+            applayed to two pandas DataFrame with Spectrum data             
 
         Return
         ------
-        float Simmilarity index
+        float
         """
+
         self = self.normalize()
         other = other.normalize()
 
@@ -973,11 +977,13 @@ class Spectrum(object):
     @_copy
     def brutto(self) -> 'Spectrum':
         """
-        Calculate brutto formulas from assign table
+        Calculate string with brutto from assign table
+
+        Add column "britto" to self.table
 
         Return
         ------
-        Spectrum object wit calculated bruttos
+        Spectrum
         """
 
         if "assign" not in self.table:
@@ -1005,19 +1011,22 @@ class Spectrum(object):
     @_copy
     def cram(self) -> "Spectrum":
         """
-        Calculate if include into CRAM
+        Mark rows that fit CRAM conditions
         (carboxylic-rich alicyclic molecules)
+
+        Add column "CRAM" to self.table
 
         Return
         ------
-        MassSpectrun object with check CRAM (bool)
+        Spectrum
 
-        Reference
-        ---------
+        References
+        ----------
         Hertkorn, N. et al. Characterization of a major 
         refractory component of marine dissolved organic matter.
         Geochimica et. Cosmochimica Acta 70, 2990-3010 (2006)
         """
+
         if "DBE" not in self.table:
             self = self.dbe()        
 
@@ -1032,7 +1041,7 @@ class Spectrum(object):
                 return False
             return True
 
-        table = self.copy().sum_isotopes().table
+        table = self.copy().merge_isotopes().table
         self.table['CRAM'] = table.apply(check, axis=1)
 
         return self
@@ -1040,12 +1049,15 @@ class Spectrum(object):
     @_copy
     def ai(self) -> 'Spectrum':
         """
-        Calculate AI
+        Calculate AI (aromaticity index)
+
+        Add column "AI" to self.table
 
         Return
         ------
-        Spectrum object with calculated AI
+        Spectrum
         """
+
         if "DBE_AI" not in self.table:
             self = self.dbe_ai()
 
@@ -1064,17 +1076,19 @@ class Spectrum(object):
     @_copy
     def cai(self) -> 'Spectrum':
         """
-        Calculate CAI
+        Calculate CAI (C - O - N - S - P)
+
+        Add column "CAI" to self.table
 
         Return
         ------
-        Spectrum object with calculated CAI
+        Spectrum
         """
         
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        table = self.sum_isotopes().table
+        table = self.merge_isotopes().table
 
         for element in "CONSP":
             if element not in table:
@@ -1087,16 +1101,19 @@ class Spectrum(object):
     @_copy
     def dbe_ai(self) -> 'Spectrum':
         """
-        Calculate DBE
+        Calculate DBE_AI (1 + C - O - S - 0.5 * (H + N + P))
+
+        Add column "DBE_AI" to self.table
 
         Return
         ------
-        Spectrum object with calculated DBE
+        Spectrum
         """
+
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        table = self.sum_isotopes().table
+        table = self.merge_isotopes().table
 
         for element in "CHONPS":
             if element not in table:
@@ -1109,16 +1126,19 @@ class Spectrum(object):
     @_copy
     def dbe(self) -> 'Spectrum':
         """
-        Calculate DBE
+        Calculate DBE (1 + C - 0.5 * (H + N))
+
+        Add column "DBE" to self.table
 
         Return
         ------
-        Spectrum object with calculated DBE
+        Spectrum
         """
+
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        table = self.sum_isotopes().table
+        table = self.merge_isotopes().table
 
         for element in "CHON":
             if element not in table:
@@ -1131,16 +1151,19 @@ class Spectrum(object):
     @_copy
     def dbe_o(self) -> 'Spectrum':
         """
-        Calculate DBE-O
+        Calculate DBE - O
+
+        Add column "DBE-O" to self.table
 
         Return
         ------
-        Spectrum object with calculated DBE-O
+        Spectrum 
         """
+
         if "DBE" not in self.table:
             self = self.dbe()
 
-        table = self.sum_isotopes().table
+        table = self.merge_isotopes().table
         self.table['DBE-O'] = table['DBE'] - table['O']
 
         return self
@@ -1148,16 +1171,19 @@ class Spectrum(object):
     @_copy
     def dbe_oc(self) -> 'Spectrum':
         """
-        Calculate DBE-O/C
+        Calculate (DBE - O) / C
+
+        Add column "DBE-OC" to self.table
 
         Return
         ------
-        Spectrum object with calculated DBE-O/C
+        Spectrum
         """
+
         if "DBE" not in self.table:
             self = self.dbe()
 
-        table = self.sum_isotopes().table
+        table = self.merge_isotopes().table
         self.table['DBE-OC'] = (table['DBE'] - table['O'])/table['C']
 
         return self
@@ -1167,14 +1193,17 @@ class Spectrum(object):
         """
         Calculate H/C and O/C
 
+        Add columns "H/C" and "O/C" to self.table
+
         Return
         ------
-        Spectrum object with calculated H/C O/C
+        Spectrum
         """
+
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        table = self.sum_isotopes().table
+        table = self.merge_isotopes().table
         self.table['H/C'] = table['H']/table['C']
         self.table['O/C'] = table['O']/table['C']
 
@@ -1185,9 +1214,11 @@ class Spectrum(object):
         """
         Calculate Kendrick mass and Kendrick mass defect
 
+        Add columns "Ke" and 'KMD" to self.table
+
         Return
         ------
-        Spectrum object with calculated Ke and KMD
+        Spectrum
         """
 
         if 'calc_mass' not in self.table:
@@ -1202,7 +1233,9 @@ class Spectrum(object):
     @_copy
     def nosc(self) -> 'Spectrum':
         """
-        Calculate Normal oxidation state of carbon (NOSC).
+        Calculate Normal oxidation state of carbon (NOSC)
+
+        Add column "NOSC" to self.table
 
         Notes
         -----
@@ -1210,21 +1243,22 @@ class Spectrum(object):
         <0 - reduce state.
         0 - neutral state
 
-        Return
-        ------
-        Spectrum object with calculated DBE
-
-        Reference
-        ---------
+        References
+        ----------
         Boye, Kristin, et al. "Thermodynamically 
         controlled preservation of organic carbon 
         in floodplains."
         Nature Geoscience 10.6 (2017): 415-419.
+
+        Return
+        ------
+        Spectrum
         """
+
         if "assign" not in self.table:
             raise Exception("Spectrum is not assigned")
 
-        table = self.sum_isotopes().table
+        table = self.merge_isotopes().table
 
         for element in "CHONS":
             if element not in table:
@@ -1239,9 +1273,19 @@ class Spectrum(object):
         """
         Assign molecular class for formulas
 
+        Add column "class" to self.table
+
         Return
         ------
-        Spectrum object with assigned zones
+        Spectrum
+
+        References
+        ----------
+        Zherebker, Alexander, et al. "Interlaboratory comparison of 
+        humic substances compositional space as measured by Fourier 
+        transform ion cyclotron resonance mass spectrometry 
+        (IUPAC Technical Report)." 
+        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
         """
 
         if 'AI' not in self.table:
@@ -1249,7 +1293,7 @@ class Spectrum(object):
         if 'H/C' not in self.table or 'O/C' not in self.table:
             self = self.hc_oc()
 
-        table = self.sum_isotopes().table
+        table = self.merge_isotopes().table
 
         for element in "CHON":
             if element not in table:
@@ -1293,13 +1337,13 @@ class Spectrum(object):
 
         Parameters
         ----------
-        how_average: str
+        how_average: {'weight', 'count'}
             how average density. Default "weight" - weight by intensity.
             Also can be "count".
 
         Return
         ------
-        pandas Dataframe with columns: mol_class, density
+        pandas Dataframe
         
         References
         ----------
@@ -1344,7 +1388,7 @@ class Spectrum(object):
                         ax: Optional[plt.axes] = None, 
                         **kwargs) -> Tuple[float, float]:
         """
-        Draw plot DBE by nO and calculate linear fit
+        Calculate DBE vs nO by linear fit
         
         Parameters
         ----------
@@ -1359,7 +1403,8 @@ class Spectrum(object):
 
         Return
         ------
-        (float, float), a and b in fit y = a*x + b
+        (float, float)
+            a and b in fit DBE = a * nO + b
 
         References
         ----------
@@ -1367,14 +1412,14 @@ class Spectrum(object):
         Study of double bond equivalents and the numbers of carbon and oxygen 
         atom distribution of dissolved organic matter with negative-mode FT-ICR MS.
         Analytical chemistry, 83(11), 4193-4199.
-        
         """
+
         if 'DBE' not in self.table:
             self = self.dbe()
         
         self = self.drop_unassigned()
         if olim is None:
-            no = list(range(5, int(self.table['O'].max())-4))
+            no = list(range(int(self.table['O'].min())+5, int(self.table['O'].max())-5))
         else:
             no = list(range(olim[0],olim[1]))
         
@@ -1419,10 +1464,20 @@ class Spectrum(object):
         """
         Calculate density in Van Krevelen diagram divided into 20 squares
 
+        Squares index in Van-Krevelen diagram if H/C is rows, O/C is columns:
+        [[5, 10, 15, 20],
+         [4, 9, 14, 19],
+         [3, 8, 13, 18],
+         [2, 7, 12, 17],
+         [1, 6, 11, 16]]
+
+        H/C divided by [0-0.6, 0.6-1, 1-1.4, 1.4-1.8, 1.8-2.2]
+        O/C divided by [0-0.25, 0.25-0.5, 0.5-0.75, 0.75-1.0]
+
         Parameters
         ----------
-        how_average: str
-            How calculate average. My be "count" or "weight" ((default))
+        how_average: {'weight', 'count'}
+            How calculate average. My be "count" or "weight" (default)
         ax: matplotlib ax
             Optional. external ax
         draw: bool
@@ -1430,7 +1485,15 @@ class Spectrum(object):
 
         Return
         ------
-        Pandas Dataframe with calculated square density
+        Pandas Dataframe
+
+        References
+        ----------
+        Zherebker, Alexander, et al. "Interlaboratory comparison of 
+        humic substances compositional space as measured by Fourier 
+        transform ion cyclotron resonance mass spectrometry 
+        (IUPAC Technical Report)." 
+        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
         """
 
         if 'H/C' not in self.table or 'O/C' not in self.table:
@@ -1487,13 +1550,13 @@ class Spectrum(object):
         ----------
         metrics: Sequence[str]
             Optional. Default None. Chose metrics fot watch.
-        func: str
-            How calculate average. My be "mean_weight" (default - weight average on intensity),
+        func: {'weight', 'mean', 'median', 'max', 'min', 'std'}
+            How calculate average. My be "weight" (default - weight average on intensity),
             "mean", "median", "max", "min", "std" (standard deviation)
 
         Return
         ------
-        pd.DataFrame
+        pandas DataFrame
         """
 
         self = self.calc_all_metrics().drop_unassigned().normalize()
@@ -1509,7 +1572,7 @@ class Spectrum(object):
             func = 'mean_weight'
 
         func_dict = {'mean': lambda col : np.average(self.table[col]),
-                    'mean_weight': lambda col : np.average(self.table[col], weights=self.table['intensity']),
+                    'weight': lambda col : np.average(self.table[col], weights=self.table['intensity']),
                     'median': lambda col : np.median(self.table[col]),
                     'max': lambda col : np.max(self.table[col]),
                     'min': lambda col : np.min(self.table[col]),
@@ -1530,11 +1593,11 @@ class Spectrum(object):
     @_copy
     def calc_all_metrics(self) -> "Spectrum":
         """
-        Calculated all avaible metrics
+        Calculated all available metrics
 
         Return
         ------
-        Spectrum object with calculated metrics
+        Spectrum
         """
 
         self = self.calc_mass()
@@ -1569,8 +1632,9 @@ class Spectrum(object):
 
         Return
         ------
-        Pandas Dataframe head of MassSpec table
+        Pandas Dataframe
         """
+
         if num is None:
             return self.table.head()
         else:
@@ -1578,7 +1642,7 @@ class Spectrum(object):
 
     def tail(self, num: Optional[int] = None) -> pd.DataFrame:
         """
-        Show tail of mass spec table
+        Show tail of Spectrum table
 
         Parameters
         ----------
@@ -1587,8 +1651,9 @@ class Spectrum(object):
 
         Return
         ------
-        Pandas Dataframe tail of MassSpec table
+        Pandas Dataframe
         """
+
         if num is None:
             return self.table.tail()
         else:
@@ -1596,21 +1661,22 @@ class Spectrum(object):
 
     def __len__(self) -> int:
         """
-        Length of Mass-Spectrum table
+        Length of Spectrum table
 
         Return
         ------
-        int - length of Mass-Spectrum table
+        int - length of Spectrum table
         """
+
         return len(self.table)
     
     def __getitem__(self, item: Union[str, Sequence[str]]) -> pd.DataFrame:
         """
-        Get items or slice from spec
+        Get items or slice from Spectrum table
 
         Return
         ------
-        Pandas Dataframe or Series slices
+        Pandas Dataframe
         """
 
         return self.table[item]
@@ -1621,10 +1687,10 @@ class Spectrum(object):
 
         Return
         ------
-        the string representation of Spectrum object
+        str
         """
 
-        columns = [column for column in self.features if column in self.table]
+        columns = ["mass", 'intensity']
         return self.table[columns].__repr__()
 
     def __str__(self) -> str:
@@ -1633,9 +1699,10 @@ class Spectrum(object):
 
         Return
         ------
-        the string representation of Spectrum object
+        str
         """
-        columns = [column for column in self.features if column in self.table]
+
+        columns = ["mass", 'intensity']
         return self.table[columns].__str__()
 
 

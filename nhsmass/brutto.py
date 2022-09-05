@@ -24,7 +24,8 @@ from functools import lru_cache
 from frozendict import frozendict
 
 def _freeze(func):
-    """freeze dict in func
+    """
+    freeze dict in func
     """
     @wraps(func)
     def wrapped(*args, **kwargs):
@@ -37,25 +38,25 @@ def _freeze(func):
 @lru_cache(maxsize=None)
 def brutto_gen(elems: Optional[dict] = None, rules: bool = True) -> pd.DataFrame:
     """
-    Generete brutto formula
+    Generete brutto formula dataframe
 
     Parameters
     ----------
     elems: dict
-        Dictonary, consisted elements and their range for generate. 
-        Examples
-        'C':(1,60) - content of carbon (main isotope) from 1 to 59 (60-1)
-        'O_18':(0,3) - conent of isotope 18 oxygen from 0 to 2
+        Dictonary with elements and their range for generate brutto table 
+        Example: {'C':(1,60),'O_18':(0,3)} - content of carbon (main isotope) from 1 to 59,
+        conent of isotope 18 oxygen from 0 to 2. 
+        By default it is {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3)}
     rules: bool
-        Rules: 0.25<H/C<2.2, O/C < 1, nitogen parity DBE-O <= 10
+        Rules: 0.25<H/C<2.2, O/C < 1, nitogen parity, DBE-O <= 10. 
         By default it is on, but for tmds should be off
 
     Returns
     -------
     pandas Dataframe
-        consist all possible brutto formalas restricted by elems dict
-        with exast masses
+        Dataframe with masses for elements content
     """
+
     if elems is None:
         elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3)}
 
@@ -79,7 +80,7 @@ def brutto_gen(elems: Optional[dict] = None, rules: bool = True) -> pd.DataFrame
     if rules:
 
         temp = copy.deepcopy(gdf)
-        temp=_sum_isotopes(temp)
+        temp=_merge_isotopes(temp)
 
         if 'C' not in temp or 'H' not in temp or 'O' not in temp:
             raise Exception('For applying rules in brutto must be CHO elements or their isotopes')
@@ -107,13 +108,13 @@ def brutto_gen(elems: Optional[dict] = None, rules: bool = True) -> pd.DataFrame
 
     return gdf
 
-def _sum_isotopes(gdf: pd.DataFrame) -> pd.DataFrame:
+def _merge_isotopes(gdf: pd.DataFrame) -> pd.DataFrame:
     """
-    All isotopes will be sum and title as main.
+    All isotopes will be merged and title as main.
 
     Return
     ------
-    MassSpectrum object without minor isotopes        
+    pandas Dataframe    
     """
 
     for el in gdf:
@@ -133,11 +134,11 @@ def get_elements_masses(elems: Sequence[str]) -> np.array :
     Parameters
     ----------
     elems: Sequence[str]
-        Elements in list. Example ['C', 'H', 'N', 'C_13', 'O']
+        List of elements. Example: ['C', 'H', 'N', 'C_13', 'O']
 
     Return
     ------
-    numpy array with elements masses
+    numpy array
     """
     
     elements = elements_table()    
@@ -159,13 +160,13 @@ def gen_from_brutto(table: pd.DataFrame) -> pd.DataFrame:
 
     Parameters
     ----------
-    table: pd.DataFrame
+    table: pandas Dataframe
         table with elemnt contnent
 
     Return
     ------
-    pd.DataFrame
-        with element content and calculated mass (round 6)    
+    pandas DataFrame
+        Dataframe with elements and masses
     """
     masses = get_elements_masses(table.columns)
 
@@ -181,8 +182,8 @@ def elements_table() -> pd.DataFrame:
 
     Return
     ------
-    Pandas DataFrame with exact mass of element and their isotop abundance
-
+    Pandas DataFrame 
+        Dataframe with exact mass of element and their isotop abundance
     """
 
     return pd.DataFrame(

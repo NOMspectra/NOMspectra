@@ -21,15 +21,15 @@ from collections import UserDict
 
 class MetaData(UserDict):
     """
-    Class for store and processing metadata of spectrm
+    Class for store and processing metadata of spectrum
     """
 
     def __init__(self, metadata: Optional[Dict] = None):
-        
         """
+        Parameters
+        ----------
         metadata: Dict
             Optional. Default None. To add some data into spectrum metedata. Key must be string.
-        
         """
 
         if metadata is None:
@@ -37,11 +37,23 @@ class MetaData(UserDict):
         elif isinstance(metadata, Mapping) == False:
             raise Exception("Metadata must be dictionary, or None")
         
-        metadata = self.make_uniform(metadata)
+        metadata = self._make_uniform(metadata)
         
         super().__init__(metadata)
 
-    def make_uniform(self, metadata:Dict):
+    def _make_uniform(self, metadata:Dict) -> Dict:
+        """
+        Uniform metadata keys
+
+        Parameters
+        ----------
+        metadata: Dict
+            Dictonary for uniform
+
+        Return
+        ------
+        Dict
+        """
         
         uniform_metadata = {}
         for key in metadata.keys():
@@ -53,20 +65,42 @@ class MetaData(UserDict):
 
         return uniform_metadata
 
-    def add(self, metadata:Mapping):
+    def add(self, metadata:Mapping) -> None:
+        """
+        add new fields to metadata dictonary
+
+        Parameters
+        ----------
+        metadata: Mapping
+            new fields for adding. For example {'operator':'Alex'}
+        """
 
         if isinstance(metadata, Mapping) == False:
             raise Exception("Metadata must be dictionary, or None")
 
         if metadata is not None:
-            metadata = self.make_uniform(metadata)
-        
-        #FIXME may be bad solution. It's overwrite existing data
+            metadata = self._make_uniform(metadata)
+
         for key in metadata.keys():
             self[key] = metadata[key]
     
     @staticmethod
-    def combine_two_name(spec1, spec2):
+    def combine_two_name(spec1, spec2) -> str:
+        """
+        combine two names from metadata into 
+        one string with '_' as separator
+
+        Parameters
+        ----------
+        spec1: Spectrum
+            first spectrum object
+        spec2: Spectrum
+            second spectrum object
+
+        Return
+        ------
+        str
+        """
         
         name1 = name2 = '_'
         if 'name' in spec1.metadata:

@@ -23,11 +23,11 @@ sys.path.insert(0, os.path.join(d, ".."))
 # -- Project information -----------------------------------------------------
 
 project = 'nhsmass'
-copyright = '2022, Alexander Volikov'
-author = 'Alexander Volikov'
+copyright = '2022, Alexander Volikov, Rukhovich Gleb'
+author = 'Alexander Volikov, Rukhovich Gleb'
 
 # The full version, including alpha/beta/rc tags
-release = '0.2.1'
+release = '0.2.2'
 
 
 # -- General configuration ---------------------------------------------------

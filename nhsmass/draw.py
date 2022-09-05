@@ -42,19 +42,19 @@ def spectrum(spec: 'Spectrum',
     Parameters
     ----------
     spec: Spectrum object
-        spec for plot
+        spectrum for plot
     xlim: Tuple (float, float)
         restrict for mass
     ylim: Tuple (float, float)
         restrict for intensity
     color: str
-        color of draw
-    ax: matplotlyp axes object
+        color of draw. Default black.
+    ax: matplotlib axes object
         send here ax to plot in your own condition
     title: str
-        Title of draw. Default None. Take name from metadata and number of peaks.
+        Title of plot. Default None - Take name from metadata and number of peaks.
     **kwargs: dict
-        additinal parameters to plot method
+        additinal parameters to matplotlib plot method
     """
 
     df = spec.copy().table
@@ -120,7 +120,7 @@ def scatter(spec: 'Spectrum',
     Parameters
     ----------
     spec: Spectrum object
-        spec for plot
+        spectrum for plot
     x: str
         Name for x ordiante - columns in spec table
     y: str
@@ -149,6 +149,7 @@ def scatter(spec: 'Spectrum',
     **kwargs: dict
         additional parameters to scatter method
     """
+    
     if x not in spec.table:
         raise Exception(f'Value {x} is not in spectrum table. Calculate it before')
     if y not in spec.table:
@@ -211,7 +212,7 @@ def scatter_density(spec: 'Spectrum',
                     title: Optional[Union[str, bool]] = None,
                     **kwargs) -> None:
     """
-    Plot VK scatter with density
+    Plot scatter with density
     Same as joinplot in seaborn
     but you can use external axes
 
@@ -357,7 +358,7 @@ def density_2D(spec: 'Spectrum',
                 **kwargs
                 ) -> None:
     """
-    Draw Van-Krevelen density
+    Draw 2D KDE density
 
     All parameters is optional
 
@@ -384,6 +385,7 @@ def density_2D(spec: 'Spectrum',
     **kwargs: Dict
         Additional arguments for plot
     """
+
     if x not in spec.table:
         raise Exception(f'Value {x} is not in spectrum table. Calculate it before')
     if y not in spec.table:
@@ -425,9 +427,10 @@ def vk(spec: "Spectrum",
         Title of draw. Default None. Take name from metadata and number of peaks.
     *args: list
         arguments to send scatter function
-    *kwargs: dict
+    **kwargs: dict
         arguments to send scatter function    
     """
+
     if 'O/C' or 'H/C' not in spec.table:
         spec = spec.hc_oc()
 

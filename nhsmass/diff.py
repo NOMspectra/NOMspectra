@@ -39,6 +39,8 @@ def assign_by_tmds(
     '''
     Assigne brutto formulas by TMDS
 
+    Additianal assignment of masses that can't be done with usual methods
+
     Parameters
     ----------
     spec: Spectrum object
@@ -51,19 +53,30 @@ def assign_by_tmds(
         Custom Dictonary for generate brutto table.
         Example: {'C':(-1,20),'H':(-4,40), 'O':(-1,20),'N':(-1,2)}
     abs_error: float
-        Optional, default 1 ppm. Error for assign peaks by massdif
+        Optional, default 1 ppm. Relative error for assign peaks by massdif
     p: float
         Optional. Default 0.2. 
         Relative intensity coefficient for treshold tmds spectrum
     max_num: int
         Optional. Max mass diff numbers
     C13_filter: bool
-        Use only peaks with C13 isotope peak for generate tmds
+        Use only peaks with C13 isotope peak for generate tmds. Default True.
 
     Return
     ------
-    Spectrum object new assign brutto formulas
+    Spectrum
+        Assigned by tmds masses
+
+    Reference
+    ---------
+    Kunenkov, Erast V., et al. "Total mass difference 
+    statistics algorithm: a new approach to identification 
+    of high-mass building blocks in electrospray ionization 
+    Fourier transform ion cyclotron mass spectrometry data 
+    of natural organic matter." 
+    Analytical chemistry 81.24 (2009): 10106-10115.
     '''
+    
     if "assign" not in spec.table:
         raise Exception("Spectrum is not assigned")
 
@@ -133,21 +146,30 @@ def assign_by_tmds(
 
 class Tmds(Spectrum):
     """
-    A class for calculate TMDS spectrum
+    A class for calculate TMDS (Total mass difference 
+    statistics) spectrum
 
-    Attributes
-    ----------
-    spec: MetaData
-        Optional. Default None. Metadata object that consist dictonary of metadata
-    table: pandas Datarame
-        tmds spectrum - mass, intensity and caclulatedd parameters
-    metadata: MetaData
-        Metadata object that consist dictonary of metadata
-    
+    Reference
+    ---------
+    Kunenkov, Erast V., et al. "Total mass difference 
+    statistics algorithm: a new approach to identification 
+    of high-mass building blocks in electrospray ionization 
+    Fourier transform ion cyclotron mass spectrometry data 
+    of natural organic matter." 
+    Analytical chemistry 81.24 (2009): 10106-10115.
     """
+
     def __init__(self, 
                 spec: Optional["Spectrum"] = None, 
                 table: Optional[pd.DataFrame] = None) -> None:
+        """
+        Parameters
+        ----------
+        table: pandas Datarame
+            tmds spectrum - mass, intensity and caclulatedd parameters
+        metadata: MetaData
+            Metadata object that consist dictonary of metadata
+        """
 
         if spec is None:
             self.metadata = MetaData()
@@ -171,7 +193,6 @@ class Tmds(Spectrum):
         wide: int = 10,
         C13_filter:bool = True,
         ) -> "Tmds":
-
         """
         Total mass difference statistic calculation 
 
@@ -180,18 +201,15 @@ class Tmds(Spectrum):
         other: Spectrum object
             Optional. If None, TMDS will call by self.
         p: float
-            Optional. Default 0.2. 
-            Minimum relative intensity for taking mass-difference
+            Minimum relative intensity for taking mass-difference. Default 0.2.
         wide: int
-            Optional. Default 10.
-            Minimum interval in 0.001*wide Da of peaeks.
+            Minimum interval in 0.001*wide Da of peaks finding. Default 10.
         C13_filter: bool
-            Optional. Default True. 
-            Use only peaks that have C13 isotope peak
+            Use only peaks that have C13 isotope peak. Default True
 
-        Reference
-        ---------
-        Anal. Chem. 2009, 81, 10106
+        Return
+        ------
+        Tmds
         """
 
         spec = copy.deepcopy(self.spec)
@@ -214,7 +232,7 @@ class Tmds(Spectrum):
         mass_num2 = len(masses2)
 
         if mass_num <2 or mass_num2 < 2:
-            raise Exception(f"Too low amount of assigned peaks")
+            raise Exception(f"Too low number of assigned peaks")
 
         mdiff = np.zeros((mass_num, mass_num2), dtype=float)
         for x in range(mass_num):
@@ -252,16 +270,14 @@ class Tmds(Spectrum):
 
         return self
     
-    def calc_by_brutto(
-        self,
-        ) -> "Tmds":
+    def calc_by_brutto(self) -> "Tmds":
 
         """
         Calculate self difference by calculated mass from brutto
 
         Return
         ------
-        Tmds object with assigned signals and elements
+        Tmds
         """
 
         mass = self.spec.drop_unassigned().calc_error().table['calc_mass'].values
@@ -311,7 +327,7 @@ class Tmds(Spectrum):
         
         Return
         ------
-        Tmds object with assigned signals and elements
+        Tmds
         """
 
         if brutto_dict is None:
