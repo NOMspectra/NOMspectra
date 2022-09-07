@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 
 root = os.path.join(os.path.dirname(__file__), '..')
-sample1_path = os.path.join(root, 'test', 'sample1.txt')
-sample2_path = os.path.join(root, 'test', 'sample2.txt')
+sample1_path = os.path.join(root, 'tests', 'sample1.txt')
+sample2_path = os.path.join(root, 'tests', 'sample2.txt')
 
 spec1 = Spectrum.read_csv(sample1_path, take_only_mz=True)
 spec1 = spec1.assign().drop_unassigned()

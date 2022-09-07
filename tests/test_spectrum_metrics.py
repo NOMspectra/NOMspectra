@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 root = os.path.join(os.path.dirname(__file__), '..')
-sample1_path = os.path.join(root, 'test', 'sample1.txt')
+sample1_path = os.path.join(root, 'tests', 'sample1.txt')
 spec = Spectrum.read_csv(sample1_path, assign_mark=True).drop_unassigned()
 
 @pytest.mark.parametrize('el, result', [('S','C24H23O12NS3'),('C_13','C24H23O12N(C_13)3')])

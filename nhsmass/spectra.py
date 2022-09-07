@@ -109,8 +109,9 @@ class SpectrumList(UserList):
             folder for save spectra in separate files
         """
 
-        for spec in all:
-            spec.table.save(os.path.join(folder, spec.metadata['name']))
+        for spec in self:
+            name = f'{spec.metadata["name"]}.csv'
+            spec.table.to_csv(os.path.join(folder, name))
 
     @staticmethod
     def read_csv(folder: Union[Path, str]) -> 'SpectrumList':
