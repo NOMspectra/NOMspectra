@@ -19,6 +19,7 @@ setup(
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Volikov Alexander, Rukhovich Gleb',
+    author_email='ab.volikov@gmail.com',
     url = 'https://github.com/nhsmass/nhsmass',
     packages=find_packages(),
     include_package_data=True,

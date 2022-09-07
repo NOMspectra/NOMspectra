@@ -1,7 +1,4 @@
 .DS_Store
-test.py
-test.txt
-test.json
 
 docs/_build
 docs/_templates

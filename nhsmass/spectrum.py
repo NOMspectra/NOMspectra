@@ -17,6 +17,7 @@
 #    along with nhsmass.  If not, see <http://www.gnu.org/licenses/>.
 
 from pathlib import Path
+import os
 from typing import Callable, Dict, Sequence, Union, Optional, Mapping, Tuple
 from functools import wraps
 import copy
@@ -154,7 +155,8 @@ class Spectrum(object):
             metadata = {}
 
         if 'name' not in metadata:
-            metadata['name'] = filename.split('/')[-1].split('.')[0]
+            head, tail = os.path.split(filename)
+            metadata['name'] = tail.split('.')[0]
 
         res = Spectrum(table=table, metadata=metadata)
 
@@ -448,8 +450,6 @@ class Spectrum(object):
         Level of noise may be determenided wrong. 
         Draw and watch spectrum.
         """
-
-        self = self.normalize()
         
         if intensity is not None:
             self.table = self.table.loc[self.table['intensity'] > intensity].reset_index(drop=True)
@@ -458,7 +458,7 @@ class Spectrum(object):
         elif quantile is not None:
             tresh = self.table['intensity'].quantile(quantile)
             self.table = self.table.loc[self.table['intensity'] > tresh].reset_index(drop=True)
-            self.metadata.add({'noise filter':f'quintile {quantile}'})
+            self.metadata.add({'noise filter':f'quantile {quantile}'})
         
         else:
 
@@ -516,7 +516,7 @@ class Spectrum(object):
             Allowable ppm error when checking c13 isotope peak
         remove: bool
             Optional, default False. 
-            if True peakes without C13 isotopes peak will be dropped
+            Drop unassigned peaks and peaks without C13 isotope
         
         Return
         ------
@@ -1036,7 +1036,7 @@ class Spectrum(object):
             if row['DBE']/row['H'] < 0.2 or row['DBE']/row['H'] > 0.95:
                 return False
             if row['O'] == 0:
-                False
+                return False
             elif row['DBE']/row['O'] < 0.77 or row['DBE']/row['O'] > 1.75:
                 return False
             return True
@@ -1569,7 +1569,7 @@ class Spectrum(object):
         metrics = np.sort(np.array(list(metrics)))
 
         if func is None:
-            func = 'mean_weight'
+            func = 'weight'
 
         func_dict = {'mean': lambda col : np.average(self.table[col]),
                     'weight': lambda col : np.average(self.table[col], weights=self.table['intensity']),
