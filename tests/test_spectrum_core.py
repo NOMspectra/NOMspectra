@@ -62,7 +62,7 @@ class Test_load_and_save:
 
     def test_to_csv(self):
         spec = Spectrum.read_csv(sample1_path, take_only_mz=True)
-        test_path = os.path.join(root, 'test', 'test.csv')
+        test_path = os.path.join(root, 'tests', 'test.csv')
         spec.to_csv(test_path)
         spec2 = Spectrum.read_csv(test_path)
         os.remove(test_path)
@@ -71,7 +71,7 @@ class Test_load_and_save:
             
     def test_json(self):
         spec = Spectrum.read_csv(sample1_path, take_only_mz=True)
-        test_path = os.path.join(root, 'test', 'test.json')
+        test_path = os.path.join(root, 'tests', 'test.json')
         spec.to_json(test_path)
         spec2 = Spectrum.read_json(test_path)
         os.remove(test_path)

@@ -1056,6 +1056,12 @@ class Spectrum(object):
         Return
         ------
         Spectrum
+
+        References
+        ----------
+        Koch, Boris P., and T. Dittmar. "From mass to structure: An aromaticity 
+        index for high resolution mass data of natural organic matter." 
+        Rapid communications in mass spectrometry 20.5 (2006): 926-932.
         """
 
         if "DBE_AI" not in self.table:
