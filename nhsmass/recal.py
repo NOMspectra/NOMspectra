@@ -119,8 +119,8 @@ class ErrorTable(object):
 
         Parameters
         ----------
-        spec: pd.Dataframe
-            Dataframe with spectrum table from Spectrum
+        spec: Spectrum
+            data
         ppm: float
             Optional. Default 3.
             Permissible error in ppm

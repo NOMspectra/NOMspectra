@@ -9,9 +9,6 @@ sample2_path = os.path.join(root, 'tests', 'sample2.txt')
 spec1 = Spectrum.read_csv(sample1_path, take_only_mz=True).assign().drop_unassigned()
 mapper = {'m/z':'mass','I':'intensity'}
 spec2 = Spectrum.read_csv(sample2_path, mapper=mapper, take_only_mz=True, sep='\t').assign().drop_unassigned()
-folder = os.path.join(root, 'tests', 'temp')
-if 'temp' not in os.listdir(os.path.join(root, 'tests')):
-    os.mkdir(folder)
 
 def test_reaction_init():
     r = Reaction(spec1, spec2)
