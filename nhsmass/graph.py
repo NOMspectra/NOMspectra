@@ -39,8 +39,9 @@ class GraphMetric(object):
             self.spec = Spectrum()
         else:
             self.spec = spec.copy()
-
-    def graph_features(self, mass:np.array, dif:float) -> Sequence[float]:
+    
+    @staticmethod
+    def graph_features(mass:np.array, dif:float) -> Sequence[float]:
         """
         Calculate chain characteristic for mass difference
 
@@ -102,12 +103,12 @@ class GraphMetric(object):
             dif = row['calc_mass']
             res.append(self.graph_features(mass, dif))
 
-        feat = ['nodes', 'chains', 'max_chain', 'median chain']
+        feat = ['nodes', 'chains', 'max_chain', 'median_chain']
         diff.table = diff.table.join(pd.DataFrame(data = res, columns=feat))
 
         return diff.table
 
-class Vis(object):
+class GraphVis(object):
     """
     Generate visulization
     """
@@ -119,7 +120,7 @@ class Vis(object):
     def generate(spec:"Spectrum", 
                 dif_table:pd.DataFrame = None,
                 metrics: Sequence[str] = None
-                ) -> 'Vis':
+                ) -> 'GraphVis':
         """
         Generate direct grpah from massspectrum and difference table
 
@@ -136,7 +137,7 @@ class Vis(object):
 
         Return
         ------
-        Vis
+        GraphVis
         """
 
         spec = spec.copy()
@@ -144,7 +145,7 @@ class Vis(object):
         mass = spec.table['calc_mass'].values
 
         if dif_table is None:
-            dif_table = Vis.gen_diftable()
+            dif_table = GraphVis.gen_diftable()
 
         if metrics is None:
             metrics = spec.table.columns
@@ -174,7 +175,7 @@ class Vis(object):
                     G.add_node(str(res), **atr_r)
                     G.add_edge(str(item), str(res), weight=dif, name=dif_name, color=dif_color)
 
-        return Vis(G)
+        return GraphVis(G)
     
     @staticmethod
     def gen_diftable(el = None, count = None, colors=True) -> pd.DataFrame:

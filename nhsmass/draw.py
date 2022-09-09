@@ -289,6 +289,7 @@ def density(spec: 'Spectrum',
             color: str = 'blue', 
             ax: Optional[plt.axes] = None,
             title: Optional[Union[str, bool]] = None,
+            vertical: bool = False,
             **kwargs: Optional[dict]) -> None:
     """
     Draw KDE density for values
@@ -309,6 +310,8 @@ def density(spec: 'Spectrum',
         Optional. External axes.
     title: str
         Title of draw. Default None. Take name from metadata and number of peaks.
+    vertical: bool
+        Flip x to y for vertical plot
     **kwargs: Dict
         Additional arguments for plot
     """
@@ -331,7 +334,10 @@ def density(spec: 'Spectrum',
     if ax is None:
         fig, ax = plt.subplots(figsize=(4,4), dpi=75)
     
-    sns.kdeplot(x = oc, ax=ax, color=color, fill=True, alpha=0.1, bw_adjust=2, **kwargs)
+    if vertical:
+        sns.kdeplot(y = oc, ax=ax, color=color, fill=True, alpha=0.1, bw_adjust=2, **kwargs)
+    else:
+        sns.kdeplot(x = oc, ax=ax, color=color, fill=True, alpha=0.1, bw_adjust=2, **kwargs)
     ax.set_xlabel(col)
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
@@ -391,7 +397,10 @@ def density_2D(spec: 'Spectrum',
     if y not in spec.table:
         raise Exception(f'Value {y} is not in spectrum table. Calculate it before')
 
-    sns.kdeplot(spec.table[x], spec.table[y], ax=ax, cmap=cmap, shade=shade, **kwargs)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(4,4), dpi=75)
+
+    sns.kdeplot(x=spec.table[x], y=spec.table[y], ax=ax, cmap=cmap, shade=shade, **kwargs)
 
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
