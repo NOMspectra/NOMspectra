@@ -217,7 +217,7 @@ ax[2].set_title('spec2 ^ spec1')
 
 ## Simmilarity
 
-Calculate simmilarity indexes. For now it common indexes - Cosine, Tanimoto and Jaccard
+Calculate simmilarity indexes. For now you can use common indexes - Cosine, Tanimoto and Jaccard
 
 
 ```python

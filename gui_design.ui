@@ -756,7 +756,7 @@
                 <widget class="QComboBox" name="func">
                  <item>
                   <property name="text">
-                   <string>mean_weight</string>
+                   <string>weight</string>
                   </property>
                  </item>
                  <item>

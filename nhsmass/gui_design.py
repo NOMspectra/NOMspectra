@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'design.ui'
+# Form implementation generated from reading ui file 'gui_design.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -898,7 +898,7 @@ class Ui_MainWindow(object):
         self.nomalize_box.setItemText(2, _translate("MainWindow", "mean"))
         self.nomalize_box.setItemText(3, _translate("MainWindow", "median"))
         self.count.setText(_translate("MainWindow", "Count"))
-        self.func.setItemText(0, _translate("MainWindow", "mean_weight"))
+        self.func.setItemText(0, _translate("MainWindow", "weight"))
         self.func.setItemText(1, _translate("MainWindow", "mean"))
         self.func.setItemText(2, _translate("MainWindow", "median"))
         self.func.setItemText(3, _translate("MainWindow", "max"))

@@ -47,7 +47,7 @@ about =f'''NhsMass. Version {version["__version__"]}
 
 Graphical user interface for nhsmass library (https://github.com/nhsmass/nhsmass)
 
-Tutorial: https://github.com/nhsmass/nhsmass/blob/docs/gui_tutorial.md
+Tutorial: https://nhsmass.readthedocs.io/en/latest/gui_tutorial.html
 
 Created by Alexander Volikov.
 Distributed under license GPLv3.
