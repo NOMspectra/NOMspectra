@@ -1,6 +1,7 @@
 sphinx==4.4.0
 sphinx_rtd_theme==1.0.0
 sphinxcontrib-apidoc==0.3.0
+myst-parser
 matplotlib
 numpy
 pandas

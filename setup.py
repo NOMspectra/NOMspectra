@@ -32,15 +32,17 @@ setup(
         'seaborn>=0.10.0',
         'tqdm>=4.43.0',
         'frozendict>=2.3.4',
-        'networkx>=2.7.1'
+        'pyQt5>=5.15.6',
+        'matplotlib-venn>=0.11.7'
 	],
     extras_require={"dev": ["pytest",
                             "sphinx>=4.4.0",
                             "sphinx_rtd_theme",
-                            "sphinxcontrib-apidoc"]
+                            "sphinxcontrib-apidoc",
+                            "myst-parser"]
     },
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3.8',
   ],

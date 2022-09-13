@@ -31,7 +31,7 @@ def assign_by_tmds(
     spec: "Spectrum", 
     tmds_spec: Optional["Tmds"] = None,
     tmds_brutto_dict: Optional[Dict] = None, 
-    rel_error: float = 1,
+    rel_error: float = 3,
     p = 0.2,
     max_num: Optional[int] = None,
     C13_filter: bool = True

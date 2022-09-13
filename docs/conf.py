@@ -27,8 +27,7 @@ copyright = '2022, Alexander Volikov, Rukhovich Gleb'
 author = 'Alexander Volikov, Rukhovich Gleb'
 
 # The full version, including alpha/beta/rc tags
-release = '0.2.3'
-
+release = '0.3.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -44,6 +43,7 @@ extensions = [
     "sphinx.ext.doctest",
     "sphinxcontrib.apidoc",
     "sphinx.ext.napoleon",
+    "myst_parser"
 ]
 
 apidoc_module_dir = "../nhsmass"

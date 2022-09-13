@@ -111,8 +111,7 @@ class ErrorTable(object):
     @staticmethod
     def md_error_map(
         spec: "Spectrum", 
-        ppm: float = 3, 
-        show_map: Optional[bool] = False
+        ppm: float = 3
         ) -> pd.DataFrame:
         '''
         Calculate mass differnce map
@@ -166,10 +165,6 @@ class ErrorTable(object):
                     data_error.append([mass, (masses[idx] - mz)/mz*1000000])
         
         df_error = pd.DataFrame(data = data_error, columns=['mass', 'ppm' ])
-        
-        if show_map:
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=75)
-            ax.scatter(df_error['mass'], df_error['ppm'], s=0.01)
 
         return df_error
     
@@ -210,7 +205,6 @@ class ErrorTable(object):
         xmin = min(mass)
         xmax = max(mass)
         
-        #FIXME constan 100 maybe not good idea
         kde_err['mass'] = np.linspace(xmin, xmax, 100)
 
         ymin = -err_ppm
@@ -232,7 +226,6 @@ class ErrorTable(object):
     def kernel_density_map(
         df_error: pd.DataFrame, 
         ppm: float = 3, 
-        show_map: bool = False
         ) -> np.array:
         '''
         Calculate and plot kernel density map 100*100 for data
@@ -261,7 +254,6 @@ class ErrorTable(object):
         ymin = -ppm 
         ymax = ppm 
 
-        #FIXME constan 100 maybe not good idea
         xx, yy = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
 
         positions = np.vstack([xx.ravel(), yy.ravel()])
@@ -269,13 +261,6 @@ class ErrorTable(object):
         kernel = st.gaussian_kde(values)
         kdm = np.reshape(kernel(positions).T, xx.shape)
         kdm = np.rot90(kdm)
-
-        if show_map:
-            fig = plt.figure(figsize=(4,4), dpi=75)
-            ax = fig.gca()
-            ax.set_xlim(xmin, xmax)
-            ax.set_ylim(ymin, ymax)
-            ax.imshow(kdm, extent=[xmin, xmax, ymin, ymax], aspect='auto')
         
         return kdm
 
@@ -353,6 +338,7 @@ class ErrorTable(object):
         err = ErrorTable.fit_kernel(f=kdm, show_map=show_map, mass=spec.table['mass'].values)
         
         err = ErrorTable(err)
+        err.table['ppm'] = err.table['ppm'] - err.table.loc[0, 'ppm']
 
         return err
 
@@ -452,14 +438,13 @@ class ErrorTable(object):
 
     def show_error(self) -> None:
         """
-        Plot error map from ErrorTable data
+        Plot error map from ErrorTable class data
         """
 
         fig, ax = plt.subplots(figsize=(4,4), dpi=75)
         ax.plot(self.table['mass'], self.table['ppm'])
         ax.set_xlabel('m/z, Da')
         ax.set_ylabel('error, ppm')
-
 
 if __name__ == '__main__':
     pass

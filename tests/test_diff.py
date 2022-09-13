@@ -22,15 +22,15 @@ class Test_assign_by_tmds():
 
     def test_assign_by_tmds(self):
         spec = assign_by_tmds(spec1).drop_unassigned()
-        assert len(spec) == 1830
+        assert len(spec) == 1859
 
     def test_max_num(self):
         spec = assign_by_tmds(spec1, max_num=5).drop_unassigned()
-        assert len(spec) == 1815
+        assert len(spec) == 1828
     
     def test_pvalue(self):
         spec = assign_by_tmds(spec1, p=1).drop_unassigned()
-        assert len(spec) == 1822
+        assert len(spec) == 1844
 
     def test_c13(self):
         spec = spec1.noise_filter(quantile=0.5)

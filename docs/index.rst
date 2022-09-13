@@ -7,10 +7,9 @@ Welcome to nhsmass's documentation!
 ===================================
 
 .. image:: _static/nhsmass_logo.png
-  :width: 100
   :alt: nhsmass_logo
 
-nhsmass is an open-access Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples and other difficult object by FTICR or Orbitrap technique. 
+nhsmass is an open source Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples and other difficult object by FTICR or Orbitrap technique. 
 
 Main operation:
 
@@ -19,43 +18,15 @@ Main operation:
 - Working with spectra as with sets (intersection, union, etc)
 - Plot spectrum and different kind of Van Krevelen diagramm
 - Calculate simmilarity metrics and moleculars descriptors for spectra
-- and many other usefull calculation
+
+.. image:: _static/gui_figures.jpg
+  :alt: gui_figures
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
    :caption: Contents:
-
+   
+   Install <install.md>
+   Examples <examples.rst>
    API <api/nhsmass.rst>
-
-Installation
-============
-
-Requirements:
-
-- Python 3.8
-
-Install nhsmass by pip
-
-.. code-block:: console
-
-  pip install nhsmass
-
-Examples of usage
-=================
-
-There are few jupyter notebook that explain how to use nhsmass. It is lockated in folder "notebooks" in Github repo:
-https://github.com/nhsmass/nhsmass/tree/master/notebooks
-
-Graphical interface
-===================
-
-Simple GUI is lockated here
-
-https://github.com/nhsmass/nhsmassPQ
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   GUI Tutorial <gui_tutorial.md>

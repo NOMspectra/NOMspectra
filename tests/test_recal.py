@@ -13,7 +13,7 @@ mapper = {'m/z':'mass','I':'intensity'}
 spec2 = Spectrum.read_csv(sample2_path, mapper=mapper, take_only_mz=True, sep='\t').assign().drop_unassigned()
 
 @pytest.mark.parametrize('how, result', [("assign", 0.016),
-                                            ("mdm", -0.036)])
+                                            ("mdm", -0.006)])
 def test_recallibrate(how, result):
     spec = recallibrate(spec2, how=how)
     spec = spec.calc_error()
@@ -45,13 +45,13 @@ class Test_ErrorTable:
 
     def test_kernel_density_map_ppm(self):
         et = ErrorTable.md_error_map(spec1)
-        f = ErrorTable.kernel_density_map(et, ppm=0.5, show_map=True)
+        f = ErrorTable.kernel_density_map(et, ppm=0.5)
         assert len(f) == 100
         assert round(np.mean(f[50,:]),3) == 0.013
 
     def test_fit_kernel(self):
         et = ErrorTable.md_error_map(spec1)
-        f = ErrorTable.kernel_density_map(et, show_map=True)
+        f = ErrorTable.kernel_density_map(et)
         fit = ErrorTable.fit_kernel(f, mass=spec1.table['mass'].values, show_map=True)
         assert round(fit['ppm'].mean(),3) == 0.012
 

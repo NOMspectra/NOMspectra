@@ -315,7 +315,7 @@ class SpectrumList(UserList):
 
     def draw_simmilarity(
         self,
-        mode: str = "tanimoto",
+        mode: str = "cosine",
         values: Optional[np.ndarray] = None,
         ax: Optional[plt.axes] = None,
         annot: bool = True,

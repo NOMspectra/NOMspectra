@@ -15,10 +15,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with nhsmass.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Optional, Tuple, Callable, Union
+from typing import Optional, Sequence, Tuple, Callable, Union
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib_venn import venn2, venn3
 from .spectrum import Spectrum
 
 import matplotlib.pyplot as plt
@@ -476,6 +477,56 @@ def show_error(spec:"Spectrum") -> None:
     ax.set_xlabel('m/z, Da')
     ax.set_ylabel('error, ppm')
 
+def venn(spec1: "Spectrum", 
+         spec2: "Spectrum", 
+         spec3: Optional["Spectrum"] = None,
+         labels: Optional[Sequence[str]] = None,
+         ax: Optional[plt.axes] = None,
+         title: Optional[Union[str, bool]] = None,
+         **kwargs):
+    """
+    Draw venn diagramm
+
+    Parameters
+    ----------
+    spec1: Spectrum object
+        first spectrum
+    spec2: Spectrum object
+        second spectrum
+    spec3: Spectrum object
+        third spectrum. Optional.
+    labels: [Sequence[str]
+        lables for circles.
+    ax: matplotlib axes object
+        send here ax to plot in your own condition
+    title: str
+        Title of plot. Default None - Take name from metadata and number of peaks.
+    **kwargs: dict
+        additinal parameters to venn2 or venn3 plot method
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(6,4), dpi=75)
+
+    s1 = set(spec1.table['calc_mass'].dropna().values)
+    s2 = set(spec2.table['calc_mass'].dropna().values)
+
+    if spec3 is None:
+        v = 2
+    else:
+        v = 3
+        s3 = set(spec3.table['calc_mass'].dropna().values)
+
+    if labels is None:
+        labels = [f'spec{i}' for i in range(1, v+1)]
+
+    if v == 2:
+        venn2(subsets = [s1, s2], set_labels = labels, ax=ax)
+    else:
+        print(labels)
+        venn3(subsets = [s1, s2, s3], set_labels = labels, ax=ax)
+
+    if title is not None:
+        ax.set_title(title)
 
 if __name__ == '__main__':
     pass

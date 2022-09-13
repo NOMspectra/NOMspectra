@@ -1,11 +1,12 @@
- 
+
 [![PyPI](https://img.shields.io/pypi/v/nhsmass)](https://pypi.org/project/nhsmass/)
 [![Documentation Status](https://readthedocs.org/projects/nhsmass/badge/?version=latest)](https://nhsmass.readthedocs.io/en/latest/?badge=latest)
 
-
 # nhsmass
 
-nhsmass is an open-access Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples and other difficult object by FTICR or Orbitrap technique. 
+![logo](https://github.com/nhsmass/nhsmass/raw/master/docs/_static/nhsmass_logo.png)
+
+nhsmass is an open source Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples, petrolium and other difficult object by FTICR or Orbitrap technique.
 
 Main operation:
 
@@ -14,9 +15,14 @@ Main operation:
 - Working with spectra as with sets (intersection, union, etc)
 - Plot spectrum and different kind of Van Krevelen diagramm
 - Calculate simmilarity metrics and moleculars descriptors for spectra
-- and many other usefull calculation
 
-## Installation
+![figures](https://github.com/nhsmass/nhsmass/raw/master/docs/_static/gui_figures.jpg)
+
+## Documentation
+
+Documentation and examples of usage is placed [here](https://nhsmass.readthedocs.io). Also you can explore jupyter [notebooks](https://github.com/nhsmass/nhsmass/tree/master/notebooks)
+
+## Install
 
 Requirements:
 
@@ -28,22 +34,20 @@ By pip:
 pip install nhsmass
 ```
 
-## Documentation
-
-Automaticaly generated documentation is placed [here](https://nhsmass.readthedocs.io)
-
-## Examples of usage
-
-There are few jupyter notebook that explain how to use nhsmass. It is lockated in folder "notebooks"
-
 ## Graphical interface
 
-Simple GUI lockated here
+After installation nhsmass you can run GUI by the command:
 
-https://github.com/nhsmass/nhsmassPQ
+```console
+python -m nhsmass
+```
 
-It is support all basic operation.
+The GUI is pretty basic and not very flexible but it is support all basic operation.
 
 ## How to contribute
 
-Feel free to use [issues](https://github.com/nhsmass/nhsmass/issues) to ask any question, make comments and suggestions
+Feel free to use [issues](https://github.com/nhsmass/nhsmass/issues) to ask any question, make comments and suggestions.
+
+## License
+
+Distributed under [license GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html)

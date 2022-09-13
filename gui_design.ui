@@ -1,0 +1,1725 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>739</width>
+    <height>740</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>NhsMass</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="3,1">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="main">
+       <attribute name="title">
+        <string>treatment</string>
+       </attribute>
+       <widget class="QLabel" name="label_14">
+        <property name="geometry">
+         <rect>
+          <x>640</x>
+          <y>220</y>
+          <width>60</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>692</width>
+          <height>476</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_32">
+         <property name="spacing">
+          <number>3</number>
+         </property>
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMinimumSize</enum>
+         </property>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <property name="spacing">
+            <number>-1</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QPushButton" name="load_spectrum">
+               <property name="text">
+                <string>Load Spectrum</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="load_new">
+               <property name="text">
+                <string>New</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_13">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Separator</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="load_intensity"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>Intensity</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>min Intens</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>max Intens</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>min m/z</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="load_max_intens"/>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="load_min_intens"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="load_mz"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>m/z</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="load_sep"/>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>max m/z</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QLineEdit" name="load_max_mz"/>
+             </item>
+             <item row="5" column="1">
+              <widget class="QLineEdit" name="load_min_mz"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_11">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="save_spectrum">
+             <property name="text">
+              <string>Save Spectrum</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="print_spec">
+             <property name="text">
+              <string>Print spectrum</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_12">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="plot_spectrum">
+             <property name="text">
+              <string>Plot Spectrum</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="plot_vk">
+             <property name="text">
+              <string>Plot Van Krevelin</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="Line" name="line">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QPushButton" name="assign">
+             <property name="text">
+              <string>Assign</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QLabel" name="label_10">
+               <property name="text">
+                <string>Err ppm</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="assign_error_ppm"/>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="assign_neg">
+               <property name="text">
+                <string>Neg</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QPushButton" name="show_assign_error">
+             <property name="text">
+              <string>Show Assign Error</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_9">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <item>
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>Element</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="assign_element"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>Isotope</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="assign_isotope"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QLabel" name="label_12">
+               <property name="text">
+                <string>Range</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="assign_range_min"/>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="assign_range_max"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <widget class="QPushButton" name="add_element">
+               <property name="text">
+                <string>Add</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="reset_element">
+               <property name="text">
+                <string>Reset</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="generate_gdf">
+               <property name="text">
+                <string>Gen</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_10">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_9">
+             <item>
+              <widget class="QPushButton" name="gen_tmds">
+               <property name="text">
+                <string>Gen TMDS</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="save_tmds">
+               <property name="text">
+                <string>Save TMDS</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <item>
+                <widget class="QLabel" name="label_13">
+                 <property name="text">
+                  <string>P</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="tmds_p"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_7">
+               <item>
+                <widget class="QLabel" name="label_16">
+                 <property name="text">
+                  <string>N</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="max_tmds"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="tmds_c13">
+               <property name="text">
+                <string>C_13</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QPushButton" name="assign_tmds">
+             <property name="text">
+              <string>Assign by TMDS</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="Line" name="line_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <item>
+            <widget class="QPushButton" name="recallibrate">
+             <property name="text">
+              <string>Recallibrate</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="load_etalon">
+             <property name="text">
+              <string>Load Etalon</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="calc_recal_by_etalon">
+             <property name="text">
+              <string>Calc Recal by Etalon</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="calc_self_recal_by_assign">
+             <property name="text">
+              <string>Calc Recal by Assign</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="calc_self_recal_by_mdiff">
+             <property name="text">
+              <string>Calc Recal by MDiff</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_5">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_11">
+               <item>
+                <widget class="QPushButton" name="load_error">
+                 <property name="text">
+                  <string>Load Error</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="save_error">
+                 <property name="text">
+                  <string>Save Error</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_10">
+               <item>
+                <widget class="QPushButton" name="show_error">
+                 <property name="text">
+                  <string>Show Error</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="err_extra">
+                 <property name="text">
+                  <string>Extrapolate</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_12">
+             <item>
+              <widget class="QPushButton" name="range">
+               <property name="text">
+                <string>Range</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="recal_range_min"/>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="recal_range_max"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="load_background">
+             <property name="text">
+              <string>Load Background</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="remove_background">
+             <property name="text">
+              <string>Remove Background</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>analysis</string>
+       </attribute>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>4</y>
+          <width>691</width>
+          <height>481</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="1">
+          <layout class="QVBoxLayout" name="verticalLayout_8" stretch="1,3">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_6">
+             <property name="spacing">
+              <number>4</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="multi_load">
+               <property name="text">
+                <string>Multi Load</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_16">
+               <item>
+                <widget class="QPushButton" name="save_spectrum_2">
+                 <property name="text">
+                  <string>Save</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="remove">
+                 <property name="text">
+                  <string>Remove</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_30">
+               <item>
+                <widget class="QPushButton" name="save_all">
+                 <property name="text">
+                  <string>Save All</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="clear">
+                 <property name="text">
+                  <string>Remove All</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_24">
+               <item>
+                <widget class="QPushButton" name="rename">
+                 <property name="text">
+                  <string>Rename</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="rename_line"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="Line" name="line_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_18">
+               <item>
+                <widget class="QComboBox" name="arifm_box">
+                 <item>
+                  <property name="text">
+                   <string>metric</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>and</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>+</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>-</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>xor</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>int_sub</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="operate">
+                 <property name="text">
+                  <string>Operate</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_15">
+               <item>
+                <widget class="QPushButton" name="add">
+                 <property name="text">
+                  <string>Add_Bufer</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="reset">
+                 <property name="text">
+                  <string>Reset</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QListWidget" name="listWidget"/>
+           </item>
+          </layout>
+         </item>
+         <item row="0" column="2">
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <property name="spacing">
+            <number>5</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_26">
+             <item>
+              <widget class="QCheckBox" name="all_spectra">
+               <property name="text">
+                <string>All spectra</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="calc_all">
+               <property name="text">
+                <string>Calculate</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="normalize">
+               <property name="text">
+                <string>Normalize</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="nomalize_box">
+               <item>
+                <property name="text">
+                 <string>sum</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>max</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>mean</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>median</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_16">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_25">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_9">
+               <item>
+                <widget class="QPushButton" name="count">
+                 <property name="text">
+                  <string>Count</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="func">
+                 <item>
+                  <property name="text">
+                   <string>mean_weight</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>mean</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>median</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>max</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>min</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>std</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_10">
+               <item>
+                <widget class="QComboBox" name="cut_box_2">
+                 <item>
+                  <property name="text">
+                   <string>&gt;</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>&lt;</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>=</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="cut_box">
+                 <item>
+                  <property name="text">
+                   <string>intensity</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>mass</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Ke</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>KMD</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>C</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>H</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>O</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>N</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>S</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>H/C</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>O/C</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>AI</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>CAI</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>DBE</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>DBE_AI</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>DBE-O</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>DBE-OC</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>CRAM</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>NOSC</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="cut_line"/>
+             </item>
+             <item>
+              <widget class="QPushButton" name="cut">
+               <property name="text">
+                <string>Cut</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_7">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_17">
+             <item>
+              <widget class="QPushButton" name="classes">
+               <property name="text">
+                <string>Classes</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="square_density_plot">
+               <property name="text">
+                <string>Squares</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="plot_dbe">
+               <property name="text">
+                <string>DBE vs nO</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_18">
+               <property name="text">
+                <string>nO</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="no_min"/>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="no_max"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_21">
+             <item>
+              <widget class="QPushButton" name="plot_matrix">
+               <property name="text">
+                <string>Simmilarity</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="similarity_metric">
+               <item>
+                <property name="text">
+                 <string>tanimoto</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>jaccard</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>cosine</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="save_csv">
+               <property name="text">
+                <string>SaveCSV</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_8">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_20">
+             <item>
+              <widget class="QLabel" name="label_19">
+               <property name="text">
+                <string>Color</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="color"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_20">
+               <property name="text">
+                <string>Alpha</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="alpha"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_23">
+               <property name="text">
+                <string>Size</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="size_volume"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_11">
+               <property name="text">
+                <string>Pow</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="pow"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_28">
+             <item>
+              <widget class="QPushButton" name="scatter">
+               <property name="text">
+                <string>Scatter</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="scatter_box_1">
+               <item>
+                <property name="text">
+                 <string>O/C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>H/C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ke</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KMD</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>intensity</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>mass</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>H</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>O</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>N</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>S</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>CAI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>AI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE_AI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE-O</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE-OC</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>NOSC</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="sactter_box_2">
+               <item>
+                <property name="text">
+                 <string>H/C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>O/C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KMD</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ke</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>NOSC</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>intensity</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>mass</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>H</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>O</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>N</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>S</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>CAI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>AI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE_AI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE-O</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE-OC</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="sactter_box_3">
+               <item>
+                <property name="text">
+                 <string>intensity</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>None</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ke</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KMD</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>mass</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>NOSC</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>H</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>O</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>N</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>S</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>H/C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>O/C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>CAI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>AI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE_AI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE-O</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE-OC</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_29">
+             <item>
+              <widget class="QPushButton" name="plot_spectrum_2">
+               <property name="text">
+                <string>Spectrum</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="density_plot">
+               <property name="text">
+                <string>ScatterDens</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="density">
+               <property name="text">
+                <string>Density</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="density_box">
+               <item>
+                <property name="text">
+                 <string>NOSC</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>O/C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>H/C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ke</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>KMD</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>intensity</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>mass</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>C</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>H</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>O</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>N</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>S</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>CAI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>AI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE_AI</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE-O</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DBE-OC</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_14">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_14">
+             <item>
+              <widget class="QLabel" name="label_24">
+               <property name="text">
+                <string>x1</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="x1"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_17">
+               <property name="text">
+                <string>x2</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="x2"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_25">
+               <property name="text">
+                <string>y1</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="y1"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_26">
+               <property name="text">
+                <string>y2</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="y2"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_13">
+             <item>
+              <widget class="QLabel" name="label_15">
+               <property name="text">
+                <string>dpi</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="dpi_line"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_21">
+               <property name="text">
+                <string>size</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="size_line"/>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="size_line_2"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_27">
+             <item>
+              <widget class="QPushButton" name="path">
+               <property name="text">
+                <string>Path</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="format">
+               <item>
+                <property name="text">
+                 <string>png</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>svg</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>pdf</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>tif</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="save_box">
+               <property name="text">
+                <string>Save</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_15">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTextBrowser" name="textBrowser"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>load_spectrum</tabstop>
+  <tabstop>load_new</tabstop>
+  <tabstop>load_sep</tabstop>
+  <tabstop>load_mz</tabstop>
+  <tabstop>load_intensity</tabstop>
+  <tabstop>load_min_intens</tabstop>
+  <tabstop>load_max_intens</tabstop>
+  <tabstop>load_min_mz</tabstop>
+  <tabstop>load_max_mz</tabstop>
+  <tabstop>save_spectrum</tabstop>
+  <tabstop>print_spec</tabstop>
+  <tabstop>plot_spectrum</tabstop>
+  <tabstop>plot_vk</tabstop>
+  <tabstop>assign</tabstop>
+  <tabstop>assign_error_ppm</tabstop>
+  <tabstop>assign_neg</tabstop>
+  <tabstop>show_assign_error</tabstop>
+  <tabstop>assign_element</tabstop>
+  <tabstop>assign_isotope</tabstop>
+  <tabstop>assign_range_min</tabstop>
+  <tabstop>assign_range_max</tabstop>
+  <tabstop>add_element</tabstop>
+  <tabstop>reset_element</tabstop>
+  <tabstop>generate_gdf</tabstop>
+  <tabstop>gen_tmds</tabstop>
+  <tabstop>save_tmds</tabstop>
+  <tabstop>tmds_p</tabstop>
+  <tabstop>max_tmds</tabstop>
+  <tabstop>tmds_c13</tabstop>
+  <tabstop>assign_tmds</tabstop>
+  <tabstop>recallibrate</tabstop>
+  <tabstop>load_etalon</tabstop>
+  <tabstop>calc_recal_by_etalon</tabstop>
+  <tabstop>calc_self_recal_by_assign</tabstop>
+  <tabstop>calc_self_recal_by_mdiff</tabstop>
+  <tabstop>load_error</tabstop>
+  <tabstop>save_error</tabstop>
+  <tabstop>show_error</tabstop>
+  <tabstop>err_extra</tabstop>
+  <tabstop>range</tabstop>
+  <tabstop>recal_range_min</tabstop>
+  <tabstop>recal_range_max</tabstop>
+  <tabstop>load_background</tabstop>
+  <tabstop>remove_background</tabstop>
+  <tabstop>textBrowser</tabstop>
+  <tabstop>multi_load</tabstop>
+  <tabstop>save_spectrum_2</tabstop>
+  <tabstop>remove</tabstop>
+  <tabstop>save_all</tabstop>
+  <tabstop>clear</tabstop>
+  <tabstop>rename</tabstop>
+  <tabstop>rename_line</tabstop>
+  <tabstop>arifm_box</tabstop>
+  <tabstop>operate</tabstop>
+  <tabstop>add</tabstop>
+  <tabstop>reset</tabstop>
+  <tabstop>listWidget</tabstop>
+  <tabstop>all_spectra</tabstop>
+  <tabstop>calc_all</tabstop>
+  <tabstop>normalize</tabstop>
+  <tabstop>nomalize_box</tabstop>
+  <tabstop>count</tabstop>
+  <tabstop>func</tabstop>
+  <tabstop>cut_box_2</tabstop>
+  <tabstop>cut_box</tabstop>
+  <tabstop>cut_line</tabstop>
+  <tabstop>cut</tabstop>
+  <tabstop>classes</tabstop>
+  <tabstop>square_density_plot</tabstop>
+  <tabstop>plot_dbe</tabstop>
+  <tabstop>no_min</tabstop>
+  <tabstop>no_max</tabstop>
+  <tabstop>plot_matrix</tabstop>
+  <tabstop>similarity_metric</tabstop>
+  <tabstop>save_csv</tabstop>
+  <tabstop>color</tabstop>
+  <tabstop>alpha</tabstop>
+  <tabstop>size_volume</tabstop>
+  <tabstop>pow</tabstop>
+  <tabstop>scatter</tabstop>
+  <tabstop>scatter_box_1</tabstop>
+  <tabstop>sactter_box_2</tabstop>
+  <tabstop>sactter_box_3</tabstop>
+  <tabstop>plot_spectrum_2</tabstop>
+  <tabstop>density_plot</tabstop>
+  <tabstop>density</tabstop>
+  <tabstop>density_box</tabstop>
+  <tabstop>x1</tabstop>
+  <tabstop>x2</tabstop>
+  <tabstop>y1</tabstop>
+  <tabstop>y2</tabstop>
+  <tabstop>dpi_line</tabstop>
+  <tabstop>size_line</tabstop>
+  <tabstop>size_line_2</tabstop>
+  <tabstop>path</tabstop>
+  <tabstop>format</tabstop>
+  <tabstop>save_box</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
