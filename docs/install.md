@@ -1,12 +1,12 @@
 # Install
 
-nhsmass requires Python version 3.8+ and can be installed by pip:
+natorgms requires Python version 3.8+ and can be installed by pip:
 
 ```console
-pip install nhsmass
+pip install natorgms
 ```
 
-nhsmass has the following dependencies:
+natorgms has the following dependencies:
 
 - matplotlib
 - numpy
@@ -18,4 +18,4 @@ nhsmass has the following dependencies:
 - pyQt5
 - matplotlib-venn
 
-Missing dependencies will be automatically installed when you install nhsmass using pip
+Missing dependencies will be automatically installed when you install natorgms using pip

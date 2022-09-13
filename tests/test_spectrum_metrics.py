@@ -1,5 +1,5 @@
 from asyncio import run_coroutine_threadsafe
-from nhsmass.spectrum import Spectrum
+from natorgms.spectrum import Spectrum
 import pytest
 import os
 import numpy as np

@@ -1,15 +1,15 @@
-.. nhsmass documentation master file, created by
+.. natorgms documentation master file, created by
    sphinx-quickstart on Thu Aug 11 18:33:15 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to nhsmass's documentation!
-===================================
+Welcome to natorgms's documentation!
+====================================
 
-.. image:: _static/nhsmass_logo.png
-  :alt: nhsmass_logo
+.. image:: _static/natorgms_logo.png
+  :alt: natorgms_logo
 
-nhsmass is an open source Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples and other difficult object by FTICR or Orbitrap technique. 
+natorgms is an open source Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples and other difficult object by FTICR or Orbitrap technique. 
 
 Main operation:
 
@@ -28,5 +28,5 @@ Main operation:
    
    Install <install.md>
    Examples <examples.rst>
-   API <api/nhsmass.rst>
+   API <api/natorgms.rst>
    GUI Tutorial <gui_tutorial.md>

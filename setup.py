@@ -5,14 +5,14 @@ import os
 here = os.path.abspath(os.path.dirname(__file__))
 
 version = {}
-with open(os.path.join(here, "nhsmass", "__version__.py")) as f:
+with open(os.path.join(here, "natorgms", "__version__.py")) as f:
     exec(f.read(), version)
 
 with open("README.md") as readme_file:
     readme = readme_file.read()
 
 setup(
-    name='nhsmass',
+    name='natorgms',
     version=version["__version__"],
     license='GPLv3',
     description = 'Lib for working with high resolution mass spectra',
@@ -20,7 +20,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Volikov Alexander, Rukhovich Gleb',
     author_email='ab.volikov@gmail.com',
-    url = 'https://github.com/nhsmass/nhsmass',
+    url = 'https://github.com/natorgms/natorgms',
     packages=find_packages(),
     include_package_data=True,
     python_requires='>=3.8',

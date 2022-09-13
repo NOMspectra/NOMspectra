@@ -1,17 +1,17 @@
 #    Copyright 2022 Volikov Alexander <ab.volikov@gmail.com>
 #
-#    nhsmass is free software: you can redistribute it and/or modify
+#    natorgms is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    nhsmass is distributed in the hope that it will be useful,
+#    natorgms is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with nhsmass.  If not, see <http://www.gnu.org/licenses/>.
+#    along with natorgms.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
 import traceback
@@ -31,39 +31,39 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib_venn import venn2
-from nhsmass.spectrum import Spectrum 
-from nhsmass.spectra import SpectrumList
-from nhsmass.recal import ErrorTable, recallibrate
-from nhsmass.diff import Tmds, assign_by_tmds
-from nhsmass.brutto import brutto_gen
-import nhsmass.draw as draw
+from natorgms.spectrum import Spectrum 
+from natorgms.spectra import SpectrumList
+from natorgms.recal import ErrorTable, recallibrate
+from natorgms.diff import Tmds, assign_by_tmds
+from natorgms.brutto import brutto_gen
+import natorgms.draw as draw
 
 here = os.path.abspath(os.path.dirname(__file__))
 version = {}
 with open(os.path.join(here, "__version__.py")) as f:
     exec(f.read(), version)
 
-about =f'''NhsMass. Version {version["__version__"]}
+about =f'''natorgms. Version {version["__version__"]}
 
-Graphical user interface for nhsmass library (https://github.com/nhsmass/nhsmass)
+Graphical user interface for natorgms library (https://github.com/natorgms/natorgms)
 
-Tutorial: https://nhsmass.readthedocs.io/en/latest/gui_tutorial.html
+Tutorial: https://natorgms.readthedocs.io/en/latest/gui_tutorial.html
 
 Created by Alexander Volikov.
 Distributed under license GPLv3.
 
-nhsmass is free software: you can redistribute it and/or modify
+natorgms is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-nhsmass is distributed in the hope that it will be useful,
+natorgms is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with nhsmass.  If not, see <http://www.gnu.org/licenses/>.
+along with natorgms.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 default_colors = ['blue','red','green','orange','purple','brown','pink','gray','olive','cyan'] * 100

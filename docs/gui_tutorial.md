@@ -1,9 +1,9 @@
-# Graphical user interface of nhsmass
+# Graphical user interface of natorgms
 
-After installation nhsmass you can run GUI by the command:
+After installation natorgms you can run GUI by the command:
 
 ```console
-python -m nhsmass
+python -m natorgms
 ```
 
 The GUI is pretty basic and not very flexible but it is support all basic operation.
@@ -83,7 +83,7 @@ The error can be applied not to the entire range, but to a part, for this you ne
 
 ### Loading, saving, renaming spectra
 
-Analysis can be performed only with spectra processed by this programm or by the *nhsmass* library; to work with other files, you need to bring the table headers in accordance with this library ('mass' as m/z, 'intensity' as Intensity, ',' as separator)
+Analysis can be performed only with spectra processed by this programm or by the *natorgms* library; to work with other files, you need to bring the table headers in accordance with this library ('mass' as m/z, 'intensity' as Intensity, ',' as separator)
 
 You can load several spectra at once, to do this, click **Multi Load** and select files. Also you can add just treated spectrum with tab treatment by button **Add_buffer**
 

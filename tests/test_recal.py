@@ -1,5 +1,5 @@
-from nhsmass.recal import recallibrate, ErrorTable
-from nhsmass.spectrum import Spectrum
+from natorgms.recal import recallibrate, ErrorTable
+from natorgms.spectrum import Spectrum
 import pytest
 import os
 import numpy as np

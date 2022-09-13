@@ -832,7 +832,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "NhsMass"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "natorgms"))
         self.load_spectrum.setText(_translate("MainWindow", "Load Spectrum"))
         self.load_new.setText(_translate("MainWindow", "New"))
         self.label.setText(_translate("MainWindow", "Separator"))

@@ -1,6 +1,6 @@
 from this import d
-from nhsmass.spectrum import Spectrum
-import nhsmass.draw as draw
+from natorgms.spectrum import Spectrum
+import natorgms.draw as draw
 import matplotlib.pyplot as plt
 import pytest
 import os

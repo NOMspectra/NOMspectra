@@ -1,5 +1,5 @@
-from nhsmass.metadata import MetaData
-from nhsmass.spectrum import Spectrum
+from natorgms.metadata import MetaData
+from natorgms.spectrum import Spectrum
 import pytest
 import os
 

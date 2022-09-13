@@ -2,9 +2,9 @@
 
 
 ```python
-from nhsmass.spectrum import Spectrum
-from nhsmass.recal import ErrorTable, recallibrate
-import nhsmass.draw as draw
+from natorgms.spectrum import Spectrum
+from natorgms.recal import ErrorTable, recallibrate
+import natorgms.draw as draw
 import pandas as pd
 import matplotlib.pyplot as plt
 

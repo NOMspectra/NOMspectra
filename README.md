@@ -1,12 +1,12 @@
 
-[![PyPI](https://img.shields.io/pypi/v/nhsmass)](https://pypi.org/project/nhsmass/)
-[![Documentation Status](https://readthedocs.org/projects/nhsmass/badge/?version=latest)](https://nhsmass.readthedocs.io/en/latest/?badge=latest)
+[![PyPI](https://img.shields.io/pypi/v/natorgms)](https://pypi.org/project/natorgms/)
+[![Documentation Status](https://readthedocs.org/projects/natorgms/badge/?version=latest)](https://natorgms.readthedocs.io/en/latest/?badge=latest)
 
-# nhsmass
+# natorgms
 
-![logo](https://github.com/nhsmass/nhsmass/raw/master/docs/_static/nhsmass_logo.png)
+![logo](https://github.com/natorgms/natorgms/raw/master/docs/_static/natorgms_logo.png)
 
-nhsmass is an open source Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples, petrolium and other difficult object by FTICR or Orbitrap technique.
+natorgms is an open source Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples, petrolium and other difficult object by FTICR or Orbitrap technique.
 
 Main operation:
 
@@ -16,11 +16,11 @@ Main operation:
 - Plot spectrum and different kind of Van Krevelen diagramm
 - Calculate simmilarity metrics and moleculars descriptors for spectra
 
-![figures](https://github.com/nhsmass/nhsmass/raw/master/docs/_static/gui_figures.jpg)
+![figures](https://github.com/natorgms/natorgms/raw/master/docs/_static/gui_figures.jpg)
 
 ## Documentation
 
-Documentation and examples of usage is placed [here](https://nhsmass.readthedocs.io). Also you can explore jupyter [notebooks](https://github.com/nhsmass/nhsmass/tree/master/notebooks)
+Documentation and examples of usage is placed [here](https://natorgms.readthedocs.io). Also you can explore jupyter [notebooks](https://github.com/natorgms/natorgms/tree/master/notebooks)
 
 ## Install
 
@@ -31,22 +31,22 @@ Requirements:
 By pip:
 
 ```console
-pip install nhsmass
+pip install natorgms
 ```
 
 ## Graphical interface
 
-After installation nhsmass you can run GUI by the command:
+After installation natorgms you can run GUI by the command:
 
 ```console
-python -m nhsmass
+python -m natorgms
 ```
 
 The GUI is pretty basic and not very flexible but it is support all basic operation.
 
 ## How to contribute
 
-Feel free to use [issues](https://github.com/nhsmass/nhsmass/issues) to ask any question, make comments and suggestions.
+Feel free to use [issues](https://github.com/natorgms/natorgms/issues) to ask any question, make comments and suggestions.
 
 ## License
 

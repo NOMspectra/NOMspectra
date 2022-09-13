@@ -1,5 +1,5 @@
-from nhsmass.diff import Tmds, assign_by_tmds
-from nhsmass.spectrum import Spectrum
+from natorgms.diff import Tmds, assign_by_tmds
+from natorgms.spectrum import Spectrum
 import pytest
 import os
 import numpy as np
