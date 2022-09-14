@@ -6,12 +6,12 @@ After installation natorgms you can run GUI by the command:
 python -m natorgms
 ```
 
-The GUI is pretty basic and not very flexible but it is support all basic operation.
+The GUI is pretty basic and not very flexible but it supports all basic operation.
 
 The program's capabilities are divided into two parts - treatment and analysis
 
 ```{image} _static/gui_windows.jpg
-:alt: Windows screnshots
+:alt: Windows screenshots
 :width: 600px
 ```
 
@@ -24,7 +24,7 @@ To load a new spectrum, you need to select the **new** checkbox, and also fill t
 
 After loading the spectrum, you can check what has loaded using the **Print Spectrum** button. If the columns are merged into one, then the wrong delimiter was probably used. Columns must include *mass* and *intensity* . You can also view the current spectrum at any other time the program is running.
 
-If you open a file that has already been processed by this program, then, as usualy, standard headers and a separator are used there, so it is not necessary to specify them.
+If you open a file that has already been processed by this program, then, as usually, standard headers and a separator are used there, so it is not necessary to specify them.
 
 When opening the spectrum, you can set limits on mass and intensity in the corresponding fields.
 
@@ -61,7 +61,7 @@ After generating TMDS, you can use it and assign additional peaks in the spectru
 
 ### Plotting spectrum and Van Krevelen diagrams in processing mode
 
-To quickly check the correctness of the procedures being carried out, it makes sense to build the spectrum and the Van Krevelen dagram.
+To quickly check the correctness of the procedures being carried out, it makes sense to build the spectrum and the Van Krevelen diagram.
 
 After loading the spectrum, you can plot the spectrum with the corresponding **Plot Spectrum** button. A new window will open, in which you can operate with the spectrum - select an area, zoom in, move, etc. 
 

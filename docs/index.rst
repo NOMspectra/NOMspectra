@@ -3,21 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to natorgms's documentation!
+natorgms documentation
 ====================================
 
 .. image:: _static/natorgms_logo.png
   :alt: natorgms_logo
 
-natorgms is an open source Python package for processing high resolution mass spectra, priviosly for analysis dissolve organic matter, humic samples and other difficult object by FTICR or Orbitrap technique. 
+natorgms is an open-source Python package for processing high resolution mass spectra. Package designed for analysis dissolve organic matter, humic samples, petroleum and other difficult object which are characterized by thousands of signals in the spectrum and require special attention to analysis. The package is intended for processing initial mass lists, visualization spectra and determination of molecular descriptors such as aromaticity index (AI), double bond equivalent (DBE) and many others for further work.
 
 Main operation:
 
 - Assigning brutto formulas to signal by mass with desirable ranges of elements (include isotopes)
-- Recallibrate spectrum by etalon, asssigment error or dif-mass map
-- Working with spectra as with sets (intersection, union, etc)
-- Plot spectrum and different kind of Van Krevelen diagramm
-- Calculate simmilarity metrics and moleculars descriptors for spectra
+- Fine recalibrate spectrum by standard, assignment error or dif-mass map
+- Working with spectra as with sets (intersection, union, etc.)
+- Plot spectrum and different kind of Scatter and density diagram such as Van Krevelen diagram
+- Calculate similarity metrics between spectra
+- Calculate molecular descriptors (DBE, AI, NOSC, CRAM and other) for spectra
 
 .. image:: _static/gui_figures.jpg
   :alt: gui_figures
