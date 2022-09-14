@@ -324,8 +324,8 @@ class ErrorTable(object):
         -------
         ErrorTable
 
-        Reference
-        ---------
+        References
+        ----------
         Smirnov, K. S., Forcisi, S., Moritz, F., Lucio, M., & Schmitt-Kopplin, P. 
         (2019). Mass difference maps and their application for the 
         recalibration of mass spectrometric data in nontargeted metabolomics. 

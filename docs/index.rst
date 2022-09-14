@@ -9,7 +9,7 @@ natorgms documentation
 .. image:: _static/natorgms_logo.png
   :alt: natorgms_logo
 
-natorgms is an open-source Python package for processing high resolution mass spectra. Package designed for analysis dissolve organic matter, humic samples, petroleum and other difficult object which are characterized by thousands of signals in the spectrum and require special attention to analysis. The package is intended for processing initial mass lists, visualization spectra and determination of molecular descriptors such as aromaticity index (AI), double bond equivalent (DBE) and many others for further work.
+natorgms is an open-source Python package for processing high resolution mass spectra. The name is an acronym for Natural Organic matter Mass Spectrometry, so package designed for analysis natural organic matter (NOM) which are represent such substances as dissolve organic matter (DOM), humic substances, lignin, biochar and other objects of oxidative destruction of natural compounds which are characterized by thousands of signals in the spectrum and require special methods for analysis. The package implements a full-fledged workflow for processing, analysis and visualization of mass spectrum. Various algorithms for filtering spectra, recalibrating and assignment of elemental composition to ions are presented. The package implements methods for calculating different molecular descriptors and methods for data visualization. A graphical user interface (GUI) for package has been implemented, which makes this package convenient for a wide range of users.
 
 Main operation:
 
@@ -20,7 +20,7 @@ Main operation:
 - Calculate similarity metrics between spectra
 - Calculate molecular descriptors (DBE, AI, NOSC, CRAM and other) for spectra
 
-.. image:: _static/gui_figures.jpg
+.. image:: _static/workflow.png
   :alt: gui_figures
 
 .. toctree::
