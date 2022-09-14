@@ -45,25 +45,11 @@ with open(os.path.join(here, "__version__.py")) as f:
 
 about =f'''natorgms. Version {version["__version__"]}
 
-Graphical user interface for natorgms library (https://github.com/natorgms/natorgms)
+Graphical user interface for natorgms package (https://github.com/natorgms/natorgms)
 
 Tutorial: https://natorgms.readthedocs.io/en/latest/gui_tutorial.html
 
-Created by Alexander Volikov.
-Distributed under license GPLv3.
-
-natorgms is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-natorgms is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with natorgms.  If not, see <http://www.gnu.org/licenses/>.
+Distributed under license GPLv3 http://www.gnu.org/licenses/
 '''
 
 default_colors = ['blue','red','green','orange','purple','brown','pink','gray','olive','cyan'] * 100
