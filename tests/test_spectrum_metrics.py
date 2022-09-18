@@ -1,9 +1,10 @@
-from asyncio import run_coroutine_threadsafe
 from natorgms.spectrum import Spectrum
 import pytest
 import os
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+plt.rcParams.update({'figure.max_open_warning': 0})
 
 root = os.path.join(os.path.dirname(__file__), '..')
 sample1_path = os.path.join(root, 'tests', 'sample1.txt')

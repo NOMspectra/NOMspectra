@@ -7,14 +7,14 @@
 
 ![logo](https://github.com/natorgms/natorgms/raw/master/docs/_static/natorgms_logo.png)
 
-natorgms is an open-source Python package for processing high resolution mass spectra. The name is an acronym for Natural Organic matter Mass Spectrometry, so package designed for analysis natural organic matter (NOM) which are represent such substances as dissolve organic matter (DOM), humic substances, lignin, biochar and other objects of oxidative destruction of natural compounds which are characterized by thousands of signals in the spectrum and require special methods for analysis. The package implements a full-fledged workflow for processing, analysis and visualization of mass spectrum. Various algorithms for filtering spectra, recalibrating and assignment of elemental composition to ions are presented. The package implements methods for calculating different molecular descriptors and methods for data visualization. A graphical user interface (GUI) for package has been implemented, which makes this package convenient for a wide range of users.
+natorgms is an open-source Python package for processing high resolution mass spectra. The name is an acronym for Natural Organic matter Mass Spectrometry, so package designed for analysis natural organic matter (NOM) which are represent such substances as dissolve organic matter (DOM), humic substances, lignin, biochar and other objects of oxidative destruction of natural compounds which are characterized by thousands of signals in the mass spectrum and require special methods for analysis. The package implements a full-fledged workflow for processing, analysis and visualization of mass spectrum. Various algorithms for filtering spectra, recalibrating and assignment of elemental composition to ions are presented. The package implements methods for calculating different molecular descriptors and methods for data visualization. A graphical user interface (GUI) for package has been implemented, which makes this package convenient for a wide range of users.
 
 Main operation:
 
-- Assigning brutto formulas to signal by mass with desirable ranges of elements (include isotopes)
-- Fine recalibrate spectrum by standard, assignment error or dif-mass map
+- Assigning element composition to signal by mass with desirable ranges of elements (include isotopes)
+- Fine recalibrate spectrum
 - Working with spectra as with sets (intersection, union, etc.)
-- Plot spectrum and different kind of Scatter and density diagram such as Van Krevelen diagram
+- Plot spectrum and different kind of scatter and density diagram such as Van Krevelen diagram
 - Calculate similarity metrics between spectra
 - Calculate molecular descriptors (DBE, AI, NOSC, CRAM and other) for spectra
 

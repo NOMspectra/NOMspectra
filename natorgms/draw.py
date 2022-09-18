@@ -401,7 +401,7 @@ def density_2D(spec: 'Spectrum',
     if ax is None:
         fig, ax = plt.subplots(figsize=(4,4), dpi=75)
 
-    sns.kdeplot(x=spec.table[x], y=spec.table[y], ax=ax, cmap=cmap, shade=shade, **kwargs)
+    sns.kdeplot(x=spec.table[x], y=spec.table[y], ax=ax, cmap=cmap, fill=shade, **kwargs)
 
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)

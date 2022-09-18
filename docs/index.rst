@@ -13,7 +13,7 @@ natorgms is an open-source Python package for processing high resolution mass sp
 
 Main operation:
 
-- Assigning brutto formulas to signal by mass with desirable ranges of elements (include isotopes)
+- Assigning elemental composition to signal by mass with desirable ranges of elements (include isotopes)
 - Fine recalibrate spectrum by standard, assignment error or dif-mass map
 - Working with spectra as with sets (intersection, union, etc.)
 - Plot spectrum and different kind of Scatter and density diagram such as Van Krevelen diagram
