@@ -2,9 +2,9 @@
 
 
 ```python
-from natorgms.spectrum import Spectrum
-from natorgms.spectra import SpectrumList
-import natorgms.draw as draw
+from nomhsms.spectrum import Spectrum
+from nomhsms.spectra import SpectrumList
+import nomhsms.draw as draw
 import pandas as pd
 import matplotlib.pyplot as plt
 import os

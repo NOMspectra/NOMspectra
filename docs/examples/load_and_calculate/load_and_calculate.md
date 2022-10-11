@@ -2,8 +2,8 @@
 
 
 ```python
-import natorgms.draw as draw
-from natorgms.spectrum import Spectrum
+import nomhsms.draw as draw
+from nomhsms.spectrum import Spectrum
 
 import pandas as pd
 import numpy as np

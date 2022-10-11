@@ -1,15 +1,15 @@
-.. natorgms documentation master file, created by
+.. nomhsms documentation master file, created by
    sphinx-quickstart on Thu Aug 11 18:33:15 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-natorgms documentation
+nomhsms documentation
 ====================================
 
-.. image:: _static/natorgms_logo.png
-  :alt: natorgms_logo
+.. image:: _static/nomhsms_logo.png
+  :alt: nomhsms_logo
 
-natorgms is an open-source Python package for processing high resolution mass spectra. The name is an acronym for Natural Organic matter Mass Spectrometry, so package designed for analysis natural organic matter (NOM) which are represent such substances as dissolve organic matter (DOM), humic substances, lignin, biochar and other objects of oxidative destruction of natural compounds which are characterized by thousands of signals in the spectrum and require special methods for analysis. The package implements a full-fledged workflow for processing, analysis and visualization of mass spectrum. Various algorithms for filtering spectra, recalibrating and assignment of elemental composition to ions are presented. The package implements methods for calculating different molecular descriptors and methods for data visualization. A graphical user interface (GUI) for package has been implemented, which makes this package convenient for a wide range of users.
+nomhsms is an open-source Python package for processing high resolution mass spectra. The name is an acronym for Natural Organic matter Mass Spectrometry, so package designed for analysis natural organic matter (NOM) which are represent such substances as dissolve organic matter (DOM), humic substances, lignin, biochar and other objects of oxidative destruction of natural compounds which are characterized by thousands of signals in the spectrum and require special methods for analysis. The package implements a full-fledged workflow for processing, analysis and visualization of mass spectrum. Various algorithms for filtering spectra, recalibrating and assignment of elemental composition to ions are presented. The package implements methods for calculating different molecular descriptors and methods for data visualization. A graphical user interface (GUI) for package has been implemented, which makes this package convenient for a wide range of users.
 
 Main operation:
 
@@ -29,5 +29,5 @@ Main operation:
    
    Install <install.md>
    Examples <examples.rst>
-   API <api/natorgms.rst>
+   API <api/nomhsms.rst>
    GUI Tutorial <gui_tutorial.md>

@@ -13,7 +13,7 @@
 import os
 import sys
 sys.path.append('..')
-import natorgms
+import nomhsms
 
 
 d = os.path.dirname(os.path.realpath(__file__))
@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.join(d, ".."))
 
 # -- Project information -----------------------------------------------------
 
-project = 'natorgms'
+project = 'nomhsms'
 copyright = '2022, Alexander Volikov, Rukhovich Gleb'
 author = 'Alexander Volikov, Rukhovich Gleb'
 
@@ -46,7 +46,7 @@ extensions = [
     "myst_parser"
 ]
 
-apidoc_module_dir = "../natorgms"
+apidoc_module_dir = "../nomhsms"
 apidoc_output_dir = "./api"
 apidoc_excluded_paths = ["tests", "readthedocs"]
 apidoc_separate_modules = True

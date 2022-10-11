@@ -1,4 +1,4 @@
-import natorgms.brutto as brutto
+import nomhsms.brutto as brutto
 import pytest
 import pandas as pd
 

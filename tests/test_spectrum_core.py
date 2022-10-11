@@ -1,4 +1,4 @@
-from natorgms.spectrum import Spectrum
+from nomhsms.spectrum import Spectrum
 import pytest
 import os
 import numpy as np

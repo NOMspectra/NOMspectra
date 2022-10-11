@@ -1,19 +1,19 @@
 #    Copyright 2022 Volikov Alexander <ab.volikov@gmail.com>
 #
-#    This file is part of natorgms. 
+#    This file is part of nomhsms. 
 #
-#    natorgms is free software: you can redistribute it and/or modify
+#    nomhsms is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    natorgms is distributed in the hope that it will be useful,
+#    nomhsms is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with natorgms.  If not, see <http://www.gnu.org/licenses/>.
+#    along with nomhsms.  If not, see <http://www.gnu.org/licenses/>.
 
 from typing import Optional, Tuple
 import copy
@@ -49,7 +49,7 @@ def recallibrate(spec: "Spectrum",
         If error_table is None we can choose how to recalculate.
         'assign' - by assign error, default.
         'mdm' - by calculation mass-difference map.
-        filename - path to etalon spectrum, treated and saved by natorgms
+        filename - path to etalon spectrum, treated and saved by nomhsms
     draw: bool
         Plot error (fit of KDM)
 

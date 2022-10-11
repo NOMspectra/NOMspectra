@@ -2,9 +2,9 @@
 
 
 ```python
-import natorgms.draw as draw
-from natorgms.spectrum import Spectrum
-from natorgms.spectra import SpectrumList
+import nomhsms.draw as draw
+from nomhsms.spectrum import Spectrum
+from nomhsms.spectra import SpectrumList
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -246,7 +246,7 @@ draw.venn(spec1, spec2)
 
 ## Calculate metrics
 
-Calculate molecular class zones and get density. For plot we can use SpectrumList class from natorgms.spectra
+Calculate molecular class zones and get density. For plot we can use SpectrumList class from nomhsms.spectra
 
 
 ```python

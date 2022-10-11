@@ -1,6 +1,6 @@
 # Contributing guidelines
 
-You can contribute to project by asking question, finding bug, feature request or writing code. In all cases use [issues](https://github.com/natorgms/natorgms/issues). First of all, use the search and look if someone has already asked this question or suggestion before you. If not, use the descriptions below.
+You can contribute to project by asking question, finding bug, feature request or writing code. In all cases use [issues](https://github.com/nomhsms/nomhsms/issues). First of all, use the search and look if someone has already asked this question or suggestion before you. If not, use the descriptions below.
 
 ## You have a question or help
 
@@ -14,7 +14,7 @@ You can contribute to project by asking question, finding bug, feature request o
 * Describe in detail the conditions for the appearance of the bug
     - the method on which the error occurred
     - version of your operating system
-    - python version and main [dependencies](https://github.com/natorgms/natorgms/blob/master/requirements.txt)
+    - python version and main [dependencies](https://github.com/nomhsms/nomhsms/blob/master/requirements.txt)
     - Error body, screenshot or other information about bug.
     - If possible, attach the data in an anonymized form for which the error occurred.
 
