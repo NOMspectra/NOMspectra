@@ -30,6 +30,7 @@ from .spectrum import Spectrum
 def recallibrate(spec: "Spectrum", 
                 error_table: Optional["ErrorTable"] = None, 
                 how: str = 'assign',
+                mode: str = '-',
                 draw: bool = True) -> "Spectrum":
     '''
     Recallibrate spectrum
@@ -50,6 +51,8 @@ def recallibrate(spec: "Spectrum",
         'assign' - by assign error, default.
         'mdm' - by calculation mass-difference map.
         filename - path to etalon spectrum, treated and saved by nomhsms
+    mode: str
+        Optional. Default '-' negative mode. May be +, - or 0
     draw: bool
         Plot error (fit of KDM)
 
@@ -62,7 +65,7 @@ def recallibrate(spec: "Spectrum",
 
     if error_table is None:
         if how == 'assign':
-            error_table = ErrorTable().assign_error(spec, show_map=draw)
+            error_table = ErrorTable().assign_error(spec, show_map=draw, mode=mode)
         elif how == 'mdm':
             error_table = ErrorTable().massdiff_error(spec, show_map=draw)
         else:
@@ -269,6 +272,7 @@ class ErrorTable(object):
         spec: Spectrum,
         ppm: float = 3,
         brutto_dict = {'C':(4,30), 'H':(4,60), 'O':(0,20)},
+        mode = '-',
         show_map: bool = True):
         '''
         Recallibrate by assign error
@@ -281,6 +285,8 @@ class ErrorTable(object):
             Permissible relative error in callibrate error. Default 3.
         brutto_dict: dict
             Dictonary with elements ranges for assignment
+        mode: str
+            Optional. Default '-' negative mode. May be +, - or 0
         show_error: bool
             Optional. Default True. Show process 
 
@@ -290,7 +296,7 @@ class ErrorTable(object):
         '''
 
         spectr = copy.deepcopy(spec)
-        spectr = spectr.assign(rel_error=ppm, brutto_dict=brutto_dict)
+        spectr = spectr.assign(rel_error=ppm, brutto_dict=brutto_dict, sign=mode)
         spectr = spectr.calc_mass().calc_error()
 
         error_table = spectr.table

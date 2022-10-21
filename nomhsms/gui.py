@@ -395,7 +395,11 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def recallibrate_(self):
         
         try:
-            self.spec = recallibrate(self.spec, self.err)
+            if self.assign_neg.isChecked():
+                sign = '-'
+            else:
+                sign = '+'
+            self.spec = recallibrate(self.spec, self.err, mode=sign)
             self.addText('recallibrate')
         
         except Exception:
@@ -435,7 +439,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
                 sign = '-'
             else:
                 sign = '+'
-            self.err = ErrorTable().assign_error(self.spec)
+            self.err = ErrorTable().assign_error(self.spec, mode=sign)
             self.addText('calc_self_recal_by_assign')
             plt.show(block=False)
         
