@@ -32,13 +32,20 @@ The spectrum can be saved **Save Spectrum** - a dialog box opens, the table is s
 
 ### Brutto formula generation and spectrum assignment
 
-By default, the following range of elements is used: C (from 4 to 50), O (from 0 to 25), H (4-100), N(0-3), S(0-2). Limits are also used for H/C (0.25-2.2), O/C (0-1), DBE-O<=10, and the nitrogen rule.
+Range of elemetns is shown in list above elements and Isotopes fields.
 
-To view the standard selection or to return to it, press **Reset** .
+By default, the following range of elements is used: C (from 4 to 50), O (from 0 to 25), H (4-100), N(0-3), S(0-2). 
+To return to the standard selection press **Reset** .
 
-If you want to set a different set of elements and their range, then they need to be added one by one through the corresponding fields - **Element**, **Isotope**. If the element is the main one, then you can leave the **Isotope** field empty (for example, for carbon 12 - just fill in the element C), for specific isotopes fill in the appropriate fields (for example, C 13). Fill in the range **Range** from to. Press **Add** , the current set will be displayed. After that, sequentially add all the necessary elements. To generate brutto formulas, press **Gen** , the table will be displayed in the field below.
+If Rules bo is on (default) limits are also used for H/C (0.25-2.2), O/C (0-1), DBE-O<=10, and the nitrogen rule.   
 
-To assign formulas, enter the allowable error in the **Err ppm** field, check the **Neg** checkbox if the mode is negative, and press the **Assign** button.
+If you want to set a different set of elements and their range, then they need to be added one by one through the corresponding fields - **Element**, **Isotope**. If the element is the main one, then you can leave the **Isotope** field empty (for example, for carbon 12 - just fill in the element C), for specific isotopes fill in the appropriate fields (for example, C 13). Fill in the range **Range** from to. Press **Add** , the current set will be displayed.
+
+For remove element click on row in list field and press **remove** button.
+
+To generate brutto formulas, press **Gen** , the table will be displayed in the field below.
+
+To assign formulas, enter the allowable error in the **Err ppm** field, chose **mode** (negative by default or positive) and press the **Assign** button.
 
 You can load the background **Load Background** and remove it **Remove Background**. But for this it is necessary to use the background, to which formulas are also assigned - it should be processed in the same way as a spectrum and saved to a separate file.
 
@@ -47,7 +54,6 @@ You can load the background **Load Background** and remove it **Remove Backgroun
 In some cases, the use of the mass difference statistics spectrum (TMDS) makes it possible to better carry out the procedure for assigning brutto formulas, to use smaller values ​​of the assignment error.
 
 The elements for its generation are set in the same way as for the spectrum assignment. It makes sense to set negative starting values, such as *-1*, *-4* for elements, since many differences involve negative values, such as C-1H4O.
-By default, generation occurs for: 'C':[-1,19], 'H':[-4,39], 'O':[-1,19], 'N':[-1,1]
 
 Then you need to set the peak occurrence threshold in the mass difference spectrum, field **P**. The default value is 0.2, but with these conditions, sometimes about 1000 mass differences are generated and the subsequent assignment of the original spectrum takes a long time (5-15 minutes depending on the computing power of the computer)
 

@@ -68,6 +68,8 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.squares = pd.DataFrame()
         self.tmds = Tmds()
         self.elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3)}
+        self.temp_element = ''
+        self.gdf_elems = {}
         self.gdf = pd.DataFrame()
         self.specs_list = SpectrumList()
         self.temp_list = SpectrumList()
@@ -78,6 +80,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.temp_df = pd.DataFrame()
 
         self.listWidget.clicked.connect(self.list_clicked_)
+        self.refresh_list_2()
 
         self.load_sep.setText('')
         self.dpi_line.setText('75')
@@ -100,7 +103,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.color.setText('')
         self.alpha.setText('')
 
-        self.assign_neg.setChecked(True)
+        self.rules.setChecked(True)
         self.tmds_c13.setChecked(True)
         self.save_box.setChecked(False)
         self.all_spectra.setChecked(True)
@@ -110,6 +113,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.print_spec.clicked.connect(self.print_spectrum_)
         self.assign.clicked.connect(self.assign_)
         self.add_element.clicked.connect(self.add_element_)
+        self.remove_element.clicked.connect(self.remove_element_)
         self.reset_element.clicked.connect(self.reset_element_)
         self.show_assign_error.clicked.connect(self.show_assign_error_)
         self.recallibrate.clicked.connect(self.recallibrate_)
@@ -132,7 +136,6 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.assign_tmds.clicked.connect(self.assign_by_tmds_)
         self.multi_load.clicked.connect(self.multi_load_)
         self.plot_matrix.clicked.connect(self.simmilarity_)
-        self.save_tmds.clicked.connect(self.save_tmds_)
         self.load_background.clicked.connect(self.load_background_)
         self.remove_background.clicked.connect(self.remove_background_)
         self.add.clicked.connect(self.add_bufer_)
@@ -262,16 +265,23 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         
         try:
             ppm = float(self.assign_error_ppm.text())
-        
-            if self.assign_neg.isChecked():
+
+            mod = self.mode.currentText()
+
+            if mod == 'negative':
                 sign = '-'
             else:
                 sign = '+'
+            
+            if self.rules.isChecked():
+                rul = True
+            else:
+                rul = False
 
-            if len(self.gdf) == 0:
-                self.gdf = brutto_gen(elems = self.elems)
+            if self.elems != self.gdf_elems:
+                self.gdf_elems = copy.deepcopy(self.elems)
+                self.gdf = brutto_gen(elems = self.elems, rules=rul)
 
-        
             self.spec = self.spec.assign(generated_bruttos_table=self.gdf, rel_error=ppm, sign=sign)
             self.addText('assigned')
         except Exception:
@@ -280,7 +290,9 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def show_assign_error_(self):
         
         try:
-            if self.assign_neg.isChecked():
+            mod = self.mode.currentText()
+
+            if mod == 'negative':
                 sign = '-'
             else:
                 sign = '+'
@@ -293,35 +305,59 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception:
             self.addText(traceback.format_exc())
 
+    def list_2_clicked_(self):
+
+        try:
+            value = str(self.listWidget_2.currentItem().text())
+            self.temp_element = value.split(" ")[0]
+
+        except Exception:
+            self.addText(traceback.format_exc())
+
+    def refresh_list_2(self):
+        try:
+            self.listWidget_2.clear()
+
+            for i, el in enumerate(self.elems):
+                self.listWidget_2.insertItem(i, f'{el} [{self.elems[el][0]},{self.elems[el][1]-1}]')
+
+        except Exception:
+            self.addText(traceback.format_exc())
+
     def add_element_(self):
+
+        try:
+            ele = self.assign_element.text()
+            isotop = self.assign_isotope.text()
+            if isotop != '':
+                ele = ele + '_' + isotop
+
+            r_min = int(self.assign_range_min.text())
+            r_max = int(self.assign_range_max.text()) + 1
+
+            self.elems[ele]=(r_min, r_max)
         
-        if self.elems == {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3)}:
-            self.elems = {}
+            self.refresh_list_2()
+        
+        except Exception:
+            self.addText(traceback.format_exc())
+    
+    def remove_element_(self):
 
-        ele = self.assign_element.text()
-        isotop = self.assign_isotope.text()
-        if isotop != '':
-            ele = ele + '_' + isotop
-
-        r_min = int(self.assign_range_min.text())
-        r_max = int(self.assign_range_max.text()) + 1
-
-        self.elems[ele]=(r_min, r_max)
-       
-        t = ''
-        for i in self.elems:
-            t = t + f'{i}:{self.elems[i][0]}-{self.elems[i][1]-1}\n'
-        self.addText(t)
+        try:
+            value = str(self.listWidget_2.currentItem().text())
+            self.temp_element = value.split(" ")[0]
+            del self.elems[self.temp_element]
+            self.refresh_list_2()
+        
+        except Exception:
+            self.addText(traceback.format_exc())
 
     def reset_element_(self):
         
         try:
             self.elems = {'C':(4, 51),'H':(4, 101),'O':(0,26), 'N':(0,4), 'S':(0,3)}
-            t = ''
-            self.gdf = pd.DataFrame()
-            for i in self.elems:
-                t = t + f'{i}:{self.elems[i][0]}-{self.elems[i][1]-1}\n'
-            self.addText(t)
+            self.refresh_list_2()
         
         except Exception:
             self.addText(traceback.format_exc())
@@ -329,9 +365,15 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def generate_gdf_(self):
         
         try:
+            if self.rules.isChecked():
+                rul = True
+            else:
+                rul = False
+                
             self.addText('gen gdf')
-            self.gdf = brutto_gen(elems = self.elems)
+            self.gdf = brutto_gen(elems = self.elems, rules = rul)
             self.addText(str(self.gdf))
+
         except Exception:
             self.addText(traceback.format_exc())
 
@@ -357,27 +399,23 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
                 p = float(p)
                 
             self.tmds = Tmds(self.spec).calc(p=p, C13_filter=c13)
-            if len(self.gdf) > 0:
-                self.tmds = self.tmds.assign(self.gdf, max_num=n)
+
+            if self.rules.isChecked():
+                rul = True
             else:
-                self.tmds = self.tmds.assign(max_num=n)
+                rul = False
+
+            if self.elems != self.gdf_elems:
+                self.gdf_elems = copy.deepcopy(self.elems)
+                self.gdf = brutto_gen(elems = self.elems, rules=rul)
+
+            self.tmds = self.tmds.assign(self.gdf, max_num=n)
             self.tmds = self.tmds.calc_mass()
 
             draw.spectrum(self.tmds)
             plt.show(block=False)
 
             self.addText(str(self.tmds.table))
-        
-        except Exception:
-            self.addText(traceback.format_exc())
-
-    def save_tmds_(self):
-
-        try:
-            
-            file, _ = QFileDialog.getSaveFileName(self, 'Save File', "Text file *.txt")
-            self.addText(f'save {file}')
-            self.tmds.save(file)
         
         except Exception:
             self.addText(traceback.format_exc())
@@ -395,7 +433,9 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def recallibrate_(self):
         
         try:
-            if self.assign_neg.isChecked():
+            mod = self.mode.currentText()
+
+            if mod == 'negative':
                 sign = '-'
             else:
                 sign = '+'
@@ -435,7 +475,9 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def calc_self_recal_by_assign_(self):
 
         try:
-            if self.assign_neg.isChecked():
+            mod = self.mode.currentText()
+
+            if mod == 'negative':
                 sign = '-'
             else:
                 sign = '+'
