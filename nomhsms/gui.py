@@ -423,8 +423,26 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def assign_by_tmds_(self):
 
         try:
+            p = self.tmds_p.text()
+            n = self.max_tmds.text()
+
+            if self.tmds_c13.isChecked():
+                c13 = True
+            else:
+                c13 = False
+
+            if n == '':
+                n = None
+            else:
+                n = int(n)
+
+            if p == '':
+                p = 0.2
+            else:
+                p = float(p)
+
             self.addText('it is takes a lot of time')
-            self.spec = assign_by_tmds(spec=self.spec, tmds_spec=self.tmds)
+            self.spec = assign_by_tmds(spec=self.spec, tmds_spec=self.tmds, p=p, max_num=n, C13_filter=c13)
             self.addText('done')
         
         except Exception:
