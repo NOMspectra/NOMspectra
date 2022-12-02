@@ -79,14 +79,3 @@ def test_get_square_vk():
     assert set(['sample1', 'sample2']) == set(res.columns.to_list())
     assert round(res.loc[7,'sample1'], 3) == 0.083
     assert round(res.loc[7,'sample2'], 3) == 0.089
-
-def test_get_mol_density():
-    specs = SpectrumList([spec1, spec2])
-    res = specs.get_mol_density()
-    index = set(['unsat_lowOC', 'unsat_highOC', 'condensed_lowOC', 'condensed_highOC',
-                'aromatic_lowOC', 'aromatic_highOC', 'aliphatics', 'lipids',
-                'N-satureted', 'undefinded'])
-    assert index == set(res.index.to_list())
-    assert set(['sample1', 'sample2']) == set(res.columns.to_list())
-    assert round(res.loc['unsat_highOC','sample1'], 3) == 0.42
-    assert round(res.loc['unsat_highOC','sample2'], 3) == 0.385
