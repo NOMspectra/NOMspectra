@@ -280,7 +280,6 @@ class Spectrum(object):
             mass_max: Optional[float] = None,
             intensity_min: Optional[float] =  None,
             intensity_max: Optional[float] = None,
-            drop_duplicates: bool = True
     ) -> "Spectrum":
         """
         Assigning brutto formulas to signal by mass
@@ -314,9 +313,7 @@ class Spectrum(object):
         intensity_min: float
             Optional. Default None. Minimall intensity for assigment
         intensity_max: float
-            Optional. Default None. Maximum intensity for assigment
-        drop_duplicates: bool
-            Find and drop dublicates with the same calculated mass   
+            Optional. Default None. Maximum intensity for assigment   
 
         Return
         ------
@@ -395,9 +392,6 @@ class Spectrum(object):
         table = table.join(res)
         self.table = self.table.merge(table, how='outer', on=list(self.table.columns))
         self.table['assign'] = self.table['assign'].fillna(False)
-
-        if drop_duplicates:
-            self = self.drop_duplicates()
 
         return self
 
@@ -505,11 +499,11 @@ class Spectrum(object):
         self.metadata.add({'drop_unassigned':True})
 
         return self
-    
+
     @_copy
-    def drop_duplicates(self) -> "Spectrum":
+    def merge_duplicates(self) -> "Spectrum":
         """
-        drop duplicataes with the same calculated mass with sum intensity
+        merge duplicataes with the same calculated mass with sum intensity
 
         Return
         ------
@@ -518,7 +512,7 @@ class Spectrum(object):
         if 'calc_mass' not in self.table.columns:
             self = self.calc_mass()
 
-        cols = {col: ('sum' if col=='intensity' else 'last') for col in self.table.columns}
+        cols = {col: ('sum' if col=='intensity' else 'max') for col in self.table.columns}
         self.table = self.table.groupby(['calc_mass'],as_index = False).agg(cols)
         return self
 
@@ -1297,11 +1291,16 @@ class Spectrum(object):
         return self
     
     @_copy
-    def mol_class(self) -> "Spectrum":
+    def mol_class(self, how: Optional[str] = None) -> "Spectrum":
         """
         Assign molecular class for formulas
 
         Add column "class" to self.table
+
+        Parameters
+        ----------
+        how: {'kellerman', 'perminova'}
+            How devide to calsses. Optional. Default 'kellerman'
 
         Return
         ------
@@ -1309,15 +1308,49 @@ class Spectrum(object):
 
         References
         ----------
-        Perminova, Irina V.. "From green chemistry and nature-like technologies 
-        towards ecoadaptive chemistry and technology" Pure and Applied Chemistry, 
-        vol. 91, no. 5, 2019, pp. 851-864. https://doi.org/10.1515/pac-2018-1110
+        A. M. Kellerman, T. Dittmar, D. N. Kothawala, L. J. Tranvik. Nat. Commun. 5, 3804 (2014)
+        Perminova I. V. Pure and Applied Chemistry. 2019. Vol. 91, № 5. P. 851-864
         """
 
+        if 'AI' not in self.table:
+            self = self.ai()
         if 'H/C' not in self.table or 'O/C' not in self.table:
             self = self.hc_oc()
 
-        def get_zone(row):
+        table = self.merge_isotopes().table
+
+        for element in "CHON":
+            if element not in table:
+                table[element] = 0
+
+        def get_zone_kell(row):
+
+            if row['H/C'] >= 1.5:
+                if row['O/C'] < 0.3 and row['N'] == 0:
+                    return 'lipids'
+                elif row['N'] >= 1:
+                    return 'N-satureted'
+                else:
+                    return 'aliphatics'
+            elif row['H/C'] < 1.5 and row['AI'] < 0.5:
+                if row['O/C'] <= 0.5:
+                    return 'unsat_lowOC'
+                else:
+                    return 'unsat_highOC'
+            elif row['AI'] > 0.5 and row['AI'] <= 0.67:
+                if row['O/C'] <= 0.5:
+                    return 'aromatic_lowOC'
+                else:
+                    return 'aromatic_highOC'
+            elif row['AI'] > 0.67:
+                if row['O/C'] <= 0.5:
+                    return 'condensed_lowOC'
+                else:
+                    return 'condensed_highOC'
+            else:
+                return 'undefinded'
+        
+        def get_zone_perm(row):
 
             if row['O/C'] < 0.5:
                 if row['H/C'] < 1:
@@ -1342,13 +1375,16 @@ class Spectrum(object):
                     return 'undefinded'
             else:
                 return 'undefinded'
-                
-        self.table['class'] = self.table.apply(get_zone, axis=1)
+        
+        if how == 'perminova':
+            self.table['class'] = table.apply(get_zone_perm, axis=1)
+        else:
+            self.table['class'] = table.apply(get_zone_kell, axis=1)
 
         return self
 
     @_copy
-    def get_mol_class(self, how_average: str = "weight") -> pd.DataFrame:
+    def get_mol_class(self, how_average: str = "weight", how: Optional[str] = None) -> pd.DataFrame:
         """
         get molercular class density
 
@@ -1357,25 +1393,47 @@ class Spectrum(object):
         how_average: {'weight', 'count'}
             how average density. Default "weight" - weight by intensity.
             Also can be "count".
+        how: {'kellerman', 'perminova'}
+            How devide to calsses. Optional. Default 'kellerman'
 
         Return
         ------
         pandas Dataframe
+        
+        References
+        ----------
+        A. M. Kellerman, T. Dittmar, D. N. Kothawala, L. J. Tranvik. Nat. Commun. 5, 3804 (2014)
+        Perminova I. V. Pure and Applied Chemistry. 2019. Vol. 91, № 5. P. 851-864
         """
 
-        self = self.drop_unassigned().mol_class()
+        self = self.drop_unassigned().mol_class(how=how)
         count_density = len(self.table)
         sum_density = self.table["intensity"].sum()
 
         out = []
-        for zone in ['condensed_tanins',
+
+        if how == 'perminova':
+            zones = ['condensed_tanins',
                     'hydrolyzable_tanins',
                     'phenylisopropanoids',
                     'terpenoids',
                     'lipids',
                     'proteins',
                     'carbohydrates',
-                    'undefinded']:
+                    'undefinded']
+        else:
+            zones = ['unsat_lowOC',
+                    'unsat_highOC',
+                    'condensed_lowOC',
+                    'condensed_highOC',
+                    'aromatic_lowOC',
+                    'aromatic_highOC',
+                    'aliphatics',            
+                    'lipids',
+                    'N-satureted',
+                    'undefinded']
+
+        for zone in zones:
 
             if how_average == "count":
                 out.append([zone, len(self.table.loc[self.table['class'] == zone])/count_density])
@@ -1496,11 +1554,9 @@ class Spectrum(object):
 
         References
         ----------
-        Zherebker, Alexander, et al. "Interlaboratory comparison of 
-        humic substances compositional space as measured by Fourier 
-        transform ion cyclotron resonance mass spectrometry 
-        (IUPAC Technical Report)." 
-        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
+        Perminova I. V. From green chemistry and nature-like technologies towards 
+        ecoadaptive chemistry and technology // Pure and Applied Chemistry. 
+        2019. Vol. 91, № 5. P. 851-864.
         """
 
         if 'H/C' not in self.table or 'O/C' not in self.table:

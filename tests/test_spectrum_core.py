@@ -153,6 +153,14 @@ def test_drop_unassigned():
     assert False not in spec.table['assign']
     assert np.NaN not in spec.table['C']
 
+def test_merge_duplicates():
+    df = pd.DataFrame({'mass':[221.00919, 221.08186, 221.08185, 221.15477], 
+                        'intensity':[5370.8, 2327.9, 816.5, 6375.7]})
+    spec = Spectrum(table=df)
+    spec = spec.assign().drop_duplicates()
+    assert spec.table.loc[1,'intensity'] == 3144.4
+    assert len(spec) == 3
+
 class Test_filter_by_C13:
 
     def test_filter_by_C13(self):

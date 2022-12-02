@@ -124,6 +124,8 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.load_error.clicked.connect(self.load_error_)
         self.save_error.clicked.connect(self.save_error_)
         self.show_error.clicked.connect(self.show_error_)
+        self.remove_C_13.clicked.connect(self.remove_C_13_)
+        self.duplicates.clicked.connect(self.duplicates_)
         self.plot_spectrum.clicked.connect(self.plot_spectrum_)
         self.plot_vk.clicked.connect(self.plot_van_krevelen)
         self.density_plot.clicked.connect(self.scatter_dens)
@@ -304,6 +306,24 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         
         except Exception:
             self.addText(traceback.format_exc())
+
+    def remove_C_13_(self):
+        
+        try:
+            self.spec = self.spec.filter_by_C13(remove=True)
+            self.addText('peaks that dont have 13C isotope peak are removed')
+        
+        except Exception:
+            self.addText(traceback.format_exc())
+
+    def duplicates_(self):
+        
+        try:
+            self.spec = self.spec.merge_duplicates()
+            self.addText('duplicates are merged')
+        
+        except Exception:
+            self.addText(traceback.format_exc()) 
 
     def list_2_clicked_(self):
 
@@ -902,7 +922,9 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
 
             fig, ax = self.get_fig_ax()
 
-            df = obj.get_mol_density()
+            cl = self.classes_choise.currentText()
+
+            df = obj.get_mol_density(how=cl)
             obj.draw_mol_density(mol_density=df, ax=ax)
 
             fig.tight_layout()

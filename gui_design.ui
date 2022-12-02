@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>747</width>
+    <width>750</width>
     <height>740</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="main">
        <attribute name="title">
@@ -42,7 +42,7 @@
          <rect>
           <x>10</x>
           <y>10</y>
-          <width>708</width>
+          <width>709</width>
           <height>476</height>
          </rect>
         </property>
@@ -246,11 +246,29 @@
             </layout>
            </item>
            <item>
-            <widget class="QPushButton" name="show_assign_error">
-             <property name="text">
-              <string>Show Assign Error</string>
-             </property>
-            </widget>
+            <layout class="QHBoxLayout" name="horizontalLayout_22">
+             <item>
+              <widget class="QPushButton" name="show_assign_error">
+               <property name="text">
+                <string>ShowErr</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="remove_C_13">
+               <property name="text">
+                <string>C_13</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="duplicates">
+               <property name="text">
+                <string>Dupl</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
             <widget class="Line" name="line_9">
@@ -991,6 +1009,20 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_21">
              <item>
+              <widget class="QComboBox" name="classes_choise">
+               <item>
+                <property name="text">
+                 <string>kellerman</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>perminova</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="plot_matrix">
                <property name="text">
                 <string>Simmilarity</string>
@@ -1660,6 +1692,8 @@
   <tabstop>assign_error_ppm</tabstop>
   <tabstop>mode</tabstop>
   <tabstop>show_assign_error</tabstop>
+  <tabstop>remove_C_13</tabstop>
+  <tabstop>duplicates</tabstop>
   <tabstop>listWidget_2</tabstop>
   <tabstop>assign_element</tabstop>
   <tabstop>assign_isotope</tabstop>
@@ -1689,7 +1723,6 @@
   <tabstop>recal_range_max</tabstop>
   <tabstop>load_background</tabstop>
   <tabstop>remove_background</tabstop>
-  <tabstop>textBrowser</tabstop>
   <tabstop>multi_load</tabstop>
   <tabstop>save_spectrum_2</tabstop>
   <tabstop>remove</tabstop>
@@ -1708,15 +1741,16 @@
   <tabstop>nomalize_box</tabstop>
   <tabstop>count</tabstop>
   <tabstop>cut_box_2</tabstop>
-  <tabstop>func</tabstop>
-  <tabstop>cut_box</tabstop>
   <tabstop>cut_line</tabstop>
   <tabstop>cut</tabstop>
+  <tabstop>func</tabstop>
+  <tabstop>cut_box</tabstop>
   <tabstop>classes</tabstop>
   <tabstop>square_density_plot</tabstop>
   <tabstop>plot_dbe</tabstop>
   <tabstop>no_min</tabstop>
   <tabstop>no_max</tabstop>
+  <tabstop>classes_choise</tabstop>
   <tabstop>plot_matrix</tabstop>
   <tabstop>similarity_metric</tabstop>
   <tabstop>save_csv</tabstop>
@@ -1742,6 +1776,7 @@
   <tabstop>path</tabstop>
   <tabstop>format</tabstop>
   <tabstop>save_box</tabstop>
+  <tabstop>textBrowser</tabstop>
  </tabstops>
  <resources/>
  <connections/>

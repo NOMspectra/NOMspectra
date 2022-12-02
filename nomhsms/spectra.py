@@ -234,11 +234,9 @@ class SpectrumList(UserList):
 
         References
         ----------
-        Zherebker, Alexander, et al. "Interlaboratory comparison of 
-        humic substances compositional space as measured by Fourier 
-        transform ion cyclotron resonance mass spectrometry 
-        (IUPAC Technical Report)." 
-        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
+        Perminova I. V. From green chemistry and nature-like technologies towards 
+        ecoadaptive chemistry and technology // Pure and Applied Chemistry. 
+        2019. Vol. 91, № 5. P. 851-864.
         """
 
         square_vk = pd.DataFrame()
@@ -251,18 +249,31 @@ class SpectrumList(UserList):
 
         return square_vk
 
-    def get_mol_density(self) -> pd.DataFrame:
+    def get_mol_density(self, how_average: str = "weight", how: Optional[str] = None) -> pd.DataFrame:
         """
         Calculate molecular class density table
+
+        Parameters
+        ----------
+        how_average: {'weight', 'count'}
+            how average density. Default "weight" - weight by intensity.
+            Also can be "count".
+        how: {'kellerman', 'perminova'}
+            How devide to calsses. Optional. Default 'kellerman'
 
         Return
         ------
         pandas Dataframe
+
+        References
+        ----------
+        A. M. Kellerman, T. Dittmar, D. N. Kothawala, L. J. Tranvik. Nat. Commun. 5, 3804 (2014)
+        Perminova I. V. Pure and Applied Chemistry. 2019. Vol. 91, № 5. P. 851-864
         """
 
         mol_density = pd.DataFrame()
         for i, spec in enumerate(self):
-            mol_dens_spec = spec.get_mol_class()
+            mol_dens_spec = spec.get_mol_class(how_average=how_average, how=how)
             if i == 0:
                 index = mol_dens_spec['class'].values
             mol_density[spec.metadata['name']] = mol_dens_spec['density']
@@ -302,8 +313,9 @@ class SpectrumList(UserList):
             val = [mol_density.at[key, i] for i in labels]
             ax.bar(labels, val, width, label=key, bottom=bottom)
             bottom = bottom + np.array(val)
-            
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(reversed(handles), reversed(labels), loc='center left', bbox_to_anchor=(1, 0.5))
 
     def draw_simmilarity(
         self,
