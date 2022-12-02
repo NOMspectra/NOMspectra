@@ -157,7 +157,7 @@ def test_merge_duplicates():
     df = pd.DataFrame({'mass':[221.00919, 221.08186, 221.08185, 221.15477], 
                         'intensity':[5370.8, 2327.9, 816.5, 6375.7]})
     spec = Spectrum(table=df)
-    spec = spec.assign().drop_duplicates()
+    spec = spec.assign().merge_duplicates()
     assert spec.table.loc[1,'intensity'] == 3144.4
     assert len(spec) == 3
 
