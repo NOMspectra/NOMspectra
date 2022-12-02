@@ -258,14 +258,6 @@ class SpectrumList(UserList):
         Return
         ------
         pandas Dataframe
-
-        References
-        ----------
-        Zherebker, Alexander, et al. "Interlaboratory comparison of 
-        humic substances compositional space as measured by Fourier 
-        transform ion cyclotron resonance mass spectrometry 
-        (IUPAC Technical Report)." 
-        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
         """
 
         mol_density = pd.DataFrame()

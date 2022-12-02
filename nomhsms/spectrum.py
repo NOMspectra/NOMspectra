@@ -280,6 +280,7 @@ class Spectrum(object):
             mass_max: Optional[float] = None,
             intensity_min: Optional[float] =  None,
             intensity_max: Optional[float] = None,
+            drop_duplicates: bool = True
     ) -> "Spectrum":
         """
         Assigning brutto formulas to signal by mass
@@ -313,7 +314,9 @@ class Spectrum(object):
         intensity_min: float
             Optional. Default None. Minimall intensity for assigment
         intensity_max: float
-            Optional. Default None. Maximum intensity for assigment   
+            Optional. Default None. Maximum intensity for assigment
+        drop_duplicates: bool
+            Find and drop dublicates with the same calculated mass   
 
         Return
         ------
@@ -392,6 +395,9 @@ class Spectrum(object):
         table = table.join(res)
         self.table = self.table.merge(table, how='outer', on=list(self.table.columns))
         self.table['assign'] = self.table['assign'].fillna(False)
+
+        if drop_duplicates:
+            self = self.drop_duplicates()
 
         return self
 
@@ -498,6 +504,22 @@ class Spectrum(object):
         self.table = self.table.loc[self.table["assign"] == True].reset_index(drop=True)
         self.metadata.add({'drop_unassigned':True})
 
+        return self
+    
+    @_copy
+    def drop_duplicates(self) -> "Spectrum":
+        """
+        drop duplicataes with the same calculated mass with sum intensity
+
+        Return
+        ------
+        Spectrum
+        """
+        if 'calc_mass' not in self.table.columns:
+            self = self.calc_mass()
+
+        cols = {col: ('sum' if col=='intensity' else 'last') for col in self.table.columns}
+        self.table = self.table.groupby(['calc_mass'],as_index = False).agg(cols)
         return self
 
     @_copy
@@ -1287,52 +1309,41 @@ class Spectrum(object):
 
         References
         ----------
-        Zherebker, Alexander, et al. "Interlaboratory comparison of 
-        humic substances compositional space as measured by Fourier 
-        transform ion cyclotron resonance mass spectrometry 
-        (IUPAC Technical Report)." 
-        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
+        Perminova, Irina V.. "From green chemistry and nature-like technologies 
+        towards ecoadaptive chemistry and technology" Pure and Applied Chemistry, 
+        vol. 91, no. 5, 2019, pp. 851-864. https://doi.org/10.1515/pac-2018-1110
         """
 
-        if 'AI' not in self.table:
-            self = self.ai()
         if 'H/C' not in self.table or 'O/C' not in self.table:
             self = self.hc_oc()
 
-        table = self.merge_isotopes().table
-
-        for element in "CHON":
-            if element not in table:
-                table[element] = 0
-
         def get_zone(row):
 
-            if row['H/C'] >= 1.5:
-                if row['O/C'] < 0.3 and row['N'] == 0:
-                    return 'lipids'
-                elif row['N'] >= 1:
-                    return 'N-satureted'
+            if row['O/C'] < 0.5:
+                if row['H/C'] < 1:
+                    return 'condensed_tanins'
+                elif row['H/C'] < 1.4:
+                    return 'phenylisopropanoids'
+                elif row['H/C'] < 1.8:
+                    return 'terpenoids'
+                elif row['H/C'] <= 2.2:
+                    if row['O/C'] < 0.25:
+                        return 'lipids'
+                    else:
+                        return 'proteins'
                 else:
-                    return 'aliphatics'
-            elif row['H/C'] < 1.5 and row['AI'] < 0.5:
-                if row['O/C'] <= 0.5:
-                    return 'unsat_lowOC'
+                    return 'undefinded'
+            elif row['O/C'] <= 1:
+                if row['H/C'] < 1.4:
+                    return 'hydrolyzable_tanins'
+                elif row['H/C'] <= 2.2:
+                    return 'carbohydrates'
                 else:
-                    return 'unsat_highOC'
-            elif row['AI'] > 0.5 and row['AI'] <= 0.67:
-                if row['O/C'] <= 0.5:
-                    return 'aromatic_lowOC'
-                else:
-                    return 'aromatic_highOC'
-            elif row['AI'] > 0.67:
-                if row['O/C'] <= 0.5:
-                    return 'condensed_lowOC'
-                else:
-                    return 'condensed_highOC'
+                    return 'undefinded'
             else:
                 return 'undefinded'
                 
-        self.table['class'] = table.apply(get_zone, axis=1)
+        self.table['class'] = self.table.apply(get_zone, axis=1)
 
         return self
 
@@ -1350,14 +1361,6 @@ class Spectrum(object):
         Return
         ------
         pandas Dataframe
-        
-        References
-        ----------
-        Zherebker, Alexander, et al. "Interlaboratory comparison of 
-        humic substances compositional space as measured by Fourier 
-        transform ion cyclotron resonance mass spectrometry 
-        (IUPAC Technical Report)." 
-        Pure and Applied Chemistry 92.9 (2020): 1447-1467.
         """
 
         self = self.drop_unassigned().mol_class()
@@ -1365,15 +1368,13 @@ class Spectrum(object):
         sum_density = self.table["intensity"].sum()
 
         out = []
-        for zone in ['unsat_lowOC',
-                    'unsat_highOC',
-                    'condensed_lowOC',
-                    'condensed_highOC',
-                    'aromatic_lowOC',
-                    'aromatic_highOC',
-                    'aliphatics',            
+        for zone in ['condensed_tanins',
+                    'hydrolyzable_tanins',
+                    'phenylisopropanoids',
+                    'terpenoids',
                     'lipids',
-                    'N-satureted',
+                    'proteins',
+                    'carbohydrates',
                     'undefinded']:
 
             if how_average == "count":
