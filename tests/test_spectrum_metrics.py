@@ -134,31 +134,6 @@ def test_nosc(el, result):
     spec = spec.nosc()
     assert round(spec.table.loc[0, 'NOSC'],3) == result
 
-@pytest.mark.parametrize('el, result', [((8, 6, 4, 0), 'undefinded'),
-                                        ((6, 6, 5, 0), 'unsat_highOC'),
-                                        ((12, 18, 3, 0), 'lipids'),
-                                        ((8, 15, 1, 3), 'N-satureted'),
-                                        ((7, 12, 5, 0), 'aliphatics'),
-                                        ((8, 8, 4, 0), 'unsat_lowOC'),
-                                        ((11, 8, 4, 0), 'aromatic_lowOC'),
-                                        ((9, 4, 6, 0), 'aromatic_highOC'),
-                                        ((10, 6, 3, 0), 'condensed_lowOC'),
-                                        ((9, 4, 5, 0), 'condensed_highOC')])
-def test_mol_class(el, result):
-    df = pd.DataFrame({'mass':[1], 'intensity':[1], 'assign':[True],
-                        'C':[el[0]], 
-                        'H':[el[1]], 
-                        'O':[el[2]], 
-                        'N':[el[3]]})
-    spec = Spectrum(table=df)
-    spec = spec.mol_class()
-    assert spec.table.loc[0, 'class'] == result
-
-def test_get_mol_class_density():
-    density = [0.469540, 0.458127, 0.000994, 0.004782, 0.008596, 0.002360, 0.025681, 0.004432, 0.015814, 0.009675]
-    values = spec.get_mol_class()['density'].to_list()
-    assert all(round(a,3)==round(b,3) for a,b in zip(density, values))
-
 def test_dbe_vs_o():
     values = spec.get_dbe_vs_o(olim=(5,15))
     assert round(values[0],3 ) == 0.736
