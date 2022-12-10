@@ -313,6 +313,8 @@ class SpectrumList(UserList):
             val = [mol_density.at[key, i] for i in labels]
             ax.bar(labels, val, width, label=key, bottom=bottom)
             bottom = bottom + np.array(val)
+
+        ax.set_xticklabels(labels, rotation=90, ha='right')
         
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(reversed(handles), reversed(labels), loc='center left', bbox_to_anchor=(1, 0.5))

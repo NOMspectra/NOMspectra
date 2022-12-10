@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>750</width>
+    <width>767</width>
     <height>740</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="main">
        <attribute name="title">
@@ -573,24 +573,38 @@
          <rect>
           <x>10</x>
           <y>4</y>
-          <width>691</width>
+          <width>725</width>
           <height>481</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="1">
           <layout class="QVBoxLayout" name="verticalLayout_8" stretch="1,3">
+           <property name="spacing">
+            <number>5</number>
+           </property>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_6">
              <property name="spacing">
               <number>4</number>
              </property>
              <item>
-              <widget class="QPushButton" name="multi_load">
-               <property name="text">
-                <string>Multi Load</string>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_15">
+               <item>
+                <widget class="QPushButton" name="multi_load">
+                 <property name="text">
+                  <string>Multi Load</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="add">
+                 <property name="text">
+                  <string>Add_Bufer</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_16">
@@ -611,34 +625,59 @@
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_30">
+              <widget class="Line" name="line_19">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_33">
                <item>
-                <widget class="QPushButton" name="save_all">
+                <widget class="QPushButton" name="add_2">
                  <property name="text">
-                  <string>Save All</string>
+                  <string>add</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="clear">
+                <widget class="QPushButton" name="sub">
                  <property name="text">
-                  <string>Remove All</string>
+                  <string>sub</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="and_">
+                 <property name="text">
+                  <string>and</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="xor">
+                 <property name="text">
+                  <string>xor</string>
                  </property>
                 </widget>
                </item>
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_24">
+              <layout class="QHBoxLayout" name="horizontalLayout_18">
                <item>
-                <widget class="QPushButton" name="rename">
+                <widget class="QPushButton" name="int_sub">
                  <property name="text">
-                  <string>Rename</string>
+                  <string>int_sub</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QLineEdit" name="rename_line"/>
+                <widget class="QPushButton" name="venn">
+                 <property name="text">
+                  <string>venn</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
@@ -650,63 +689,32 @@
               </widget>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_18">
+              <layout class="QHBoxLayout" name="horizontalLayout_31">
                <item>
-                <widget class="QComboBox" name="arifm_box">
-                 <item>
-                  <property name="text">
-                   <string>metric</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>and</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>+</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>-</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>xor</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>int_sub</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="operate">
+                <widget class="QPushButton" name="check_all">
                  <property name="text">
-                  <string>Operate</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_15">
-               <item>
-                <widget class="QPushButton" name="add">
-                 <property name="text">
-                  <string>Add_Bufer</string>
+                  <string>all</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="reset">
+                <widget class="QPushButton" name="uncheck_all">
                  <property name="text">
-                  <string>Reset</string>
+                  <string>none</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="up">
+                 <property name="text">
+                  <string>↑</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="down">
+                 <property name="text">
+                  <string>↓</string>
                  </property>
                 </widget>
                </item>
@@ -726,13 +734,6 @@
            </property>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_26">
-             <item>
-              <widget class="QCheckBox" name="all_spectra">
-               <property name="text">
-                <string>All spectra</string>
-               </property>
-              </widget>
-             </item>
              <item>
               <widget class="QPushButton" name="calc_all">
                <property name="text">
@@ -978,9 +979,23 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="square_density_plot">
-               <property name="text">
-                <string>Squares</string>
+              <widget class="QComboBox" name="classes_choise">
+               <item>
+                <property name="text">
+                 <string>kellerman</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>perminova</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="Line" name="line_17">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -1009,20 +1024,6 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_21">
              <item>
-              <widget class="QComboBox" name="classes_choise">
-               <item>
-                <property name="text">
-                 <string>kellerman</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>perminova</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item>
               <widget class="QPushButton" name="plot_matrix">
                <property name="text">
                 <string>Simmilarity</string>
@@ -1049,6 +1050,20 @@
               </widget>
              </item>
              <item>
+              <widget class="Line" name="line_18">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="square_density_plot">
+               <property name="text">
+                <string>Squares</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="save_csv">
                <property name="text">
                 <string>SaveCSV</string>
@@ -1067,24 +1082,18 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_20">
              <item>
-              <widget class="QLabel" name="label_19">
+              <widget class="QPushButton" name="plot_spectrum_2">
                <property name="text">
-                <string>Color</string>
+                <string>Spectrum</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="color"/>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_20">
-               <property name="text">
-                <string>Alpha</string>
+              <widget class="Line" name="line_15">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
                </property>
               </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="alpha"/>
              </item>
              <item>
               <widget class="QLabel" name="label_23">
@@ -1409,13 +1418,6 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_29">
              <item>
-              <widget class="QPushButton" name="plot_spectrum_2">
-               <property name="text">
-                <string>Spectrum</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QPushButton" name="density_plot">
                <property name="text">
                 <string>ScatterDens</string>
@@ -1650,13 +1652,6 @@
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="Line" name="line_15">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-              </widget>
-             </item>
             </layout>
            </item>
           </layout>
@@ -1724,45 +1719,45 @@
   <tabstop>load_background</tabstop>
   <tabstop>remove_background</tabstop>
   <tabstop>multi_load</tabstop>
+  <tabstop>add</tabstop>
   <tabstop>save_spectrum_2</tabstop>
   <tabstop>remove</tabstop>
-  <tabstop>save_all</tabstop>
-  <tabstop>clear</tabstop>
-  <tabstop>rename</tabstop>
-  <tabstop>rename_line</tabstop>
-  <tabstop>arifm_box</tabstop>
-  <tabstop>operate</tabstop>
-  <tabstop>add</tabstop>
-  <tabstop>reset</tabstop>
+  <tabstop>add_2</tabstop>
+  <tabstop>sub</tabstop>
+  <tabstop>and_</tabstop>
+  <tabstop>xor</tabstop>
+  <tabstop>int_sub</tabstop>
+  <tabstop>venn</tabstop>
+  <tabstop>check_all</tabstop>
+  <tabstop>uncheck_all</tabstop>
+  <tabstop>up</tabstop>
+  <tabstop>down</tabstop>
   <tabstop>listWidget</tabstop>
-  <tabstop>all_spectra</tabstop>
   <tabstop>calc_all</tabstop>
   <tabstop>normalize</tabstop>
   <tabstop>nomalize_box</tabstop>
   <tabstop>count</tabstop>
   <tabstop>cut_box_2</tabstop>
-  <tabstop>cut_line</tabstop>
-  <tabstop>cut</tabstop>
   <tabstop>func</tabstop>
   <tabstop>cut_box</tabstop>
+  <tabstop>cut_line</tabstop>
+  <tabstop>cut</tabstop>
   <tabstop>classes</tabstop>
-  <tabstop>square_density_plot</tabstop>
+  <tabstop>classes_choise</tabstop>
   <tabstop>plot_dbe</tabstop>
   <tabstop>no_min</tabstop>
   <tabstop>no_max</tabstop>
-  <tabstop>classes_choise</tabstop>
   <tabstop>plot_matrix</tabstop>
   <tabstop>similarity_metric</tabstop>
+  <tabstop>square_density_plot</tabstop>
   <tabstop>save_csv</tabstop>
-  <tabstop>color</tabstop>
-  <tabstop>alpha</tabstop>
+  <tabstop>plot_spectrum_2</tabstop>
   <tabstop>size_volume</tabstop>
   <tabstop>pow</tabstop>
   <tabstop>scatter</tabstop>
   <tabstop>scatter_box_1</tabstop>
   <tabstop>sactter_box_2</tabstop>
   <tabstop>sactter_box_3</tabstop>
-  <tabstop>plot_spectrum_2</tabstop>
   <tabstop>density_plot</tabstop>
   <tabstop>density</tabstop>
   <tabstop>density_box</tabstop>

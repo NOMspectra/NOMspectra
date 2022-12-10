@@ -23,14 +23,15 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from .gui_design import Ui_MainWindow
+from .gui_dialog import Ui_Dialog
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QDialog
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from matplotlib_venn import venn2
+from matplotlib_venn import venn2, venn3
 from nomhsms.spectrum import Spectrum 
 from nomhsms.spectra import SpectrumList
 from nomhsms.recal import ErrorTable, recallibrate
@@ -52,7 +53,26 @@ Tutorial: https://nomhsms.readthedocs.io/en/latest/gui_tutorial.html
 Distributed under license GPLv3 http://www.gnu.org/licenses/
 '''
 
-default_colors = ['blue','red','green','orange','purple','brown','pink','gray','olive','cyan'] * 100
+def_colors = ['blue','red','green','orange','purple','brown','pink','gray','olive','cyan']
+
+class ListDialog(QtWidgets.QDialog, Ui_Dialog):
+    def __init__(self, spec = None):
+        super().__init__()
+        self.setupUi(self)
+
+        self.spec = spec
+        
+        self.Name.setText(self.spec.metadata['name'])
+        self.Color.setText(self.spec.metadata['color'])
+        self.Alpha.setText(str(self.spec.metadata['alpha']))
+
+        self.OK.clicked.connect(self.ok_)
+    
+    def ok_(self):
+        self.spec.metadata['name'] = self.Name.text()
+        self.spec.metadata['color'] = self.Color.text()
+        self.spec.metadata['alpha'] = float(self.Alpha.text())
+        self.accept()
 
 class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -79,7 +99,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.temp_name_img = 1
         self.temp_df = pd.DataFrame()
 
-        self.listWidget.clicked.connect(self.list_clicked_)
+        self.listWidget.itemDoubleClicked.connect(self.list_double_clicked_)
         self.refresh_list_2()
 
         self.load_sep.setText('')
@@ -100,13 +120,10 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.recal_range_max.setText('')
         self.recal_range_min.setText('')
         self.tmds_p.setText('')
-        self.color.setText('')
-        self.alpha.setText('')
 
         self.rules.setChecked(True)
         self.tmds_c13.setChecked(True)
         self.save_box.setChecked(False)
-        self.all_spectra.setChecked(True)
 
         self.load_spectrum.clicked.connect(self.load_spectrum_)
         self.save_spectrum.clicked.connect(self.save_spectrum_)
@@ -128,108 +145,116 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.duplicates.clicked.connect(self.duplicates_)
         self.plot_spectrum.clicked.connect(self.plot_spectrum_)
         self.plot_vk.clicked.connect(self.plot_van_krevelen)
-        self.density_plot.clicked.connect(self.scatter_dens)
-        self.square_density_plot.clicked.connect(self.squares_)
-        self.operate.clicked.connect(self.operate_)
         self.range.clicked.connect(self.range_)
-        self.generate_gdf.clicked.connect(self.generate_gdf_)
         self.err_extra.clicked.connect(self.extrapolate_)
+        self.generate_gdf.clicked.connect(self.generate_gdf_)
         self.gen_tmds.clicked.connect(self.gen_tmds_)
         self.assign_tmds.clicked.connect(self.assign_by_tmds_)
-        self.multi_load.clicked.connect(self.multi_load_)
-        self.plot_matrix.clicked.connect(self.simmilarity_)
         self.load_background.clicked.connect(self.load_background_)
         self.remove_background.clicked.connect(self.remove_background_)
+        self.multi_load.clicked.connect(self.multi_load_)
         self.add.clicked.connect(self.add_bufer_)
-        self.reset.clicked.connect(self.reset_)
-        self.plot_spectrum_2.clicked.connect(self.spectrum_)
-        self.plot_dbe.clicked.connect(self.dbe_vs_no)
         self.save_spectrum_2.clicked.connect(self.save_)
         self.remove.clicked.connect(self.remove_)
-        self.clear.clicked.connect(self.remove_all_)
-        self.cut.clicked.connect(self.cut_)
-        self.normalize.clicked.connect(self.normalize_)
-        self.save_all.clicked.connect(self.save_all_)
-        self.rename.clicked.connect(self.rename_)
-        self.path.clicked.connect(self.path_)
-        self.path.clicked.connect(self.path_)
-        self.scatter.clicked.connect(self.scatter_)
-        self.density.clicked.connect(self.density_)
-        self.classes.clicked.connect(self.classes_)
+        self.add_2.clicked.connect(self.add_operate)
+        self.sub.clicked.connect(self.sub_operate)
+        self.and_.clicked.connect(self.and_operate)
+        self.xor.clicked.connect(self.xor_operate)
+        self.int_sub.clicked.connect(self.int_sub_operate)
+        self.venn.clicked.connect(self.venn_operate)
+        self.check_all.clicked.connect(self.check_all_)
+        self.uncheck_all.clicked.connect(self.uncheck_all_)
+        self.up.clicked.connect(self.up_)
+        self.down.clicked.connect(self.down_)
         self.calc_all.clicked.connect(self.calculate_)
         self.count.clicked.connect(self.count_)
+        self.normalize.clicked.connect(self.normalize_)
+        self.cut.clicked.connect(self.cut_)
+        self.classes.clicked.connect(self.classes_)
+        self.square_density_plot.clicked.connect(self.squares_)
+        self.plot_matrix.clicked.connect(self.simmilarity_)
+        self.plot_dbe.clicked.connect(self.dbe_vs_no)
         self.save_csv.clicked.connect(self.save_csv_)
+        self.plot_spectrum_2.clicked.connect(self.spectrum_)
+        self.scatter.clicked.connect(self.scatter_)
+        self.density.clicked.connect(self.density_)
+        self.density_plot.clicked.connect(self.scatter_dens)
+        self.path.clicked.connect(self.path_)
 
     def addText(self,text):
 
         self.textBrowser.setPlainText(text)
         
     def load_spectrum_(self):
-        file, _ = QFileDialog.getOpenFileName(self, 'Open File')
-        if file:
-            self.addText(file)
-
-        sep = self.load_sep.text()
-        if sep == 'tab':
-            sep = '\t'
-        elif sep == '':
-            sep = ','
-
-        mz_head = self.load_mz.text()
-        if mz_head == '':
-            mz_head = 'mass'
-
-        intens_head = self.load_intensity.text()
-        if intens_head == '':
-            intens_head = 'intensity'
-
-        intens_min = self.load_min_intens.text()
-        if intens_min != '':
-            intens_min = int(intens_min)
-        else:
-            intens_min = None
-
-        intens_max = self.load_max_intens.text()
-        if intens_max != '':
-            intens_max = int(intens_max)
-        else:
-            intens_max = None
-
-        mz_min = self.load_min_mz.text()
-        if mz_min != '':
-            mz_min = int(mz_min)
-        else:
-            mz_min = None
-
-        mz_max = self.load_max_mz.text()
-        if mz_max != '':
-            mz_max = int(mz_max)
-        else:
-            mz_max = None
-
-        if self.load_new.isChecked():
-            new = True
-        else:
-            new = False
 
         try:
-            self.spec = Spectrum().read_csv(filename=file,
-                                            mapper={mz_head:'mass', intens_head:'intensity'},
-                                            take_only_mz=new,
-                                            sep=sep,
-                                            intens_min=intens_min,
-                                            intens_max=intens_max,
-                                            mass_min=mz_min,
-                                            mass_max=mz_max
-                                            )
+            file, _ = QFileDialog.getOpenFileName(self, 'Open File')
+            if file:
+                self.addText(file)
+
+            sep = self.load_sep.text()
+            if sep == 'tab':
+                sep = '\t'
+            elif sep == '':
+                sep = ','
+
+            mz_head = self.load_mz.text()
+            if mz_head == '':
+                mz_head = 'mass'
+
+            intens_head = self.load_intensity.text()
+            if intens_head == '':
+                intens_head = 'intensity'
+
+            intens_min = self.load_min_intens.text()
+            if intens_min != '':
+                intens_min = int(intens_min)
+            else:
+                intens_min = None
+
+            intens_max = self.load_max_intens.text()
+            if intens_max != '':
+                intens_max = int(intens_max)
+            else:
+                intens_max = None
+
+            mz_min = self.load_min_mz.text()
+            if mz_min != '':
+                mz_min = int(mz_min)
+            else:
+                mz_min = None
+
+            mz_max = self.load_max_mz.text()
+            if mz_max != '':
+                mz_max = int(mz_max)
+            else:
+                mz_max = None
+
+            if self.load_new.isChecked():
+                new = True
+            else:
+                new = False
+
+            if file != "":
+                self.spec = Spectrum().read_csv(filename=file,
+                                                mapper={mz_head:'mass', intens_head:'intensity'},
+                                                take_only_mz=new,
+                                                sep=sep,
+                                                intens_min=intens_min,
+                                                intens_max=intens_max,
+                                                mass_min=mz_min,
+                                                mass_max=mz_max
+                                                )
+
         except Exception:
             self.addText(traceback.format_exc())
 
     def save_spectrum_(self):
         try:
             file, _ = QFileDialog.getSaveFileName(self, 'Save File', f"{self.spec.metadata['name']}.txt")
-            self.addText(f'save {file}')
-            self.spec.to_csv(file)
+            if file!= "":
+                self.addText(f'save {file}')
+                self.spec.to_csv(file)
         except Exception:
             self.addText(traceback.format_exc())
 
@@ -485,18 +510,17 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def load_etalon_(self):
         
-        file, _ = QFileDialog.getOpenFileName(self, 'Open File')
-        if file:
-            self.addText(file)
-
         try:
-            self.etalon = Spectrum.read_csv(filename=file,
-                                mapper={'mass':'mass', 'intensity':'intensity'},
-                                take_only_mz=False,
-                                sep=','
-                                )
-            self.addText('load etalon')
-        
+            file, _ = QFileDialog.getOpenFileName(self, 'Open File')
+            if file!="":
+                self.addText(file)
+                self.etalon = Spectrum.read_csv(filename=file,
+                                    mapper={'mass':'mass', 'intensity':'intensity'},
+                                    take_only_mz=False,
+                                    sep=','
+                                    )
+                self.addText('load etalon')
+            
         except Exception:
             self.addText(traceback.format_exc())
 
@@ -538,14 +562,13 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def load_error_(self):
         
-        file, _ = QFileDialog.getOpenFileName(self, 'Open File')
-        if file:
-            self.addText(file)
-
         try:
-            error = pd.read_csv(file)
-            self.err = ErrorTable(error)
-            self.addText('load_error')
+            file, _ = QFileDialog.getOpenFileName(self, 'Open File')
+            if file != "":
+                self.addText(file)
+                error = pd.read_csv(file)
+                self.err = ErrorTable(error)
+                self.addText('load_error')
         
         except Exception:
             self.addText(traceback.format_exc())
@@ -619,41 +642,37 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception:
             self.addText(traceback.format_exc())
 
+    def add_bufer_(self):
+
+        try:
+            self.specs_list.append(self.spec)
+            self.listWidget.insertItem(self.listWidget.count(), self.specs_list[-1].metadata['name'])
+            self.listWidget.item(self.listWidget.count()-1).setCheckState(0)
+            self.listWidget.setCurrentRow(self.listWidget.count()-1)
+            self.specs_list[-1].metadata['color'] = def_colors[len(self.specs_list)%10]
+            self.specs_list[-1].metadata['alpha'] = 0.2
+            
+        except Exception:
+            self.addText(traceback.format_exc())
+
     def multi_load_(self):
         try:
             files, _ = QFileDialog.getOpenFileNames(self, 'Open File') 
             if files:
+                init_len = len(self.specs_list)
                 for i, file in enumerate(files):
                     self.specs_list.append(Spectrum.read_csv(file))
-                    self.listWidget.insertItem(i, self.specs_list[-1].metadata['name'])
+                    self.listWidget.insertItem(i+init_len, self.specs_list[-1].metadata['name'])
+                    self.listWidget.item(i+init_len).setCheckState(0)
+                    self.specs_list[-1].metadata['color'] = def_colors[len(self.specs_list)%10]
+                    self.specs_list[-1].metadata['alpha'] = 0.2
 
-            self.addText(f'{len(files)} spectra have loaded')
+            self.addText(f'{len(files)} spectra are loaded')
 
         except Exception:
             self.addText(traceback.format_exc())
 
     def save_(self):
-
-        try:
-            value = self.listWidget.currentRow()
-            file, _ = QFileDialog.getSaveFileName(self, 'Save File', f"{self.specs_list[value].metadata['name']}.txt")
-            self.addText(f'save {file}')
-            self.specs_list[value].to_csv(file)
-        
-        except Exception:
-            self.addText(traceback.format_exc())
-            
-    def remove_(self):
-
-        try:
-            value = self.listWidget.currentRow()
-            del self.specs_list[value]
-            self.refresh_list()
-        
-        except Exception:
-            self.addText(traceback.format_exc())
-
-    def save_all_(self):
 
         try:
             file = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
@@ -662,151 +681,196 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
                 path = os.path.join(file, "out")
                 os.mkdir(path)
 
+            text =''
             for i, spec in enumerate(self.specs_list):
-                spec.to_csv(f'{file}/out/{spec.metadata["name"]}.txt')
+                if self.listWidget.item(i).checkState() == 2:
+                    text += f'{self.specs_list[i].metadata["name"]}\n'
+                    spec.to_csv(f'{file}/out/{spec.metadata["name"]}.txt')
 
-            self.addText(f'all spec are saved in {file}/out')
+            self.addText(f'Spectrum are saved in {file}/out\n{text}')
         
         except Exception:
             self.addText(traceback.format_exc())
-
-    def remove_all_(self):
+            
+    def remove_(self):
 
         try:
-            self.listWidget.clear()
-            self.specs_list = SpectrumList()
-            self.addText('mass spectrum list is cleared')
+            text =''
+
+            i = 0
+            while i!= self.listWidget.count():
+                if self.listWidget.item(i).checkState() == 2:
+                    text += f'{self.specs_list[i].metadata["name"]}\n'
+                    del self.specs_list[i]
+                    self.listWidget.takeItem(i)
+                else:
+                    i += 1
+            
+            self.addText(f'Spectrum are removed\n{text}')
         
         except Exception:
             self.addText(traceback.format_exc())
 
-    def rename_(self):
+    def add_operate(self):
+        self.operate(op='add')
+    
+    def sub_operate(self):
+        self.operate(op='sub')
 
+    def and_operate(self):
+        self.operate(op='and')
+
+    def xor_operate(self):
+        self.operate(op='xor')
+
+    def int_sub_operate(self):
+        self.operate(op='int_sub')
+
+    def operate(self, op):
+
+        try:
+            self.form_temp_list()
+            if len(self.temp_list) < 2:
+                raise Exception('Operation requires at least two spectra')
+
+            obj = copy.deepcopy(self.temp_list)
+            for i, spec in enumerate(obj):
+                obj[i] = spec.calc_mass()
+                obj[i].table = obj[i].table.dropna()
+
+            self.spec = obj[0]
+            if op == 'and':
+                for i in range(1, len(obj)):
+                    self.spec = self.spec & obj[i]
+                self.addText('and')
+            elif op == 'add':
+                for i in range(1, len(obj)):
+                    self.spec = self.spec + obj[i]
+                self.addText('add')
+            elif op == 'sub':
+                for i in range(1, len(obj)):
+                    self.spec = self.spec - obj[i]
+                self.addText('sub')
+            elif op == 'xor':
+                for i in range(1, len(obj)):
+                    self.spec = self.spec ^ obj[i]
+                self.addText('xor')
+            elif op == 'int_sub':
+                for i in range(1, len(obj)):
+                    self.spec = self.spec.intens_sub(obj[i])
+                self.addText('int_sub')
+
+            self.add_bufer_()
+
+        except Exception:
+            self.addText(traceback.format_exc())
+
+    def venn_operate(self):
+        
+        try:
+            self.form_temp_list()
+            if len(self.temp_list) != 3 or len(self.temp_list) != 2:
+                raise Exception(f"This can be done for two or three spectra, not for {len(self.temp_list)}")
+
+            obj = copy.deepcopy(self.temp_list)
+            sets = []
+            for i, spec in enumerate(obj):
+                obj[i] = spec.calc_mass()
+                obj[i].table = obj[i].table.dropna()
+                sets.append(obj[i].table['calc_mass'].dropna().values)
+
+            fig, ax = self.get_fig_ax()
+            labels = (self.temp_list[i].metadata['name'] for i in range(len(self.temp_list)))                
+            
+            if len(self.temp_list) == 2:                    
+                venn2([set(sets[0]), set(sets[1])], set_labels=labels, ax=ax)
+
+            elif len(self.temp_list) == 3:
+                venn3([set(sets[0]), set(sets[1]), set(sets[2])], set_labels=labels, ax=ax)
+            
+            self.addText('venn')
+
+            fig.tight_layout()
+            plt.show(block=False)        
+            if self.path_img is not None and self.save_box.isChecked():
+                form = self.format.currentText()
+                name = self.temp_name_img
+                plt.savefig(f'{self.path_img}/{name}.{form}')
+                self.temp_name_img += 1
+
+        except Exception:
+            self.addText(traceback.format_exc())
+
+    def check_all_(self):
+        try:
+            for i in range(self.listWidget.count()):
+                self.listWidget.item(i).setCheckState(2)
+        except Exception:
+            self.addText(traceback.format_exc())
+
+    def uncheck_all_(self):
+        try:
+            for i in range(self.listWidget.count()):
+                self.listWidget.item(i).setCheckState(0)
+        except Exception:
+            self.addText(traceback.format_exc())
+
+    def up_(self):
         try:
             value = self.listWidget.currentRow()
-            new_name = self.rename_line.text()
-            if new_name == "":
-                raise Exception('fill rename line')
+            if value > 0:
+                temp_spec = self.specs_list[value]
+                del self.specs_list[value]
+                self.specs_list.insert(value-1, temp_spec)
 
-            self.specs_list[value].metadata['name'] = new_name
-            self.refresh_list()
+                currentItem = self.listWidget.takeItem(value)
+                self.listWidget.insertItem(value - 1, currentItem)
 
-            self.addText(f"spec is renamed to {new_name}")
-        
+                self.listWidget.setCurrentRow(value-1)
+
         except Exception:
             self.addText(traceback.format_exc())
 
-    def operate_(self):
-
+    def down_(self):
         try:
-            if len(self.temp_list) != 2:
-                raise Exception('Need exactly two spectrum. Try reset and reload it by click in list')
+            value = self.listWidget.currentRow()
+            if value < len(self.specs_list)-1:
+                temp_spec = self.specs_list[value]
+                del self.specs_list[value]
+                self.specs_list.insert(value+1, temp_spec)
 
-            self.spec = self.temp_list[0]
-            self.spec2 = self.temp_list[1]
-
-            op = self.arifm_box.currentText()
-
-            if "calc_mass" not in self.spec.table:
-                e = copy.deepcopy(self.spec.calc_mass())
-            else:
-                e = copy.deepcopy(self.spec)
-            if "calc_mass" not in self.spec2.table:
-                s = copy.deepcopy(self.spec2.calc_mass())
-            else:
-                s = copy.deepcopy(self.spec2)
-
-            a = e.table.dropna()
-            b = s.table.dropna()
-            
-            a = e.table['calc_mass'].dropna().values
-            b = s.table['calc_mass'].dropna().values
-
-            if op == 'and':
-                self.spec = self.spec & self.spec2
-                self.addText('operate')
-            elif op == '+':
-                self.spec = self.spec + self.spec2
-                self.addText('operate')
-            elif op == '-':
-                self.spec = self.spec - self.spec2
-                self.addText('operate')
-            elif op == 'xor':
-                self.spec = self.spec ^ self.spec2
-                self.addText('operate')
-            elif op == 'metric':
-                fig, ax = self.get_fig_ax()
-                venn2([set(a), set(b)], ax=ax)
-                fig.tight_layout()
-                plt.show(block=False)
-                if self.path_img is not None and self.save_box.isChecked():
-                    form = self.format.currentText()
-                    name = self.temp_name_img
-                    plt.savefig(f'{self.path_img}/{name}.{form}')
-                    self.temp_name_img += 1
-
-                text = ''
-                for index in ['cosine', 'tanimoto', 'jaccard']:
-                    value = self.spec.simmilarity(self.spec2, mode=index)
-                    text = text + f'{index}: {round(value,3)} \n'
-                self.addText(text)
-            elif op == 'int_sub':
-                self.spec = self.spec.intens_sub(self.spec2)
-                self.addText('operate')
-
-            self.temp_list = SpectrumList([self.spec])
+                currentItem = self.listWidget.takeItem(value)
+                self.listWidget.insertItem(value + 1, currentItem)
+                
+                self.listWidget.setCurrentRow(value+1)
 
         except Exception:
             self.addText(traceback.format_exc())
 
-    def add_bufer_(self):
-
-        try:
-            self.specs_list.append(self.spec)
-            self.refresh_list()
-            self.listWidget.setCurrentRow(self.listWidget.count()-1)
-            
-        except Exception:
-            self.addText(traceback.format_exc())
-
-    def reset_(self):
+    def form_temp_list(self):
 
         try:
             self.temp_list = SpectrumList()
             self.plot_alpha = []
             self.plot_color = []
-            self.addText('reset')
+            for i, spec in enumerate(self.specs_list):
+                if self.listWidget.item(i).checkState() == 2:
+                    self.temp_list.append(spec)
+                    self.plot_alpha.append(spec.metadata["alpha"])
+                    self.plot_color.append(spec.metadata["color"])
         
         except Exception:
             self.addText(traceback.format_exc())
 
-    def refresh_list(self):
-        try:
-            self.listWidget.clear()
-
-            for i, spec in enumerate(self.specs_list):
-                self.listWidget.insertItem(i, spec.metadata['name'])
-
-        except Exception:
-            self.addText(traceback.format_exc())
-
-    def list_clicked_(self):
+    def list_double_clicked_(self):
 
         try:
             value = self.listWidget.currentRow()
-            self.temp_list.append(self.specs_list[value])
-
-            c = self.color.text()
-            a = self.alpha.text()
-            if c!='':
-                self.plot_color.append(c)
-            if a!='':
-                self.plot_alpha.append(float(a))
-
-            names = ''
-            for spec in self.temp_list:
-                names = names + spec.metadata['name'] + ', '
-            self.addText(names)
+            dlg = ListDialog(spec = self.specs_list[value])
+            result = dlg.exec_()
+            if result:
+                self.specs_list[value] = dlg.spec
+                self.listWidget.item(value).setText(self.specs_list[value].metadata['name'])
 
         except Exception:
             self.addText(traceback.format_exc())
@@ -814,15 +878,11 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def calculate_(self):
 
         try:
-            if self.all_spectra.isChecked():
-                obj = self.specs_list
-            else:
-                obj = self.temp_list
-
-            for i, spec in enumerate(obj):
-                obj[i] = spec.calc_all_metrics().drop_unassigned()
+            for i, spec in enumerate(self.specs_list):
+                if self.listWidget.item(i).checkState() == 2:
+                    self.specs_list[i] = self.specs_list[i].calc_all_metrics().drop_unassigned()
             
-            self.addText('calculate')
+            self.addText('Spectrum are calculated')
         
         except Exception:
             self.addText(traceback.format_exc())
@@ -832,15 +892,11 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             how = self.nomalize_box.currentText()
 
-            if self.all_spectra.isChecked():
-                obj = self.specs_list
-            else:
-                obj = self.temp_list
-
-            for i, spec in enumerate(obj):
-                obj[i] = spec.normalize(how=how)
+            for i, spec in enumerate(self.specs_list):
+                if self.listWidget.item(i).checkState() == 2:
+                    self.specs_list[i] = self.specs_list[i].normalize(how=how)
             
-            self.addText('specs are normalized')
+            self.addText('Spectrum are normalized')
         
         except Exception:
             self.addText(traceback.format_exc())
@@ -848,10 +904,8 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def count_(self):
 
         try:
-            if self.all_spectra.isChecked():
-                obj = copy.deepcopy(self.specs_list)
-            else:
-                obj = copy.deepcopy(self.temp_list)
+            self.form_temp_list()
+            obj = copy.deepcopy(self.temp_list)
             
             func = self.func.currentText()
             value = self.cut_line.text()
@@ -881,10 +935,8 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def cut_(self):
 
         try:
-            if self.all_spectra.isChecked():
-                obj = self.specs_list
-            else:
-                obj = self.temp_list
+            self.form_temp_list()
+            obj = self.temp_list
             
             how = self.cut_box.currentText()
             value = self.cut_line.text()
@@ -915,10 +967,8 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def classes_(self):
 
         try:
-            if self.all_spectra.isChecked():
-                obj = self.specs_list
-            else:
-                obj = self.temp_list
+            self.form_temp_list()
+            obj = self.temp_list
 
             fig, ax = self.get_fig_ax()
 
@@ -945,14 +995,12 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def squares_(self):
         
         try:
-            if self.all_spectra.isChecked():
-                obj = self.specs_list
-            else:
-                obj = self.temp_list
+            self.form_temp_list()
+            obj = self.temp_list
 
             spec_num = len(obj)
             if spec_num < 1:
-                raise Exception("no spectrum for plot. Try to add by click")
+                raise Exception("no spectrum for plot. Try to add by check")
             if spec_num == 1:
                 fig, ax = self.get_fig_ax()
                 self.squares = obj[0].get_squares_vk(ax=ax, draw=True)
@@ -968,10 +1016,8 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def dbe_vs_no(self):
 
         try:
-            if self.all_spectra.isChecked():
-                obj = self.specs_list
-            else:
-                obj = self.temp_list    
+            self.form_temp_list()
+            obj = self.temp_list    
 
             fig, ax = self.get_fig_ax()
 
@@ -1015,10 +1061,8 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def simmilarity_(self):
 
         try:
-            if self.all_spectra.isChecked():
-                obj = self.specs_list
-            else:
-                obj = self.temp_list
+            self.form_temp_list()
+            obj = self.temp_list
 
             sim = self.similarity_metric.currentText()
             
@@ -1045,8 +1089,9 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
 
         try:
             file, _ = QFileDialog.getSaveFileName(self, 'Save File', f"data.csv")
-            self.addText(f'save {file}')
-            self.temp_df.to_csv(file)
+            if file != '':
+                self.addText(f'save {file}')
+                self.temp_df.to_csv(file)
         
         except Exception:
             self.addText(traceback.format_exc())
@@ -1056,20 +1101,15 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             fig, ax = self.get_fig_ax()
 
+            self.form_temp_list()
             spec_num = len(self.temp_list)
 
-            if len(self.plot_color) == spec_num:
-                col = self.plot_color
-            else:
-                col = default_colors[:spec_num]
+            col = self.plot_color
 
             if len(self.temp_list)==1:
                 col = [None]
 
-            if len(self.plot_alpha) == spec_num:
-                alp = self.plot_alpha
-            else:
-                alp = [0.2 for i in range(spec_num)]
+            alp = self.plot_alpha
 
             xs = self.scatter_box_1.currentText()
             ys = self.sactter_box_2.currentText()
@@ -1120,12 +1160,10 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             fig, ax = self.get_fig_ax()
 
+            self.form_temp_list()
             spec_num = len(self.temp_list)
 
-            if len(self.plot_color) == spec_num:
-                col = self.plot_color
-            else:
-                col = default_colors[:spec_num]
+            col = self.plot_color
 
             out = ''
             for i, spec in enumerate(self.temp_list):                   
@@ -1164,22 +1202,17 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
             ax_x = fig.add_subplot(gs[0,0:3])
             ax_y = fig.add_subplot(gs[1:4, 3])
 
+            self.form_temp_list()
             spec_num = len(self.temp_list)
             if spec_num < 1:
                 raise Exception("no spectrum for plot. Try to add by click")
 
-            if len(self.plot_color) == spec_num:
-                    col = self.plot_color
-            else:
-                col = default_colors[:spec_num]
+            col = self.plot_color
 
             if len(self.temp_list)==1:
                 col = [None]
 
-            if len(self.plot_alpha) == spec_num:
-                alp = self.plot_alpha
-            else:
-                alp = [0.2 for i in range(spec_num)]
+            alp = self.plot_alpha
 
             xs = self.scatter_box_1.currentText()
             ys = self.sactter_box_2.currentText()
@@ -1261,12 +1294,10 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
             fig, ax = self.get_fig_ax()
             ax = self.restrict_ax(ax, hc_oc=False)
 
+            self.form_temp_list()
             spec_num = len(self.temp_list)
 
-            if len(self.plot_color) == spec_num:
-                col = self.plot_color
-            else:
-                col = default_colors[:spec_num]
+            col = self.plot_color
 
             xs = self.density_box.currentText()
         

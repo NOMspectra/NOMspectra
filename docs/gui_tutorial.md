@@ -95,36 +95,31 @@ Analysis can be performed only with spectra processed by this programm or by the
 
 You can load several spectra at once, to do this, click **Multi Load** and select files. Also you can add just treated spectrum with tab treatment by button **Add_buffer**
 
-After uploading (may take some time), they will be displayed below in the field with names corresponding to the names of the files. If you need to rename, then select the corresponding spectrum, enter a new name and press the **Rename** button.
+After uploading (may take some time), they will be displayed below in the field with names corresponding to the names of the files. If you need to rename or change it color or transparity onto diagram, then double click spectrum, enter a new parameters and press the **OK** button.
 
-Also, if necessary, the spectrum can be removed from the collection - select and press the **Remove** button. Save individual spectrum - button **Save**
+Also, if necessary, the spectrum can be removed from the collection - select spectrum by checkboxes and press the **Remove** button. 
 
-Save all spectra - **Save all** in this case, you will need to select a folder for saving, there it will create a folder *out*, where the spectra will be saved. Be careful, if such a folder already exists, the files will be overwritten if the names match.
+For Save spectra check them and click button **Save**. In this case, you will need to select a folder for saving, there it will create a folder *out*, where the spectra will be saved. Be careful, if such a folder already exists, the files will be overwritten if the names match.
 
-Also, the spectrum can be transferred to a selection from the buffer - **Add_buffer**, the spectrum will be displayed at the bottom of the list. It can also be renamed.
+### Logical operations with spectra, Venn diagrams
 
-Spectra appear in the buffer after processing in the **Treatment** tab, or after logical operations.
+Spectra can be added, subtracted, found in common, and similarity metrics can also be calculated. Select at last two spectrum.
 
-To remove all spectra from the selection, press the **Remove all**
+The operation is performed for spectra that were selected by checkboxes. For substraction oder is matter, so place your spectra in desirabel oder by clicking it and moving it by buttuns up and down
 
-### Logical operations with spectra
+After the operation is completed, the new spectrum will be appeared in the bottom of spectra list
 
-Spectra can be added, subtracted, found in common, and similarity metrics can also be calculated.
+- add. Addition of all spectra
+- sub. Subtract all spectra from the first selected spectrum
+- and. Select the formulas included in all spectra.
+- xor. Formulas included in only one of all spectra.
+- int_sub. Subtract all spectra from the first selected spectrum by intensity. Formulas whose intensity is higher in the other spectrum will be removed from the first one.
 
-The operation is performed for two spectra. To do this, they must be selected. To do this, you just need to select the desired spectra with the mouse. The list will be updated and displayed in the box below. To reset the list, you need to press the **Reset** button, after which you can start the selection process again.
-
-After selecting two spectra, you can perform operations on them - **operate**. After the operation is completed, the new spectrum will be in the buffer, to work with it, you can transferre it to the list - **Add_Bufer**
-
-- metric. Calculate similarity metrics
-- and. Select the formulas included in both spectra.
-- plus. All formulas from two spectra
-- minus. Subtract the second from the first spectrum. The order in which the spectra are selected is important.
-- xor. Formulas included in only one of the two spectra.
-- int_sub. Subtract from the first spectrum the second by intensity. Formulas whose intensity is higher in the second spectrum will be removed from the first one.
+For plot venn diagramm of selected spectra click button **venn**. This operation can be done only for 2 or 3 spectra at once.
 
 ### Calculation of parameters, normalization and cutting of spectra
 
-If the **all spectra** checkbox is checked, then operations will be performed on all spectra in the selection. Otherwise, only over manually selected spectra.
+Operations will be performed on selected spectra.
 
 Calculate parameters - **calculate**. It may take some time, especially if there are many spectra. DBE, AI, NOSC and more will be calculated.
 
@@ -138,7 +133,7 @@ To crop the spectra, you need to select the cropping parameter - *intensity*, *m
 
 ### Calculation of metrics, similarity matrix
 
-If the **all spectra** checkbox is checked, then operations will be performed on all spectra in the selection. Otherwise, only over manually selected spectra.
+Operations will be performed on selected spectra.
 
 The intensity-weighted average distribution of formulas over molecular zones can be determined using the **Classes** button. A bar chart will be built (for ease of reading, it is worth stretching horizontally).
 
@@ -160,19 +155,18 @@ To save the generated images, you need to select the folder for saving **Path**,
 
 ### Draw spectra, diagrams
 
-Before draw except spectrum you should make calculate parameters - **calculate** for desirable spectra or for all with checkbox **all spectra** It is takes some times.
+Before draw except spectrum you should make calculate parameters - **calculate** 
 
 #### Selection of spectra. Adjustment of color, transparency
-
-To select spectra, you need to select them with a mouse click. The list of selected spectra will be displayed in the box below. To reset it, press the **Reset** button.
 
 The colors for the spectra are automatically selected in the order:
 
 ['blue','red','green','orange','purple','brown','pink','gray','olive','cyan']
 
-If you want a specific color for the spectrum, then its name must be entered in the **Color** field before selecting this spectrum. For the next spectrum, again drive the color into the field. The list of available colors can be found here: https://matplotlib.org/stable/gallery/color/named_colors.html
+If you want a specific color for the spectrum, then double click on it and correct it. The list of available colors can be found here: https://matplotlib.org/stable/gallery/color/named_colors.html
+Also for scatterplots, you can set the transparency value in the **alpha** field. By default it is 0.2, and when many spectra are selected, one by one may not be seen. 
 
-For scatterplots, you can set the transparency value in the **alpha** field. By default it is 0.2, and when many spectra are selected, one by one may not be seen. The order of their construction is determined by the order of selection.
+The order of their construction is determined by up to down. So if you want correct it click on spectra and move it button up and down.
 
 #### Draw a mass spectrum
 
