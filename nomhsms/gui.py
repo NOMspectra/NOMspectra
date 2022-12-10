@@ -774,8 +774,6 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         
         try:
             self.form_temp_list()
-            if len(self.temp_list) != 3 or len(self.temp_list) != 2:
-                raise Exception(f"This can be done for two or three spectra, not for {len(self.temp_list)}")
 
             obj = copy.deepcopy(self.temp_list)
             sets = []
@@ -792,6 +790,9 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
 
             elif len(self.temp_list) == 3:
                 venn3([set(sets[0]), set(sets[1]), set(sets[2])], set_labels=labels, ax=ax)
+
+            else:
+                raise Exception(f"This can be done for two or three spectra, not for {len(self.temp_list)}")
             
             self.addText('venn')
 
