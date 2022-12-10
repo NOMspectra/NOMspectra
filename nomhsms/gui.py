@@ -645,7 +645,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
     def add_bufer_(self):
 
         try:
-            self.specs_list.append(self.spec)
+            self.specs_list.append(copy.deepcopy(self.spec))
             self.listWidget.insertItem(self.listWidget.count(), self.specs_list[-1].metadata['name'])
             self.listWidget.item(self.listWidget.count()-1).setCheckState(0)
             self.listWidget.setCurrentRow(self.listWidget.count()-1)
@@ -738,29 +738,34 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
                 obj[i] = spec.calc_mass()
                 obj[i].table = obj[i].table.dropna()
 
-            self.spec = obj[0]
+            temp_spec = obj[0]
             if op == 'and':
                 for i in range(1, len(obj)):
-                    self.spec = self.spec & obj[i]
+                    temp_spec = temp_spec & obj[i]
                 self.addText('and')
             elif op == 'add':
                 for i in range(1, len(obj)):
-                    self.spec = self.spec + obj[i]
+                    temp_spec = temp_spec + obj[i]
                 self.addText('add')
             elif op == 'sub':
                 for i in range(1, len(obj)):
-                    self.spec = self.spec - obj[i]
+                    temp_spec = temp_spec - obj[i]
                 self.addText('sub')
             elif op == 'xor':
                 for i in range(1, len(obj)):
-                    self.spec = self.spec ^ obj[i]
+                    temp_spec = temp_spec ^ obj[i]
                 self.addText('xor')
             elif op == 'int_sub':
                 for i in range(1, len(obj)):
-                    self.spec = self.spec.intens_sub(obj[i])
+                    temp_spec = temp_spec.intens_sub(obj[i])
                 self.addText('int_sub')
 
-            self.add_bufer_()
+            self.specs_list.append(copy.deepcopy(temp_spec))
+            self.listWidget.insertItem(self.listWidget.count(), self.specs_list[-1].metadata['name'])
+            self.listWidget.item(self.listWidget.count()-1).setCheckState(0)
+            self.listWidget.setCurrentRow(self.listWidget.count()-1)
+            self.specs_list[-1].metadata['color'] = def_colors[len(self.specs_list)%10]
+            self.specs_list[-1].metadata['alpha'] = 0.2
 
         except Exception:
             self.addText(traceback.format_exc())
