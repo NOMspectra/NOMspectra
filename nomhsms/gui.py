@@ -46,7 +46,7 @@ with open(os.path.join(here, "__version__.py")) as f:
 
 about =f'''nomhsms. Version {version["__version__"]}
 
-Graphical user interface for nomhsms package (https://github.com/nomhsms/nomhsms)
+Graphical user interface for nomhsms package: https://github.com/nomhsms/nomhsms
 
 Tutorial: https://nomhsms.readthedocs.io/en/latest/gui_tutorial.html
 
@@ -1033,11 +1033,8 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
             if spec_num < 1:
                 raise Exception("no spectrum for plot. Try to add by click")
 
-            if len(self.plot_color) == spec_num:
-                col = self.plot_color
-            else:
-                col = default_colors[:spec_num]
-
+            col = self.plot_color
+            
             dt = []
             for i, spec in enumerate(obj):
                 val = spec.get_dbe_vs_o(ax=ax, olim=lim, c=col[i])                   
