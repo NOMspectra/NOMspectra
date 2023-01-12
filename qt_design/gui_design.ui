@@ -982,6 +982,11 @@
               <widget class="QComboBox" name="classes_choise">
                <item>
                 <property name="text">
+                 <string>laszakovits</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
                  <string>kellerman</string>
                 </property>
                </item>

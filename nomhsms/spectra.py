@@ -258,8 +258,8 @@ class SpectrumList(UserList):
         how_average: {'weight', 'count'}
             how average density. Default "weight" - weight by intensity.
             Also can be "count".
-        how: {'kellerman', 'perminova'}
-            How devide to calsses. Optional. Default 'kellerman'
+        how: {'kellerman', 'perminova', 'laszakovits'}
+            How devide to calsses. Optional. Default 'laszakovits'
 
         Return
         ------
@@ -267,6 +267,7 @@ class SpectrumList(UserList):
 
         References
         ----------
+        Laszakovits, J. R., & MacKay, A. A. Journal of the American Society for Mass Spectrometry, 2021, 33(1), 198-202.
         A. M. Kellerman, T. Dittmar, D. N. Kothawala, L. J. Tranvik. Nat. Commun. 5, 3804 (2014)
         Perminova I. V. Pure and Applied Chemistry. 2019. Vol. 91, № 5. P. 851-864
         """

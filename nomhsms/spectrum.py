@@ -1299,8 +1299,8 @@ class Spectrum(object):
 
         Parameters
         ----------
-        how: {'kellerman', 'perminova'}
-            How devide to calsses. Optional. Default 'kellerman'
+        how: {'kellerman', 'perminova', 'laszakovits'}
+            How devide to calsses. Optional. Default 'laszakovits'
 
         Return
         ------
@@ -1308,7 +1308,8 @@ class Spectrum(object):
 
         References
         ----------
-        A. M. Kellerman, T. Dittmar, D. N. Kothawala, L. J. Tranvik. Nat. Commun. 5, 3804 (2014)
+        Laszakovits, J. R., & MacKay, A. A. Journal of the American Society for Mass Spectrometry, 2021, 33(1), 198-202.
+        A. M. Kellerman, T. Dittmar, D. N. Kothawala, L. J. Tranvik. Nat. Commun. 2014, 5, 3804
         Perminova I. V. Pure and Applied Chemistry. 2019. Vol. 91, № 5. P. 851-864
         """
 
@@ -1375,11 +1376,29 @@ class Spectrum(object):
                     return 'undefinded'
             else:
                 return 'undefinded'
+
+        def get_zone_lasz(row):
+            if row['H/C'] >= 0.86 and row['H/C'] <=1.34 and row['O/C'] >= 0.21 and row['O/C'] <=0.44:
+                return 'lignin'
+            elif row['H/C'] >= 0.7 and row['H/C'] <=1.01 and row['O/C'] >= 0.16 and row['O/C'] <=0.84:
+                return 'tannin'
+            elif row['H/C'] >= 1.33 and row['H/C'] <=1.84 and row['O/C'] >= 0.17 and row['O/C'] <=0.48:
+                return 'peptide'
+            elif row['H/C'] >= 1.34 and row['H/C'] <=2.18 and row['O/C'] >= 0.01 and row['O/C'] <=0.35:
+                return 'lipid'
+            elif row['H/C'] >= 1.53 and row['H/C'] <=2.2 and row['O/C'] >= 0.56 and row['O/C'] <=1.23:
+                return 'carbohydrate'
+            elif row['H/C'] >= 1.62 and row['H/C'] <=2.35 and row['O/C'] >= 0.56 and row['O/C'] <=0.95:
+                return 'aminosugar'
+            else:
+                return 'undefinded'
         
         if how == 'perminova':
             self.table['class'] = table.apply(get_zone_perm, axis=1)
-        else:
+        elif how == 'kellerman':
             self.table['class'] = table.apply(get_zone_kell, axis=1)
+        else:
+            self.table['class'] = table.apply(get_zone_lasz, axis=1)
 
         return self
 
@@ -1393,8 +1412,8 @@ class Spectrum(object):
         how_average: {'weight', 'count'}
             how average density. Default "weight" - weight by intensity.
             Also can be "count".
-        how: {'kellerman', 'perminova'}
-            How devide to calsses. Optional. Default 'kellerman'
+        how: {'kellerman', 'perminova', 'laszakovits'}
+            How devide to calsses. Optional. Default 'laszakovits'
 
         Return
         ------
@@ -1402,6 +1421,7 @@ class Spectrum(object):
         
         References
         ----------
+        Laszakovits, J. R., & MacKay, A. A. Journal of the American Society for Mass Spectrometry, 2021, 33(1), 198-202.
         A. M. Kellerman, T. Dittmar, D. N. Kothawala, L. J. Tranvik. Nat. Commun. 5, 3804 (2014)
         Perminova I. V. Pure and Applied Chemistry. 2019. Vol. 91, № 5. P. 851-864
         """
@@ -1421,7 +1441,7 @@ class Spectrum(object):
                     'proteins',
                     'carbohydrates',
                     'undefinded']
-        else:
+        elif how == 'kellerman':
             zones = ['unsat_lowOC',
                     'unsat_highOC',
                     'condensed_lowOC',
@@ -1432,6 +1452,15 @@ class Spectrum(object):
                     'lipids',
                     'N-satureted',
                     'undefinded']
+        else:
+            zones = ['aminosugar',
+                    'carbohydrate',
+                    'lignin',
+                    'lipid',
+                    'peptide',
+                    'tannin',
+                    'undefinded']
+
 
         for zone in zones:
 
