@@ -82,7 +82,7 @@ def test_get_square_vk():
 
 def test_get_mol_density():
     specs = SpectrumList([spec1, spec2])
-    res = specs.get_mol_density()
+    res = specs.get_mol_density(how='kellerman')
     index = set(['unsat_lowOC', 'unsat_highOC', 'condensed_lowOC', 'condensed_highOC',
                 'aromatic_lowOC', 'aromatic_highOC', 'aliphatics', 'lipids',
                 'N-satureted', 'undefinded'])

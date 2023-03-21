@@ -151,12 +151,12 @@ def test_mol_class(el, result):
                         'O':[el[2]], 
                         'N':[el[3]]})
     spec = Spectrum(table=df)
-    spec = spec.mol_class()
+    spec = spec.mol_class(how='kellerman')
     assert spec.table.loc[0, 'class'] == result
 
 def test_get_mol_class_density():
     density = [0.469540, 0.458127, 0.000994, 0.004782, 0.008596, 0.002360, 0.025681, 0.004432, 0.015814, 0.009675]
-    values = spec.get_mol_class()['density'].to_list()
+    values = spec.get_mol_class(how='kellerman')['density'].to_list()
     assert all(round(a,3)==round(b,3) for a,b in zip(density, values))
 
 def test_dbe_vs_o():
