@@ -1,5 +1,5 @@
-from nomhsms.spectrum import Spectrum
-from nomhsms.spectra import SpectrumList
+from nomspectra.spectrum import Spectrum
+from nomspectra.spectra import SpectrumList
 import pytest
 import os
 

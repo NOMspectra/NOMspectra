@@ -13,7 +13,7 @@
 import os
 import sys
 sys.path.append('..')
-import nomhsms
+import nomspectra
 
 
 d = os.path.dirname(os.path.realpath(__file__))
@@ -22,12 +22,12 @@ sys.path.insert(0, os.path.join(d, ".."))
 
 # -- Project information -----------------------------------------------------
 
-project = 'nomhsms'
+project = 'nomspectra'
 copyright = '2022, Alexander Volikov, Rukhovich Gleb'
 author = 'Alexander Volikov, Rukhovich Gleb'
 
 # The full version, including alpha/beta/rc tags
-release = '0.3.10'
+release = '0.3.11'
 
 # -- General configuration ---------------------------------------------------
 
@@ -46,7 +46,7 @@ extensions = [
     "myst_parser"
 ]
 
-apidoc_module_dir = "../nomhsms"
+apidoc_module_dir = "../nomspectra"
 apidoc_output_dir = "./api"
 apidoc_excluded_paths = ["tests", "readthedocs"]
 apidoc_separate_modules = True

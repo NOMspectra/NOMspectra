@@ -1,5 +1,5 @@
-from nomhsms.recal import recallibrate, ErrorTable
-from nomhsms.spectrum import Spectrum
+from nomspectra.recal import recallibrate, ErrorTable
+from nomspectra.spectrum import Spectrum
 import pytest
 import os
 import numpy as np

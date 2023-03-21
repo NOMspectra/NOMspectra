@@ -1,17 +1,17 @@
 #    Copyright 2022 Volikov Alexander <ab.volikov@gmail.com>
 #
-#    nomhsms is free software: you can redistribute it and/or modify
+#    nomspectra is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    nomhsms is distributed in the hope that it will be useful,
+#    nomspectra is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with nomhsms.  If not, see <http://www.gnu.org/licenses/>.
+#    along with nomspectra.  If not, see <http://www.gnu.org/licenses/>.
 
 import copy
 import traceback
@@ -32,23 +32,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib_venn import venn2, venn3
-from nomhsms.spectrum import Spectrum 
-from nomhsms.spectra import SpectrumList
-from nomhsms.recal import ErrorTable, recallibrate
-from nomhsms.diff import Tmds, assign_by_tmds
-from nomhsms.brutto import brutto_gen
-import nomhsms.draw as draw
+from nomspectra.spectrum import Spectrum 
+from nomspectra.spectra import SpectrumList
+from nomspectra.recal import ErrorTable, recallibrate
+from nomspectra.diff import Tmds, assign_by_tmds
+from nomspectra.brutto import brutto_gen
+import nomspectra.draw as draw
 
 here = os.path.abspath(os.path.dirname(__file__))
 version = {}
 with open(os.path.join(here, "__version__.py")) as f:
     exec(f.read(), version)
 
-about =f'''nomhsms. Version {version["__version__"]}
+about =f'''nomspectra. Version {version["__version__"]}
 
-Graphical user interface for nomhsms package: https://github.com/nomhsms/nomhsms
+Graphical user interface for nomspectra package: https://github.com/nomspectra/nomspectra
 
-Tutorial: https://nomhsms.readthedocs.io/en/latest/gui_tutorial.html
+Tutorial: https://nomspectra.readthedocs.io/en/latest/gui_tutorial.html
 
 Distributed under license GPLv3 http://www.gnu.org/licenses/
 '''

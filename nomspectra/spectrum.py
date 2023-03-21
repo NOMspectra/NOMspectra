@@ -1,20 +1,20 @@
 #    Copyright 2019-2021 Rukhovich Gleb
 #    Copyright 2022 Volikov Alexander <ab.volikov@gmail.com>
 #
-#    This file is part of nomhsms. 
+#    This file is part of nomspectra. 
 #
-#    nomhsms is free software: you can redistribute it and/or modify
+#    nomspectra is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    nomhsms is distributed in the hope that it will be useful,
+#    nomspectra is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with nomhsms.  If not, see <http://www.gnu.org/licenses/>.
+#    along with nomspectra.  If not, see <http://www.gnu.org/licenses/>.
 
 from pathlib import Path
 import os
@@ -763,12 +763,18 @@ class Spectrum(object):
         a = self.table.dropna()
         b = other.table.dropna()
         
-        a = pd.concat([a, b], ignore_index=True)
-        a = a.drop_duplicates(subset=['calc_mass'])
+        merged_df = pd.merge(a, b, on="calc_mass", how="outer", sort=True)
+        merged_df["intensity"] = merged_df[["intensity_x", "intensity_y"]].mean(axis=1)
+        merged_df = merged_df.drop(["intensity_x", "intensity_y"], axis=1)
+        for col in merged_df.columns:
+            if col[-2:] == '_x':
+                merged_df[col[:-2]] = np.where(merged_df[f'{col[:-2]}_x'].isnull(), merged_df[f'{col[:-2]}_y'], 
+                                np.where(merged_df[f'{col[:-2]}_y'].isnull(), merged_df[f'{col[:-2]}_x'], merged_df[f'{col[:-2]}_x']))
+                merged_df = merged_df.drop([col, f'{col[:-2]}_y'], axis=1)
 
         metadata = {'operate':'or', 'name':MetaData.combine_two_name(self,other)}
 
-        return Spectrum(table = a, metadata=metadata)
+        return Spectrum(table = merged_df, metadata=metadata)
 
     @_copy
     def __xor__(self, other: "Spectrum") -> "Spectrum":
@@ -808,24 +814,21 @@ class Spectrum(object):
         if "calc_mass" not in other.table:
             other = other.calc_mass()
 
-        a = self.table['calc_mass'].dropna().to_list()
-        b = other.table['calc_mass'].dropna().to_list()
+        a = self.table
+        b = other.table
         
-        operate = set(a) & set(b)
-
-        mark = []
-        res = copy.deepcopy(self.table)
-        for i, row in res.iterrows():
-            if row['calc_mass'] in operate:
-                mark.append(row['calc_mass'])
-            else:
-                mark.append(np.NaN)
-        res['calc_mass'] = mark
-        res = res.dropna()
-
+        merged_df = pd.merge(a, b, on="calc_mass", how="inner", sort=True)
+        merged_df["intensity"] = merged_df[["intensity_x", "intensity_y"]].mean(axis=1)
+        merged_df = merged_df.drop(["intensity_x", "intensity_y"], axis=1)
+        for col in merged_df.columns:
+            if col[-2:] == '_x':
+                merged_df[col[:-2]] = np.where(merged_df[f'{col[:-2]}_x'].isnull(), merged_df[f'{col[:-2]}_y'], 
+                                np.where(merged_df[f'{col[:-2]}_y'].isnull(), merged_df[f'{col[:-2]}_x'], merged_df[f'{col[:-2]}_x']))
+                merged_df = merged_df.drop([col, f'{col[:-2]}_y'], axis=1)
+        
         metadata = {'operate':'and', 'name':MetaData.combine_two_name(self,other)}
 
-        return Spectrum(table = res, metadata=metadata)
+        return Spectrum(table = merged_df, metadata=metadata)
     
     def __add__(self, other: "Spectrum") -> "Spectrum":
         """

@@ -1,4 +1,4 @@
-import nomhsms.brutto as brutto
+import nomspectra.brutto as brutto
 import pytest
 import pandas as pd
 

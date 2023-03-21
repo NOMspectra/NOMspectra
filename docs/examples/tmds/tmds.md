@@ -6,9 +6,9 @@ Read more here: Kunenkov, Erast V., et al. "Total mass difference statistics alg
 
 
 ```python
-from nomhsms.spectrum import Spectrum
-from nomhsms.diff import Tmds, assign_by_tmds
-import nomhsms.draw as draw
+from nomspectra.spectrum import Spectrum
+from nomspectra.diff import Tmds, assign_by_tmds
+import nomspectra.draw as draw
 ```
 
 Assign with minimal error - 0.25 for more reliable results

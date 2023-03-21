@@ -2,9 +2,9 @@
 
 
 ```python
-from nomhsms.spectrum import Spectrum
-from nomhsms.recal import ErrorTable, recallibrate
-import nomhsms.draw as draw
+from nomspectra.spectrum import Spectrum
+from nomspectra.recal import ErrorTable, recallibrate
+import nomspectra.draw as draw
 import pandas as pd
 import matplotlib.pyplot as plt
 

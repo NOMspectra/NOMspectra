@@ -1,5 +1,5 @@
-from nomhsms.diff import Tmds, assign_by_tmds
-from nomhsms.spectrum import Spectrum
+from nomspectra.diff import Tmds, assign_by_tmds
+from nomspectra.spectrum import Spectrum
 import pytest
 import os
 import numpy as np

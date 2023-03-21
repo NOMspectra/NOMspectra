@@ -1,5 +1,5 @@
-from nomhsms.metadata import MetaData
-from nomhsms.spectrum import Spectrum
+from nomspectra.metadata import MetaData
+from nomspectra.spectrum import Spectrum
 import pytest
 import os
 

@@ -1,12 +1,12 @@
 # Install
 
-nomhsms requires Python version 3.8+ and can be installed by pip:
+nomspectra requires Python version 3.8+ and can be installed by pip:
 
 ```console
-pip install nomhsms
+pip install nomspectra
 ```
 
-nomhsms has the following dependencies:
+nomspectra has the following dependencies:
 
 - matplotlib
 - numpy
@@ -18,4 +18,4 @@ nomhsms has the following dependencies:
 - pyQt5
 - matplotlib-venn
 
-Missing dependencies will be automatically installed when you install nomhsms using pip
+Missing dependencies will be automatically installed when you install nomspectra using pip

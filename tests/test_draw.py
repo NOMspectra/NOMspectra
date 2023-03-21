@@ -1,6 +1,6 @@
 from this import d
-from nomhsms.spectrum import Spectrum
-import nomhsms.draw as draw
+from nomspectra.spectrum import Spectrum
+import nomspectra.draw as draw
 import matplotlib.pyplot as plt
 plt.rcParams.update({'figure.max_open_warning': 0})
 import pytest
