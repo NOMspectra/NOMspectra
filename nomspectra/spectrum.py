@@ -814,8 +814,8 @@ class Spectrum(object):
         if "calc_mass" not in other.table:
             other = other.calc_mass()
 
-        a = self.table
-        b = other.table
+        a = self.table.dropna()
+        b = other.table.dropna()
         
         merged_df = pd.merge(a, b, on="calc_mass", how="inner", sort=True)
         merged_df["intensity"] = merged_df[["intensity_x", "intensity_y"]].mean(axis=1)
