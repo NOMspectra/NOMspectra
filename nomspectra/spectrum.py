@@ -724,6 +724,9 @@ class Spectrum(object):
         if "calc_mass" not in self.table:
             self = self.calc_mass()
 
+        if "charge" not in self.table.columns:
+            self.table["charge"] = 1
+
         if sign is None:
             if 'sign' in self.metadata:
                 sign = self.metadata['sign']
@@ -1663,7 +1666,7 @@ class Spectrum(object):
 
         if metrics is None:
             metrics = set(self.table.columns) - set(['intensity', 'calc_mass', 'rel_error','abs_error',
-                                                    'assign', 'class', 'brutto', 'Ke', 'KMD'])
+                                                    'assign', 'charge', 'class', 'brutto', 'Ke', 'KMD'])
 
         res = []
         metrics = np.sort(np.array(list(metrics)))

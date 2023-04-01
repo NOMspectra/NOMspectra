@@ -12,7 +12,7 @@ class Test_load_and_save:
 
     def test_read_csv(self):
         spec = Spectrum.read_csv(sample1_path)  
-        all_columns = set(['mass', 'intensity', 'C', 'O', 'H', 'N', 'C_13','assign','calc_mass', 'abs_error', 'rel_error'])
+        all_columns = set(['mass', 'intensity', 'C', 'O', 'H', 'N', 'C_13','assign','calc_mass', 'abs_error', 'rel_error', 'charge'])
         assert all_columns == set(spec.table.columns)
         assert len(spec.table) == 13374
         assert spec.metadata['name'] == 'sample1'
@@ -20,7 +20,7 @@ class Test_load_and_save:
     def test_ignore_columns(self):
         ignore = ['abs_error', 'rel_error']
         spec = Spectrum.read_csv(sample1_path, ignore_columns=ignore)
-        all_columns = set(['mass', 'intensity', 'C', 'O', 'H', 'N', 'C_13', 'assign','calc_mass'])
+        all_columns = set(['mass', 'intensity', 'C', 'O', 'H', 'N', 'C_13', 'assign','calc_mass','charge'])
         assert all_columns == set(spec.table.columns)
 
     def test_take_columns(self):
@@ -261,7 +261,8 @@ class Test_calc_error:
                           'O':[12], 
                           'N':[1],
                           'S':[0], 
-                          'assign':[True]})
+                          'assign':[True],
+                          'charge':1})
         spec = Spectrum(table=df)
         spec = spec.calc_error()
         assert spec.table.loc[0, 'rel_error'].round(2) == result
