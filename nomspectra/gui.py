@@ -117,6 +117,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.assign_range_max.setText('')
         self.assign_range_min.setText('')
         self.assign_error_ppm.setText('0.5')
+        self.cahrge_max.setText('1')
         self.recal_range_max.setText('')
         self.recal_range_min.setText('')
         self.tmds_p.setText('')
@@ -292,6 +293,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         
         try:
             ppm = float(self.assign_error_ppm.text())
+            charge = int(self.cahrge_max.text())
 
             mod = self.mode.currentText()
 
@@ -309,7 +311,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.gdf_elems = copy.deepcopy(self.elems)
                 self.gdf = brutto_gen(elems = self.elems, rules=rul)
 
-            self.spec = self.spec.assign(generated_bruttos_table=self.gdf, rel_error=ppm, sign=sign)
+            self.spec = self.spec.assign(generated_bruttos_table=self.gdf, rel_error=ppm, sign=sign, charge_max=charge)
             self.addText('assigned')
         except Exception:
             self.addText(traceback.format_exc())

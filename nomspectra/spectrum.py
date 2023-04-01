@@ -280,6 +280,7 @@ class Spectrum(object):
             mass_max: Optional[float] = None,
             intensity_min: Optional[float] =  None,
             intensity_max: Optional[float] = None,
+            charge_max: int = 1
     ) -> "Spectrum":
         """
         Assigning brutto formulas to signal by mass
@@ -313,7 +314,9 @@ class Spectrum(object):
         intensity_min: float
             Optional. Default None. Minimall intensity for assigment
         intensity_max: float
-            Optional. Default None. Maximum intensity for assigment   
+            Optional. Default None. Maximum intensity for assigment
+        charge_max: int
+            Maximum charge in m/z. Default 1.   
 
         Return
         ------
@@ -370,28 +373,30 @@ class Spectrum(object):
                 row["intensity"] > intensity_max):
                 res.append({"assign": False})
                 continue 
+            
+            for charge in range(1, charge_max + 1):
+                mass = (row["mass"] + mass_shift) * charge
+                idx = np.searchsorted(masses, mass, side='left')
+                if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
+                    idx -= 1
 
-            mass = row["mass"] + mass_shift
-            idx = np.searchsorted(masses, mass, side='left')
-            if idx > 0 and (idx == len(masses) or np.fabs(mass - masses[idx - 1]) < np.fabs(mass - masses[idx])):
-                idx -= 1
-
-            if rel:
-                if np.fabs(masses[idx] - mass) / mass * 1e6 <= rel_error:
-                    res.append({**dict(zip(elems, bruttos[idx])), "assign": True})
+                if rel:
+                    if np.fabs(masses[idx] - mass) / mass * 1e6 <= rel_error/charge:
+                        res.append({**dict(zip(elems, bruttos[idx])), "assign": True, "charge": charge})
+                        break
                 else:
-                    res.append({"assign": False})
+                    if np.fabs(masses[idx] - mass) <= abs_error/charge:
+                        res.append({**dict(zip(elems, bruttos[idx])), "assign": True, "charge": charge})
+                        break
             else:
-                if np.fabs(masses[idx] - mass) <= abs_error:
-                    res.append({**dict(zip(elems, bruttos[idx])), "assign": True})
-                else:
-                    res.append({"assign": False})
+                res.append({"assign": False, "charge": 1})
 
         res = pd.DataFrame(res)
 
         table = table.join(res)
         self.table = self.table.merge(table, how='outer', on=list(self.table.columns))
         self.table['assign'] = self.table['assign'].fillna(False)
+        self.table['charge'] = self.table['charge'].fillna(1)
 
         return self
 
@@ -686,7 +691,7 @@ class Spectrum(object):
 
         self = self.drop_unassigned()
 
-        value = (self.table["calc_mass"]- self.table["mass"]).mean()
+        value = (self.table["calc_mass"]/self.table["charge"] - self.table["mass"]).mean()
         value = np.round(value,4)
         if value > 1:
             return '-'
@@ -726,11 +731,11 @@ class Spectrum(object):
                 sign = self._calc_sign()
 
         if sign == '-':
-            self.table["abs_error"] = self.table["mass"] - self.table["calc_mass"] + (- 0.00054858 + 1.007825) #-electron + proton
+            self.table["abs_error"] = ((self.table["mass"] + (- 0.00054858 + 1.007825)) * self.table["charge"]) - self.table["calc_mass"] #-electron + proton
         elif sign == '+':
-            self.table["abs_error"] = self.table["mass"] - self.table["calc_mass"] + 0.00054858 #+electron
+            self.table["abs_error"] = ((self.table["mass"] + 0.00054858) * self.table["charge"]) - self.table["calc_mass"]#+electron
         elif sign == '0':
-            self.table["abs_error"] = self.table["mass"] - self.table["calc_mass"]
+            self.table["abs_error"] = (self.table["mass"] * self.table["charge"]) - self.table["calc_mass"]
         else:
             raise ValueError('Sended sign or sign in metadata is not correct. May be "+","-","0"')
         

@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="main">
        <attribute name="title">
@@ -42,7 +42,7 @@
          <rect>
           <x>10</x>
           <y>10</y>
-          <width>709</width>
+          <width>725</width>
           <height>476</height>
          </rect>
         </property>
@@ -246,27 +246,16 @@
             </layout>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_22">
+            <layout class="QHBoxLayout" name="horizontalLayout_23">
              <item>
-              <widget class="QPushButton" name="show_assign_error">
+              <widget class="QLabel" name="label_19">
                <property name="text">
-                <string>ShowErr</string>
+                <string>Max Charge</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="remove_C_13">
-               <property name="text">
-                <string>C_13</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="duplicates">
-               <property name="text">
-                <string>Dupl</string>
-               </property>
-              </widget>
+              <widget class="QLineEdit" name="cahrge_max"/>
              </item>
             </layout>
            </item>
@@ -535,6 +524,38 @@
              </item>
              <item>
               <widget class="QLineEdit" name="recal_range_max"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_20">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_22">
+             <item>
+              <widget class="QPushButton" name="show_assign_error">
+               <property name="text">
+                <string>ShowErr</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="remove_C_13">
+               <property name="text">
+                <string>C_13</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="duplicates">
+               <property name="text">
+                <string>Dupl</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -1691,9 +1712,7 @@
   <tabstop>assign</tabstop>
   <tabstop>assign_error_ppm</tabstop>
   <tabstop>mode</tabstop>
-  <tabstop>show_assign_error</tabstop>
-  <tabstop>remove_C_13</tabstop>
-  <tabstop>duplicates</tabstop>
+  <tabstop>cahrge_max</tabstop>
   <tabstop>listWidget_2</tabstop>
   <tabstop>assign_element</tabstop>
   <tabstop>assign_isotope</tabstop>
@@ -1721,6 +1740,9 @@
   <tabstop>range</tabstop>
   <tabstop>recal_range_min</tabstop>
   <tabstop>recal_range_max</tabstop>
+  <tabstop>show_assign_error</tabstop>
+  <tabstop>remove_C_13</tabstop>
+  <tabstop>duplicates</tabstop>
   <tabstop>load_background</tabstop>
   <tabstop>remove_background</tabstop>
   <tabstop>multi_load</tabstop>

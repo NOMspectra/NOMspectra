@@ -45,7 +45,7 @@ For remove element click on row in list field and press **remove** button.
 
 To generate brutto formulas, press **Gen** , the table will be displayed in the field below.
 
-To assign formulas, enter the allowable error in the **Err ppm** field, chose **mode** (negative by default or positive) and press the **Assign** button.
+To assign formulas, enter the allowable error in the **Err ppm** field and maximum charge into **Max Charge**, chose **mode** (negative by default or positive) and press the **Assign** button.
 
 After assigment you can remove peaks that don't have 13C isotopes by **C_13** button and also remove duplicates by **dupl** button.
 

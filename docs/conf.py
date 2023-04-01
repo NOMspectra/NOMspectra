@@ -27,7 +27,7 @@ copyright = '2022, Alexander Volikov, Rukhovich Gleb'
 author = 'Alexander Volikov, Rukhovich Gleb'
 
 # The full version, including alpha/beta/rc tags
-release = '0.3.11'
+release = '0.3.12'
 
 # -- General configuration ---------------------------------------------------
 
