@@ -23,11 +23,11 @@ sys.path.insert(0, os.path.join(d, ".."))
 # -- Project information -----------------------------------------------------
 
 project = 'nomspectra'
-copyright = '2022, Alexander Volikov, Rukhovich Gleb'
+copyright = '2023, Alexander Volikov, Rukhovich Gleb'
 author = 'Alexander Volikov, Rukhovich Gleb'
 
 # The full version, including alpha/beta/rc tags
-release = '0.3.12'
+release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 

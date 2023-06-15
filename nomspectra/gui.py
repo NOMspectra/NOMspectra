@@ -50,7 +50,8 @@ Graphical user interface for nomspectra package: https://github.com/nomspectra/n
 
 Tutorial: https://nomspectra.readthedocs.io/en/latest/gui_tutorial.html
 
-Distributed under license GPLv3 http://www.gnu.org/licenses/
+Cite NOMspectra: https://doi.org/10.1021/jasms.3c00003
+
 '''
 
 def_colors = ['blue','red','green','orange','purple','brown','pink','gray','olive','cyan']
