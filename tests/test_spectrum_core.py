@@ -151,7 +151,7 @@ def test_drop_unassigned():
     spec = spec.drop_unassigned()
     assert len(spec) == 4857
     assert False not in spec.table['assign']
-    assert np.NaN not in spec.table['C']
+    assert np.nan not in spec.table['C']
 
 def test_merge_duplicates():
     df = pd.DataFrame({'mass':[221.00919, 221.08186, 221.08185, 221.15477], 
