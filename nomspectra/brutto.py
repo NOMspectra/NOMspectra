@@ -172,7 +172,7 @@ def gen_from_brutto(table: pd.DataFrame) -> pd.DataFrame:
 
     table["calc_mass"] = table.multiply(masses).sum(axis=1)
     table["calc_mass"] = np.round(table["calc_mass"], 6)
-    table.loc[table["calc_mass"] == 0, "calc_mass"] = np.NaN
+    table.loc[table["calc_mass"] == 0, "calc_mass"] = np.nan
 
     return table
 

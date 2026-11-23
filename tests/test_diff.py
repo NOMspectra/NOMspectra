@@ -12,7 +12,7 @@ spec1 = spec1.noise_filter(quantile=0.8)
 
 df_test = pd.DataFrame({'mass':[12, 24, 36, 48, 60, 72, 84, 96], 
                         'intensity':[1,1,1,1,1,1,1,1],
-                        'C':[1,2, np.NaN, 4, np.NaN,6,7,8],
+                        'C':[1,2, np.nan, 4, np.nan,6,7,8],
                         'N':[0,0,0,0,0,0,0,0],
                         'H':[0,0,0,0,0,0,0,0],
                         'O':[0,0,0,0,0,0,0,0],

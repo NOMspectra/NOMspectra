@@ -388,18 +388,15 @@ class ErrorTable(object):
 
         treshold = df['intensity'].quantile(quart)
         df = df.loc[df['intensity'] > treshold].reset_index(drop = True)
-        df['cal'] = 0 #column for check
+        df['cal'] = 0.0 #column for check
 
         #fill data massiv with correct mass
         for i in range(0,len(df)):
             min_mass = df.loc[i, 'mass']*(1 - ppm/1000000)
             max_mass = df.loc[i, 'mass']*(1 + ppm/1000000)
             for mass in et:
-                try:
-                    if mass > min_mass and mass < max_mass:
-                        df.loc[i, 'cal'] = mass
-                except:
-                    pass
+                if mass > min_mass and mass < max_mass:
+                    df.loc[i, 'cal'] = mass
         
         # take just assigned peaks
         df = df.loc[df['cal']>0]

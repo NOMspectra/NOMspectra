@@ -671,7 +671,7 @@ class Spectrum(object):
 
         self.table["calc_mass"] = table.multiply(masses).sum(axis=1)
         self.table["calc_mass"] = np.round(self.table["calc_mass"], 6)
-        self.table.loc[self.table["calc_mass"] == 0, "calc_mass"] = np.NaN
+        self.table.loc[self.table["calc_mass"] == 0, "calc_mass"] = np.nan
 
         return self
 
@@ -878,7 +878,7 @@ class Spectrum(object):
             if row['calc_mass'] in operate:
                 mark.append(row['calc_mass'])
             else:
-                mark.append(np.NaN)
+                mark.append(np.nan)
         res['calc_mass'] = mark
         res = res.dropna()
 
@@ -1689,7 +1689,7 @@ class Spectrum(object):
             try:
                 res.append([col, f(col)])
             except:
-                res.append([col, np.NaN])
+                res.append([col, np.nan])
 
         return pd.DataFrame(data=res, columns=['metric', 'value'])
 
