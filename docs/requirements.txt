@@ -1,12 +1,4 @@
-sphinx==4.4.0
-sphinx_rtd_theme==1.0.0
-sphinxcontrib-apidoc==0.3.0
-myst-parser
-matplotlib
-numpy
-pandas
-scipy
-seaborn
-tqdm
-frozendict
-networkx
+sphinx>=7.2
+sphinx_rtd_theme>=2.0
+sphinxcontrib-apidoc>=0.5
+myst-parser>=2.0

@@ -27,7 +27,7 @@ copyright = '2023, Alexander Volikov, Rukhovich Gleb'
 author = 'Alexander Volikov, Rukhovich Gleb'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+from nomspectra.__version__ import __version__ as release
 
 # -- General configuration ---------------------------------------------------
 
